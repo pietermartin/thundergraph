@@ -1,7 +1,9 @@
 package org.glmdb.blueprints.test;
 
+import com.tinkerpop.blueprints.Vertex;
 import org.apache.commons.io.FileUtils;
 import org.glmdb.blueprints.GlmdbGraph;
+import org.glmdb.blueprints.GlmdbVertex;
 import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Test;
@@ -32,9 +34,16 @@ public class GlmdbGraphTest {
 
     @Test
     public void testAddVertex() {
+        long start = System.currentTimeMillis();
+        System.out.println();
         GlmdbGraph glmdbGraph = new GlmdbGraph(this.dbPath);
-        glmdbGraph.addVertex(null);
+        for (int i = 0; i < 1000000; i++) {
+            Vertex vertex = glmdbGraph.addVertex(null);
+            vertex = glmdbGraph.addVertex(null);
+        }
         glmdbGraph.commit();
+        long end = System.currentTimeMillis();
+        System.out.println("Time taken: " + String.valueOf(end - start));
         glmdbGraph.shutdown();
     }
 

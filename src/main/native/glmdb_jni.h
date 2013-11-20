@@ -13,6 +13,7 @@ typedef struct GLMDB_env {
 	MDB_dbi vertexDb;
 	MDB_dbi edgeDb;
 	MDB_dbi propertyKeyDb;
+	long idSequence;
 	char *path;
 } GLMDB_env;
 

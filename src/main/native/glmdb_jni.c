@@ -174,16 +174,16 @@ JNIEXPORT jint JNICALL Java_org_glmdb_blueprints_jni_GlmdbJni_mdb_1add_1vertex
 	jlong *vertexId = NULL;
 	MDB_val vertexKey;
 	GLMDB_env * glmdb_env = (GLMDB_env *) (long) glmdbEnv;
-	rc = addVertex((MDB_cursor *)(long)cursor, glmdb_env->vertexDb, 0, &vertexKey);
-
+	glmdb_env->idSequence++;
 	if (vertexIdArray) {
 		if ((vertexId = (*env)->GetLongArrayElements(env, vertexIdArray, NULL))
 				== NULL) {
 			goto fail;
 		}
 	}
+	rc = addVertex((MDB_cursor *)(long)cursor, glmdb_env->vertexDb, glmdb_env->idSequence, &vertexKey);
+	*vertexId = (*((VertexDbId *) (vertexKey.mv_data))).vertexId;
 
-	vertexId[0] = (*((VertexDbId *) (vertexKey.mv_data))).vertexId;
 	fail: if (vertexIdArray && vertexId) {
 		(*env)->ReleaseLongArrayElements(env, vertexIdArray, vertexId, 0);
 	}
