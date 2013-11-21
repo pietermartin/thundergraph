@@ -4,6 +4,8 @@ import com.tinkerpop.blueprints.Direction;
 import com.tinkerpop.blueprints.Edge;
 import com.tinkerpop.blueprints.Vertex;
 import com.tinkerpop.blueprints.VertexQuery;
+import org.glmdb.blueprints.jni.Cursor;
+import org.glmdb.blueprints.jni.Glmdb;
 
 /**
  * Date: 2013/11/17
@@ -11,10 +13,8 @@ import com.tinkerpop.blueprints.VertexQuery;
  */
 public class GlmdbVertex extends GlmdbElement implements Vertex {
 
-    private long id;
-
-    public GlmdbVertex(long id) {
-        this.id = id;
+    public GlmdbVertex(Glmdb glmdb, Cursor cursor, long id) {
+        super(glmdb, cursor, id);
     }
 
     @Override

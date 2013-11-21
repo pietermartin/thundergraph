@@ -143,4 +143,6 @@ public class GlmdbJni {
 
     public static final native int mdb_add_vertex(long glmdb_env, long cursor, long vertexId[]);
 
+    public static final native int mdb_set_property_string(long cursor, long vertexId, int propertykeyId, String value);
+
 }

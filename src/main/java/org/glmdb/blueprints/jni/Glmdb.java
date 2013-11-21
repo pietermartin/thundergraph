@@ -1,9 +1,11 @@
 package org.glmdb.blueprints.jni;
 
 import java.io.Closeable;
+import java.util.HashMap;
+import java.util.Map;
 
-import static  org.glmdb.blueprints.jni.GlmdbJni.*;
-import static org.glmdb.blueprints.jni.Util.*;
+import static org.glmdb.blueprints.jni.GlmdbJni.*;
+import static org.glmdb.blueprints.Util.*;
 
 /**
  * Date: 2013/11/18
@@ -11,19 +13,25 @@ import static org.glmdb.blueprints.jni.Util.*;
  */
 public class Glmdb extends NativeObject implements Closeable {
 
+    private Map<String, Integer> propertyKeyToIdMap = new HashMap<String, Integer>();
+
     public Glmdb(String path) {
         super(create(path));
+        this.propertyKeyToIdMap.put("name0", 0);
+        this.propertyKeyToIdMap.put("name1", 1);
+        this.propertyKeyToIdMap.put("name2", 2);
+        this.propertyKeyToIdMap.put("name3", 3);
     }
 
     private static long create(String path) {
         long env_ptr[] = new long[1];
-        checkErrorCode(glmdb_env_create(path, env_ptr));
+        checkErrorCode(GlmdbJni.glmdb_env_create(path, env_ptr));
         return env_ptr[0];
     }
 
     public void close() {
         if( self!=0 ) {
-            glmdb_env_close(self);
+            GlmdbJni.glmdb_env_close(self);
             self=0;
         }
     }
@@ -40,19 +48,36 @@ public class Glmdb extends NativeObject implements Closeable {
 
     public Transaction createTransaction(Transaction parent, boolean readOnly) {
         long txpointer [] = new long[1];
-        checkErrorCode(mdb_txn_begin(pointer(), parent==null ? 0 : parent.pointer(), readOnly ? MDB_RDONLY : 0, txpointer));
+        checkErrorCode(GlmdbJni.mdb_txn_begin(pointer(), parent == null ? 0 : parent.pointer(), readOnly ? GlmdbJni.MDB_RDONLY : 0, txpointer));
         return new Transaction(this, txpointer[0]);
     }
 
     public Cursor openCursorToVertexDb(Transaction tx) {
         long cursor[] = new long[1];
-        checkErrorCode(mdb_cursor_open_vertex_db(tx.pointer(), pointer(), cursor));
+        checkErrorCode(GlmdbJni.mdb_cursor_open_vertex_db(tx.pointer(), pointer(), cursor));
         return new Cursor(this, cursor[0]);
     }
 
     public long addVertex(Cursor cursor) {
         long vertexId[] = new long[1];
-        checkErrorCode(mdb_add_vertex(pointer(), cursor.pointer(), vertexId));
+        checkErrorCode(GlmdbJni.mdb_add_vertex(pointer(), cursor.pointer(), vertexId));
         return vertexId[0];
     }
+
+    public void setProperty(Cursor cursor, long vertexId, String key, String value) {
+        Integer propertyKeyId = this.propertyKeyToIdMap.get(key);
+        if (propertyKeyId == null) {
+
+        }
+        checkErrorCode(mdb_set_property_string(cursor.pointer(), vertexId, propertyKeyId, value));
+    }
+
+    public Object getProperty(Cursor cursor, long vertexId, String key) {
+        Integer propertyKeyId = this.propertyKeyToIdMap.get(key);
+        if (propertyKeyId == null) {
+
+        }
+        checkErrorCode(mdb_set_property_string(cursor.pointer(), vertexId, propertyKeyId));
+    }
+
 }

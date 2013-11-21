@@ -37,9 +37,9 @@ public class GlmdbGraphTest {
         long start = System.currentTimeMillis();
         System.out.println();
         GlmdbGraph glmdbGraph = new GlmdbGraph(this.dbPath);
-        for (int i = 0; i < 1000000; i++) {
+        for (int i = 0; i < 1; i++) {
             Vertex vertex = glmdbGraph.addVertex(null);
-            vertex = glmdbGraph.addVertex(null);
+            vertex.setProperty("name0", "pieter");
         }
         glmdbGraph.commit();
         long end = System.currentTimeMillis();

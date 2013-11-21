@@ -1,6 +1,8 @@
-package org.glmdb.blueprints.jni;
+package org.glmdb.blueprints;
 
-import static  org.glmdb.blueprints.jni.GlmdbJni.*;
+import org.glmdb.blueprints.jni.GLMDBException;
+
+import static org.glmdb.blueprints.jni.GlmdbJni.*;
 
 /**
  * Date: 2013/11/19

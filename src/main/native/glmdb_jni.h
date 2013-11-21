@@ -13,7 +13,8 @@ typedef struct GLMDB_env {
 	MDB_dbi vertexDb;
 	MDB_dbi edgeDb;
 	MDB_dbi propertyKeyDb;
-	long idSequence;
+	long vertexIdSequence;
+	long edgeIdSequence;
 	char *path;
 } GLMDB_env;
 
@@ -149,13 +150,23 @@ JNIEXPORT jint JNICALL Java_org_glmdb_blueprints_jni_GlmdbJni_mdb_1cursor_1renew
 JNIEXPORT jint JNICALL Java_org_glmdb_blueprints_jni_GlmdbJni_mdb_1add_1vertex
   (JNIEnv *env, jclass that, jlong glmdb_env, jlong cursor, jlongArray vertexId);
 
+/*
+ * Class:     org_glmdb_blueprints_jni_GlmdbJni
+ * Method:    mdb_set_property_string
+ * Signature: (JJILjava/lang/String;)I
+ */
+JNIEXPORT jint JNICALL Java_org_glmdb_blueprints_jni_GlmdbJni_mdb_1set_1property_1string
+  (JNIEnv *env, jclass that, jlong cursor, jlong vertexId, jint propertyKeyId, jstring value);
+
 int openGraph(GLMDB_env **genv, const char *path);
 void closeGraph(GLMDB_env *genv);
 int addVertex(MDB_cursor *cursor, MDB_dbi vertexDb, long vertexId, MDB_val *vertexKey);
 int compareVertexDbId(const MDB_val *key1, const MDB_val *key2);
 int compareEdgeDbId(const MDB_val *key1, const MDB_val *key2);
 void printDbStats(MDB_env *env, MDB_dbi vertexDb, char *name);
-
+int setVertexPropertyString(MDB_cursor *cursor, long vertexId,
+		int propertyKeyId,
+		char *propertyValue);
 #ifdef __cplusplus
 }
 #endif

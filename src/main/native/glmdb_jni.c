@@ -143,9 +143,9 @@ JNIEXPORT jint JNICALL Java_org_glmdb_blueprints_jni_GlmdbJni_mdb_1cursor_1open_
  * Method:    mdb_cursor_close
  * Signature: (J)V
  */
-JNIEXPORT void JNICALL Java_org_glmdb_blueprints_jni_GlmdbJni_mdb_1cursor_1close
-  (JNIEnv *env, jclass that, jlong cursor) {
-	mdb_cursor_close((MDB_cursor *)(long)cursor);
+JNIEXPORT void JNICALL Java_org_glmdb_blueprints_jni_GlmdbJni_mdb_1cursor_1close(
+		JNIEnv *env, jclass that, jlong cursor) {
+	mdb_cursor_close((MDB_cursor *) (long) cursor);
 }
 
 /*
@@ -153,11 +153,12 @@ JNIEXPORT void JNICALL Java_org_glmdb_blueprints_jni_GlmdbJni_mdb_1cursor_1close
  * Method:    mdb_cursor_renew
  * Signature: (JJ)I
  */
-JNIEXPORT jint JNICALL Java_org_glmdb_blueprints_jni_GlmdbJni_mdb_1cursor_1renew
-  (JNIEnv *env, jclass that, jlong txn, jlong cursor) {
+JNIEXPORT jint JNICALL Java_org_glmdb_blueprints_jni_GlmdbJni_mdb_1cursor_1renew(
+		JNIEnv *env, jclass that, jlong txn, jlong cursor) {
 
 	jint rc = 0;
-	rc = (jint)mdb_cursor_renew((MDB_txn *)(long)txn, (MDB_cursor *)(long)cursor);
+	rc = (jint) mdb_cursor_renew((MDB_txn *) (long) txn,
+			(MDB_cursor *) (long) cursor);
 	return rc;
 
 }
@@ -167,21 +168,23 @@ JNIEXPORT jint JNICALL Java_org_glmdb_blueprints_jni_GlmdbJni_mdb_1cursor_1renew
  * Method:    mdb_add_vertex
  * Signature: (JJ[J)I
  */
-JNIEXPORT jint JNICALL Java_org_glmdb_blueprints_jni_GlmdbJni_mdb_1add_1vertex
-  (JNIEnv *env, jclass that, jlong glmdbEnv, jlong cursor, jlongArray vertexIdArray) {
+JNIEXPORT jint JNICALL Java_org_glmdb_blueprints_jni_GlmdbJni_mdb_1add_1vertex(
+		JNIEnv *env, jclass that, jlong glmdbEnv, jlong cursor,
+		jlongArray vertexIdArray) {
 
 	jint rc = 0;
 	jlong *vertexId = NULL;
 	MDB_val vertexKey;
 	GLMDB_env * glmdb_env = (GLMDB_env *) (long) glmdbEnv;
-	glmdb_env->idSequence++;
+	glmdb_env->vertexIdSequence++;
 	if (vertexIdArray) {
 		if ((vertexId = (*env)->GetLongArrayElements(env, vertexIdArray, NULL))
 				== NULL) {
 			goto fail;
 		}
 	}
-	rc = addVertex((MDB_cursor *)(long)cursor, glmdb_env->vertexDb, glmdb_env->idSequence, &vertexKey);
+	rc = addVertex((MDB_cursor *) (long) cursor, glmdb_env->vertexDb,
+			glmdb_env->vertexIdSequence, &vertexKey);
 	*vertexId = (*((VertexDbId *) (vertexKey.mv_data))).vertexId;
 
 	fail: if (vertexIdArray && vertexId) {
@@ -191,11 +194,37 @@ JNIEXPORT jint JNICALL Java_org_glmdb_blueprints_jni_GlmdbJni_mdb_1add_1vertex
 
 }
 
+/*
+ * Class:     org_glmdb_blueprints_jni_GlmdbJni
+ * Method:    mdb_set_property_string
+ * Signature: (JJILjava/lang/String;)I
+ */
+JNIEXPORT jint JNICALL Java_org_glmdb_blueprints_jni_GlmdbJni_mdb_1set_1property_1string(
+		JNIEnv *env, jclass that, jlong cursor, jlong vertexId,
+		jint propertyKeyId, jstring value) {
+
+	jint rc = 0;
+	jint strlen = (*env)->GetStringUTFLength(env, value);
+	char *propertyValue = malloc(strlen);
+	if (value) {
+		(*env)->GetStringUTFRegion(env, value, 0, strlen, propertyValue);
+		if (propertyValue == NULL) {
+			goto fail;
+		}
+	}
+	rc = setVertexPropertyString((MDB_cursor *) (long) cursor, (long)vertexId, (int)propertyKeyId, propertyValue);
+
+	fail: if (value && propertyValue) {
+		(*env)->ReleaseStringUTFChars(env, value, propertyValue);
+	}
+	return rc;
+}
+
 int openGraph(GLMDB_env **genv, const char *path) {
 	int rc;
 
 	GLMDB_env *e;
-	e = calloc(1, sizeof(GLMDB_env));
+	e = calloc(sizeof(GLMDB_env), 1);
 
 	MDB_txn *txn;
 	MDB_env *env;
@@ -221,7 +250,7 @@ int openGraph(GLMDB_env **genv, const char *path) {
 		return rc;
 	}
 
-	//Create the config db
+//Create the config db
 	rc = mdb_txn_begin(env, NULL, 0, &txn);
 	if (rc != 0) {
 		mdb_txn_abort(txn);
@@ -237,7 +266,7 @@ int openGraph(GLMDB_env **genv, const char *path) {
 		return rc;
 	}
 
-	//Create the vertex db
+//Create the vertex db
 	rc = mdb_txn_begin(env, NULL, 0, &txn);
 	if (rc != 0) {
 		mdb_txn_abort(txn);
@@ -259,7 +288,7 @@ int openGraph(GLMDB_env **genv, const char *path) {
 		return rc;
 	}
 
-	//Create the edge db
+//Create the edge db
 	rc = mdb_txn_begin(env, NULL, 0, &txn);
 	if (rc != 0) {
 		mdb_txn_abort(txn);
@@ -281,7 +310,7 @@ int openGraph(GLMDB_env **genv, const char *path) {
 		return rc;
 	}
 
-	//Create the property key db
+//Create the property key db
 	rc = mdb_txn_begin(env, NULL, 0, &txn);
 	if (rc != 0) {
 		mdb_txn_abort(txn);
@@ -329,7 +358,8 @@ void closeGraph(GLMDB_env *genv) {
 }
 
 //MDB_val *vertexKey is out only
-int addVertex(MDB_cursor *cursor, MDB_dbi vertexDb, long vertexId, MDB_val *vertexKey) {
+int addVertex(MDB_cursor *cursor, MDB_dbi vertexDb, long vertexId,
+		MDB_val *vertexKey) {
 	MDB_val data;
 	VertexDbId id;
 	id.vertexId = vertexId;
@@ -337,10 +367,50 @@ int addVertex(MDB_cursor *cursor, MDB_dbi vertexDb, long vertexId, MDB_val *vert
 	id.propertykeyId = -1;
 	(*vertexKey).mv_size = (sizeof(VertexDbId));
 	(*vertexKey).mv_data = &id;
-	//write a null of sorts
-	data.mv_size = strlen("\0") + 1;
-	data.mv_data = "\0";
+//write a null of sorts
+	data.mv_size = strlen("") + 1;
+	data.mv_data = "";
 	return mdb_cursor_put(cursor, vertexKey, &data, MDB_NOOVERWRITE);
+}
+
+int setVertexPropertyString(MDB_cursor *cursor, long vertexId,
+		int propertyKeyId, char *propertyValue) {
+	MDB_val key, data;
+	VertexDbId id;
+	id.vertexId = vertexId;
+	id.coreOrPropertyEnum = VPROPERTY_KEY;
+	id.propertykeyId = propertyKeyId;
+	key.mv_size = (sizeof(VertexDbId));
+	key.mv_data = &id;
+	if (propertyValue != NULL) {
+		data.mv_size = strlen(propertyValue) + 1;
+		data.mv_data = propertyValue;
+	} else {
+		//write a null of sorts
+		data.mv_size = strlen("") + 1;
+		data.mv_data = "";
+	}
+	return mdb_cursor_put(cursor, &key, &data, MDB_NOOVERWRITE);
+}
+
+int getVertexPropertyString(MDB_cursor *cursor, long vertexId,
+		int propertyKeyId, char *propertyValue) {
+	MDB_val key, data;
+	VertexDbId id;
+	id.vertexId = vertexId;
+	id.coreOrPropertyEnum = VPROPERTY_KEY;
+	id.propertykeyId = propertyKeyId;
+	key.mv_size = (sizeof(VertexDbId));
+	key.mv_data = &id;
+	if (propertyValue != NULL) {
+		data.mv_size = strlen(propertyValue) + 1;
+		data.mv_data = propertyValue;
+	} else {
+		//write a null of sorts
+		data.mv_size = strlen("") + 1;
+		data.mv_data = "";
+	}
+	return mdb_cursor_put(cursor, &key, &data, MDB_NOOVERWRITE);
 }
 
 int compareVertexDbId(const MDB_val *key1, const MDB_val *key2) {

@@ -111,6 +111,14 @@ JNIEXPORT jint JNICALL Java_org_glmdb_blueprints_jni_GlmdbJni_mdb_1cursor_1open_
 JNIEXPORT jint JNICALL Java_org_glmdb_blueprints_jni_GlmdbJni_mdb_1add_1vertex
   (JNIEnv *, jclass, jlong, jlong, jlongArray);
 
+/*
+ * Class:     org_glmdb_blueprints_jni_GlmdbJni
+ * Method:    mdb_set_property_string
+ * Signature: (JJILjava/lang/String;)I
+ */
+JNIEXPORT jint JNICALL Java_org_glmdb_blueprints_jni_GlmdbJni_mdb_1set_1property_1string
+  (JNIEnv *, jclass, jlong, jlong, jint, jstring);
+
 #ifdef __cplusplus
 }
 #endif

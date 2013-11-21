@@ -1,9 +1,8 @@
 package org.glmdb.blueprints.jni;
 
-import java.io.Closeable;
+import org.glmdb.blueprints.Util;
 
-import static  org.glmdb.blueprints.jni.GlmdbJni.*;
-import static org.glmdb.blueprints.jni.Util.*;
+import java.io.Closeable;
 
 /**
  * Date: 2013/11/19
@@ -20,13 +19,13 @@ public class Cursor extends NativeObject implements Closeable {
 
     public void close() {
         if( self!=0 ) {
-            mdb_cursor_close(self);
+            GlmdbJni.mdb_cursor_close(self);
             self=0;
         }
     }
 
     public void renew(Transaction tx) {
-        checkErrorCode(mdb_cursor_renew(tx.pointer(), pointer()));
+        Util.checkErrorCode(GlmdbJni.mdb_cursor_renew(tx.pointer(), pointer()));
     }
 
 }

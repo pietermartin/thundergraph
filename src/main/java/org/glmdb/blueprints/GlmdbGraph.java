@@ -44,8 +44,8 @@ public class GlmdbGraph implements TransactionalGraph {
     @Override
     public Vertex addVertex(Object id) {
         TransactionAndCursor tc = getTx();
-        long vertexId = glmdb.addVertex(tc.cursor);
-        return new GlmdbVertex(vertexId);
+        long vertexId = this.glmdb.addVertex(tc.cursor);
+        return new GlmdbVertex(this.glmdb, tc.cursor, vertexId);
     }
 
     @Override
