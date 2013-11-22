@@ -5,7 +5,7 @@ import java.util.HashMap;
 import java.util.Map;
 
 import static org.glmdb.blueprints.jni.GlmdbJni.*;
-import static org.glmdb.blueprints.Util.*;
+import static org.glmdb.blueprints.jni.Util.*;
 
 /**
  * Date: 2013/11/18
@@ -25,13 +25,13 @@ public class Glmdb extends NativeObject implements Closeable {
 
     private static long create(String path) {
         long env_ptr[] = new long[1];
-        checkErrorCode(GlmdbJni.glmdb_env_create(path, env_ptr));
+        checkErrorCode(glmdb_env_create(path, env_ptr));
         return env_ptr[0];
     }
 
     public void close() {
         if( self!=0 ) {
-            GlmdbJni.glmdb_env_close(self);
+            glmdb_env_close(self);
             self=0;
         }
     }
@@ -48,19 +48,19 @@ public class Glmdb extends NativeObject implements Closeable {
 
     public Transaction createTransaction(Transaction parent, boolean readOnly) {
         long txpointer [] = new long[1];
-        checkErrorCode(GlmdbJni.mdb_txn_begin(pointer(), parent == null ? 0 : parent.pointer(), readOnly ? GlmdbJni.MDB_RDONLY : 0, txpointer));
+        checkErrorCode(mdb_txn_begin(pointer(), parent == null ? 0 : parent.pointer(), readOnly ? GlmdbJni.MDB_RDONLY : 0, txpointer));
         return new Transaction(this, txpointer[0]);
     }
 
     public Cursor openCursorToVertexDb(Transaction tx) {
         long cursor[] = new long[1];
-        checkErrorCode(GlmdbJni.mdb_cursor_open_vertex_db(tx.pointer(), pointer(), cursor));
+        checkErrorCode(mdb_cursor_open_vertex_db(tx.pointer(), pointer(), cursor));
         return new Cursor(this, cursor[0]);
     }
 
     public long addVertex(Cursor cursor) {
         long vertexId[] = new long[1];
-        checkErrorCode(GlmdbJni.mdb_add_vertex(pointer(), cursor.pointer(), vertexId));
+        checkErrorCode(mdb_add_vertex(pointer(), cursor.pointer(), vertexId));
         return vertexId[0];
     }
 
@@ -72,12 +72,19 @@ public class Glmdb extends NativeObject implements Closeable {
         checkErrorCode(mdb_set_property_string(cursor.pointer(), vertexId, propertyKeyId, value));
     }
 
-    public Object getProperty(Cursor cursor, long vertexId, String key) {
+    public String getProperty(Cursor cursor, long vertexId, String key) {
         Integer propertyKeyId = this.propertyKeyToIdMap.get(key);
         if (propertyKeyId == null) {
 
         }
-        checkErrorCode(mdb_set_property_string(cursor.pointer(), vertexId, propertyKeyId));
+//        Value value = new Value();
+//        checkErrorCode(mdb_get_property(cursor.pointer(), vertexId, propertyKeyId, value));
+//        return string(value.mv_data);
+
+        byte[][] value = new byte[1][];
+        checkErrorCode(mdb_get_property_array(cursor.pointer(), vertexId, propertyKeyId, value));
+        return string(value[0]);
+
     }
 
 }

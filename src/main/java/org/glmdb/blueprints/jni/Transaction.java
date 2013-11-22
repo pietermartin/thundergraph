@@ -1,7 +1,5 @@
 package org.glmdb.blueprints.jni;
 
-import org.glmdb.blueprints.Util;
-
 import static org.glmdb.blueprints.jni.GlmdbJni.*;
 
 /**

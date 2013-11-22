@@ -218,6 +218,89 @@ JNIEXPORT jint JNICALL Java_org_glmdb_blueprints_jni_GlmdbJni_mdb_1set_1property
 		(*env)->ReleaseStringUTFChars(env, value, propertyValue);
 	}
 	return rc;
+
+}
+
+/*
+ * Class:     org_glmdb_blueprints_jni_GlmdbJni
+ * Method:    mdb_get_property_array
+ * Signature: (JJI[[B)I
+ */
+JNIEXPORT jint JNICALL Java_org_glmdb_blueprints_jni_GlmdbJni_mdb_1get_1property_1array
+  (JNIEnv *env, jclass that, jlong cursor, jlong vertexId, jint propertyKeyId, jobjectArray value) {
+
+	jint rc = 0;
+	MDB_val data;
+	rc = getVertexProperty((MDB_cursor *) (long) cursor, (long) vertexId,
+			(int) propertyKeyId, &data);
+	if (rc == 0) {
+		jbyteArray byteArray = (*env)->NewByteArray(env, (size_t)data.mv_size);
+		jbyte *cbytes = (*env)->GetByteArrayElements(env, byteArray, NULL);
+		printf("size: %i\n",(size_t)data.mv_size);
+		memcpy(cbytes, data.mv_data, data.mv_size);
+		(*env)->SetObjectArrayElement(env, value, 0, byteArray);
+		(*env)->ReleaseByteArrayElements(env, byteArray, cbytes, 0);
+	}
+	return rc;
+
+
+//	jint rc = 0;
+//	jbyte *valueArray = NULL;
+//	if (value) {
+//		if ((valueArray = (*env)->GetPrimitiveArrayCritical(env, value, NULL))
+//				== NULL) {
+//			goto fail;
+//		}
+//	}
+//	MDB_val data;
+//	rc = getVertexProperty((MDB_cursor *) (long) cursor, (long) vertexId,
+//			(int) propertyKeyId, &data);
+//	printf("value: %.*s\n",(int) data.mv_size, (char *) data.mv_data);
+//
+//	if (rc == 0) {
+//		buffer_copy(data.mv_data, 0, valueArray, 0, data.mv_size);
+//	}
+//
+//	fail: if (value && valueArray) {
+//		(*env)->ReleasePrimitiveArrayCritical(env, value, valueArray, 0);
+//	}
+//	return rc;
+}
+
+/*
+ * Class:     org_glmdb_blueprints_jni_GlmdbJni
+ * Method:    mdb_get_property
+ * Signature: (JJILorg/glmdb/blueprints/jni/Value;)I
+ */
+JNIEXPORT jint JNICALL Java_org_glmdb_blueprints_jni_GlmdbJni_mdb_1get_1property
+  (JNIEnv *env, jclass that, jlong cursor, jlong vertexId, jint propertyKeyId, jobject value) {
+
+	jint rc = 0;
+	//TODO cache this
+	jclass valueClass = (*env)->GetObjectClass(env, value);
+	jfieldID mvDataFieldId = (*env)->GetFieldID(env, valueClass, "mv_data", "[B");
+
+	MDB_val data;
+	rc = getVertexProperty((MDB_cursor *) (long) cursor, (long) vertexId,
+			(int) propertyKeyId, &data);
+
+	printf("value: %.*s\n",(int) data.mv_size, (char *) data.mv_data);
+	printf("size: %i\n",(int) data.mv_size);
+
+	jbyteArray byteArray = (*env)->NewByteArray(env, (size_t)data.mv_size);
+	jbyte *cbytes = (*env)->GetByteArrayElements(env, byteArray, NULL);
+
+	if (rc == 0) {
+		printf("size: %i\n",(size_t)data.mv_size);
+		memcpy(cbytes, data.mv_data, data.mv_size);
+	}
+	(*env)->SetObjectField(env, value, mvDataFieldId, byteArray);
+	(*env)->ReleaseByteArrayElements(env, byteArray, cbytes, 0);
+	return rc;
+}
+
+void buffer_copy(const void *source, size_t source_pos, void *dest, size_t dest_pos, size_t length) {
+  memmove(((char *)dest)+dest_pos, ((const char *)source)+source_pos, length);
 }
 
 int openGraph(GLMDB_env **genv, const char *path) {
@@ -368,7 +451,7 @@ int addVertex(MDB_cursor *cursor, MDB_dbi vertexDb, long vertexId,
 	(*vertexKey).mv_size = (sizeof(VertexDbId));
 	(*vertexKey).mv_data = &id;
 //write a null of sorts
-	data.mv_size = strlen("") + 1;
+	data.mv_size = strlen("");
 	data.mv_data = "";
 	return mdb_cursor_put(cursor, vertexKey, &data, MDB_NOOVERWRITE);
 }
@@ -383,34 +466,26 @@ int setVertexPropertyString(MDB_cursor *cursor, long vertexId,
 	key.mv_size = (sizeof(VertexDbId));
 	key.mv_data = &id;
 	if (propertyValue != NULL) {
-		data.mv_size = strlen(propertyValue) + 1;
+		data.mv_size = strlen(propertyValue);
 		data.mv_data = propertyValue;
 	} else {
 		//write a null of sorts
-		data.mv_size = strlen("") + 1;
+		data.mv_size = strlen("");
 		data.mv_data = "";
 	}
 	return mdb_cursor_put(cursor, &key, &data, MDB_NOOVERWRITE);
 }
 
-int getVertexPropertyString(MDB_cursor *cursor, long vertexId,
-		int propertyKeyId, char *propertyValue) {
-	MDB_val key, data;
+int getVertexProperty(MDB_cursor *cursor, long vertexId, int propertyKeyId,
+		MDB_val *data) {
+	MDB_val key;
 	VertexDbId id;
 	id.vertexId = vertexId;
 	id.coreOrPropertyEnum = VPROPERTY_KEY;
 	id.propertykeyId = propertyKeyId;
 	key.mv_size = (sizeof(VertexDbId));
 	key.mv_data = &id;
-	if (propertyValue != NULL) {
-		data.mv_size = strlen(propertyValue) + 1;
-		data.mv_data = propertyValue;
-	} else {
-		//write a null of sorts
-		data.mv_size = strlen("") + 1;
-		data.mv_data = "";
-	}
-	return mdb_cursor_put(cursor, &key, &data, MDB_NOOVERWRITE);
+	return mdb_cursor_get(cursor, &key, data, MDB_SET_KEY);
 }
 
 int compareVertexDbId(const MDB_val *key1, const MDB_val *key2) {

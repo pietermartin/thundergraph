@@ -24,7 +24,7 @@ public class GlmdbElement implements Element {
 
     @Override
     public <T> T getProperty(String key) {
-        return null;  //To change body of implemented methods use File | Settings | File Templates.
+        return (T)this.glmdb.getProperty(this.cursor, this.id, key);
     }
 
     @Override

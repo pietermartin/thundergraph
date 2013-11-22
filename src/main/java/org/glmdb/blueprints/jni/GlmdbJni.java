@@ -145,4 +145,8 @@ public class GlmdbJni {
 
     public static final native int mdb_set_property_string(long cursor, long vertexId, int propertykeyId, String value);
 
+    public static final native int mdb_get_property(long cursor, long vertexId, int propertykeyId, Value value);
+
+    public static final native int mdb_get_property_array(long cursor, long vertexId, int propertykeyId, byte[][] value);
+
 }

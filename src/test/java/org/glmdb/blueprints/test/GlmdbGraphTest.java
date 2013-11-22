@@ -4,6 +4,8 @@ import com.tinkerpop.blueprints.Vertex;
 import org.apache.commons.io.FileUtils;
 import org.glmdb.blueprints.GlmdbGraph;
 import org.glmdb.blueprints.GlmdbVertex;
+import org.glmdb.blueprints.jni.Util;
+import org.junit.Assert;
 import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Test;
@@ -37,9 +39,12 @@ public class GlmdbGraphTest {
         long start = System.currentTimeMillis();
         System.out.println();
         GlmdbGraph glmdbGraph = new GlmdbGraph(this.dbPath);
-        for (int i = 0; i < 1; i++) {
+        for (int i = 0; i < 1000000; i++) {
             Vertex vertex = glmdbGraph.addVertex(null);
             vertex.setProperty("name0", "pieter");
+            vertex.setProperty("name1", "pieter");
+            vertex.setProperty("name2", "pieter");
+            vertex.setProperty("name3", "pieter");
         }
         glmdbGraph.commit();
         long end = System.currentTimeMillis();

@@ -119,6 +119,22 @@ JNIEXPORT jint JNICALL Java_org_glmdb_blueprints_jni_GlmdbJni_mdb_1add_1vertex
 JNIEXPORT jint JNICALL Java_org_glmdb_blueprints_jni_GlmdbJni_mdb_1set_1property_1string
   (JNIEnv *, jclass, jlong, jlong, jint, jstring);
 
+/*
+ * Class:     org_glmdb_blueprints_jni_GlmdbJni
+ * Method:    mdb_get_property
+ * Signature: (JJILorg/glmdb/blueprints/jni/Value;)I
+ */
+JNIEXPORT jint JNICALL Java_org_glmdb_blueprints_jni_GlmdbJni_mdb_1get_1property
+  (JNIEnv *, jclass, jlong, jlong, jint, jobject);
+
+/*
+ * Class:     org_glmdb_blueprints_jni_GlmdbJni
+ * Method:    mdb_get_property_array
+ * Signature: (JJI[[B)I
+ */
+JNIEXPORT jint JNICALL Java_org_glmdb_blueprints_jni_GlmdbJni_mdb_1get_1property_1array
+  (JNIEnv *, jclass, jlong, jlong, jint, jobjectArray);
+
 #ifdef __cplusplus
 }
 #endif
