@@ -5,6 +5,7 @@ import org.glmdb.blueprints.jni.Glmdb;
 import org.glmdb.blueprints.jni.Transaction;
 
 import java.io.File;
+import java.nio.ByteBuffer;
 
 /**
  * Date: 2013/11/17
@@ -13,20 +14,9 @@ import java.io.File;
 public class App {
 
     public static void main(String[] args) {
-        File path = new File("/tmp/testdb");
-        if (path.exists()) {
-            path.delete();
-        }
-        path.mkdir();
-        Glmdb glmdb_env = new Glmdb("/tmp/testdb");
-
-        Transaction t = glmdb_env.createTransaction();
-        Cursor cursor = glmdb_env.openCursorToVertexDb(t);
-        glmdb_env.addVertex(cursor);
-        cursor.close();
-        t.commit();
-
-        glmdb_env.close();
+        Integer i = 2;
+        byte[] bytes = ByteBuffer.allocate(4).putInt(i).array();
+        System.out.println(bytes);
     }
 
 }

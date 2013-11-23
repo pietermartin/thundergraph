@@ -141,12 +141,41 @@ public class GlmdbJni {
 
     public static final native int mdb_cursor_open_vertex_db(long txn, long glmdb_env, long[] cursor);
 
+    public static final native int mdb_cursor_open_edge_db(long txn, long glmdb_env, long[] cursor);
+
+//    public static final native int mdb_cursor_open_propertykey_db(long txn, long glmdb_env, long[] cursor);
+
     public static final native int mdb_add_vertex(long glmdb_env, long cursor, long vertexId[]);
+
+    public static final native int mdb_add_edge(long glmdb_env, long txn, long outVertexId, long inVertexId, int labelId, long edgeId[]);
+
+    //BOOLEAN, BYTE, SHORT, INT, LONG, DOUBLE, CHAR, STRING,
+    public static final native int mdb_set_property_boolean(long cursor, long vertexId, int propertykeyId, boolean value);
+
+    public static final native int mdb_set_property_byte(long cursor, long vertexId, int propertykeyId, byte value);
+
+    public static final native int mdb_set_property_short(long cursor, long vertexId, int propertykeyId, short value);
+
+    public static final native int mdb_set_property_int(long cursor, long vertexId, int propertykeyId, int value);
+
+    public static final native int mdb_set_property_long(long cursor, long vertexId, int propertykeyId, long value);
+
+    public static final native int mdb_set_property_float(long cursor, long vertexId, int propertykeyId, float value);
+
+    public static final native int mdb_set_property_double(long cursor, long vertexId, int propertykeyId, double value);
+
+    public static final native int mdb_set_property_char(long cursor, long vertexId, int propertykeyId, char value);
 
     public static final native int mdb_set_property_string(long cursor, long vertexId, int propertykeyId, String value);
 
-    public static final native int mdb_get_property(long cursor, long vertexId, int propertykeyId, Value value);
+    public static final native int mdb_get_property_array(long cursor, long vertexId, int propertyKeyId, byte[][] value);
 
-    public static final native int mdb_get_property_array(long cursor, long vertexId, int propertykeyId, byte[][] value);
+    public static final native int mdb_set_propertykey(long glmdb_env, long txn, String propertyKey, int propertyTypeEnum, int[] propertyKeyId);
+
+    public static final native int mdb_set_label(long glmdb_env, long txn, String label, int[] labelId);
+
+    public static final native int mdb_get_vertex(long cursor, long vertexId, long vertexIdResult[]);
+
+    public static final native int mdb_get_edge(long cursor, long edgeId, long edgeIdResult[], int[] label, long[] outVertexId, long[] inVertexId);
 
 }

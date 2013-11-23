@@ -6,6 +6,7 @@ import com.tinkerpop.blueprints.Vertex;
 import com.tinkerpop.blueprints.VertexQuery;
 import org.glmdb.blueprints.jni.Cursor;
 import org.glmdb.blueprints.jni.Glmdb;
+import org.glmdb.blueprints.jni.Transaction;
 
 /**
  * Date: 2013/11/17
@@ -13,8 +14,8 @@ import org.glmdb.blueprints.jni.Glmdb;
  */
 public class GlmdbVertex extends GlmdbElement implements Vertex {
 
-    public GlmdbVertex(Glmdb glmdb, Cursor cursor, long id) {
-        super(glmdb, cursor, id);
+    public GlmdbVertex(Glmdb glmdb, Transaction txn, Cursor cursor, long id) {
+        super(glmdb, txn, cursor, id);
     }
 
     @Override

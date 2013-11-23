@@ -33,24 +33,37 @@ public class GlmdbGraph implements TransactionalGraph {
 
     @Override
     public void stopTransaction(Conclusion conclusion) {
-        //To change body of implemented methods use File | Settings | File Templates.
+        throw new RuntimeException("Use commit instead!");
     }
 
     @Override
     public Features getFeatures() {
-        return null;  //To change body of implemented methods use File | Settings | File Templates.
+        throw new RuntimeException("Not yet implemented!");
     }
 
     @Override
     public Vertex addVertex(Object id) {
-        TransactionAndCursor tc = getTx();
-        long vertexId = this.glmdb.addVertex(tc.cursor);
-        return new GlmdbVertex(this.glmdb, tc.cursor, vertexId);
+        TransactionAndCursor tc = this.getWriteTx();
+        long vertexId = this.glmdb.addVertex(tc.vertexCursor);
+        return new GlmdbVertex(this.glmdb, tc.txn, tc.vertexCursor, vertexId);
     }
 
     @Override
     public Vertex getVertex(Object id) {
-        return null;  //To change body of implemented methods use File | Settings | File Templates.
+        if (!(id instanceof Long)) {
+            throw new IllegalStateException("Vertex id must be a java.lang.Long");
+        }
+        Long vertexId = (Long)id;
+        TransactionAndCursor tc = this.getReadOnlyTx();
+        long vertexIdResult =  this.glmdb.getVertex(tc.vertexCursor, vertexId.longValue());
+        if (vertexIdResult != vertexId) {
+            throw new RuntimeException("db returned a vertex with a different id! This is a bug, should never happen");
+        }
+        if (vertexIdResult != -1) {
+            return new GlmdbVertex(this.glmdb, tc.txn, tc.vertexCursor, vertexId);
+        } else {
+            return null;
+        }
     }
 
     @Override
@@ -70,12 +83,23 @@ public class GlmdbGraph implements TransactionalGraph {
 
     @Override
     public Edge addEdge(Object id, Vertex outVertex, Vertex inVertex, String label) {
-        return null;  //To change body of implemented methods use File | Settings | File Templates.
+        TransactionAndCursor tc = this.getWriteTx();
+        long edgeId = this.glmdb.addEdge(tc.txn, (Long)outVertex.getId(), (Long)inVertex.getId(), label);
+        return new GlmdbEdge(this.glmdb, tc.txn, tc.edgeCursor, edgeId, label, (Long)outVertex.getId(), (Long)inVertex.getId());
     }
 
     @Override
     public Edge getEdge(Object id) {
-        return null;  //To change body of implemented methods use File | Settings | File Templates.
+        if (!(id instanceof Long)) {
+            throw new IllegalStateException("Edge id must be a java.lang.Long");
+        }
+        Long edgeId = (Long)id;
+        TransactionAndCursor tc = this.getReadOnlyTx();
+        String labelArray[] = new String[1];
+        long outVertexIdArray[] = new long[1];
+        long inVertexIdArray[] = new long[1];
+        this.glmdb.getEdge(tc.edgeCursor, edgeId.longValue(), labelArray, outVertexIdArray, inVertexIdArray);
+        return new GlmdbEdge(this.glmdb, tc.txn, tc.edgeCursor, edgeId, labelArray[0], outVertexIdArray[0], inVertexIdArray[0]);
     }
 
     @Override
@@ -105,23 +129,73 @@ public class GlmdbGraph implements TransactionalGraph {
 
     @Override
     public void commit() {
-        this.getTx().cursor.close();
-        this.getTx().txn.commit();
+        TransactionAndCursor tc = this.currentTransaction.get();
+        if (!tc.readOnly) {
+            synchronized (this.glmdb) {
+                tc.vertexCursor.close();
+                tc.edgeCursor.close();
+                tc.txn.commit();
+                this.glmdb.synchronizeMaps();
+            }
+        } else {
+            tc.vertexCursor.close();
+            tc.edgeCursor.close();
+            tc.txn.commit();
+        }
+        this.currentTransaction.remove();
     }
 
     @Override
     public void rollback() {
-        this.getTx().cursor.close();
-        this.getTx().txn.abort();
+        TransactionAndCursor tc = this.currentTransaction.get();
+        if (!tc.readOnly) {
+            synchronized (this.glmdb) {
+                tc.vertexCursor.close();
+                tc.edgeCursor.close();
+                tc.txn.abort();
+                this.glmdb.unsynchronizePropertyKeyMap();
+            }
+        } else {
+            tc.vertexCursor.close();
+            tc.edgeCursor.close();
+            tc.txn.abort();
+        }
+        this.currentTransaction.remove();
     }
 
-    private TransactionAndCursor getTx() {
+    private TransactionAndCursor getReadOnlyTx() {
+        return this.getTx(true);
+    }
+
+    private TransactionAndCursor getWriteTx() {
+        return this.getTx(false);
+    }
+
+    private TransactionAndCursor getTx(boolean readOnly) {
         TransactionAndCursor tc = this.currentTransaction.get();
         if (tc == null) {
-            Transaction t = this.glmdb.createTransaction();
-            Cursor c = this.glmdb.openCursorToVertexDb(t);
-            tc = new TransactionAndCursor(t, c);
+            Transaction t;
+            if (readOnly) {
+                t = this.glmdb.createReadOnlyTransaction();
+            } else {
+                t = this.glmdb.createWriteTransaction();
+            }
+            Cursor vertexCursor = this.glmdb.openCursorToVertexDb(t);
+            Cursor edgeCursor = this.glmdb.openCursorToEdgeDb(t);
+            tc = new TransactionAndCursor(t, vertexCursor, edgeCursor, readOnly);
             this.currentTransaction.set(tc);
+        }
+        //If a write txn is needed and a read only is current then commit the read only txn and open a write txn
+        if (!readOnly && tc.readOnly) {
+            this.commit();
+            //Only one thread is allowed to write at a time
+            synchronized (this.glmdb) {
+                Transaction t = this.glmdb.createWriteTransaction();
+                Cursor vertexCursor = this.glmdb.openCursorToVertexDb(t);
+                Cursor edgeCursor = this.glmdb.openCursorToEdgeDb(t);
+                tc = new TransactionAndCursor(t, vertexCursor, edgeCursor, readOnly);
+                this.currentTransaction.set(tc);
+            }
         }
         return tc;
     }
@@ -129,11 +203,15 @@ public class GlmdbGraph implements TransactionalGraph {
     private static class TransactionAndCursor {
 
         private Transaction txn;
-        private Cursor cursor;
+        private Cursor vertexCursor;
+        private Cursor edgeCursor;
+        private boolean readOnly;
 
-        private TransactionAndCursor(Transaction txn, Cursor cursor) {
+        private TransactionAndCursor(Transaction txn, Cursor vertexCursor, Cursor edgeCursor, boolean readOnly) {
             this.txn = txn;
-            this.cursor = cursor;
+            this.vertexCursor = vertexCursor;
+            this.edgeCursor = edgeCursor;
+            this.readOnly = readOnly;
         }
 
     }
