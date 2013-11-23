@@ -301,13 +301,17 @@ JNIEXPORT jint JNICALL Java_org_glmdb_blueprints_jni_GlmdbJni_mdb_1add_1edge(JNI
 /*
  * Class:     org_glmdb_blueprints_jni_GlmdbJni
  * Method:    mdb_set_property_boolean
- * Signature: (JJIZ)I
+ * Signature: (JJIZZ)I
  */
-JNIEXPORT jint JNICALL Java_org_glmdb_blueprints_jni_GlmdbJni_mdb_1set_1property_1boolean(JNIEnv *env, jclass that, jlong cursor,
-		jlong vertexId, jint propertyKeyId, jboolean value) {
+JNIEXPORT jint JNICALL Java_org_glmdb_blueprints_jni_GlmdbJni_mdb_1set_1property_1boolean
+  (JNIEnv *env, jclass that, jlong cursor, jlong vertexId, jint propertyKeyId, jboolean value, jboolean vertexKey) {
 
 	jint rc = 0;
-	rc = setVertexPropertyBoolean((MDB_cursor *) (long) cursor, (long) vertexId, (int) propertyKeyId, &value);
+	if (vertexKey) {
+		rc = setVertexPropertyBoolean((MDB_cursor *) (long) cursor, (long) vertexId, (int) propertyKeyId, &value);
+	} else {
+		rc = setEdgePropertyBoolean((MDB_cursor *) (long) cursor, (long) vertexId, (int) propertyKeyId, &value);
+	}
 	return rc;
 
 }
@@ -315,13 +319,17 @@ JNIEXPORT jint JNICALL Java_org_glmdb_blueprints_jni_GlmdbJni_mdb_1set_1property
 /*
  * Class:     org_glmdb_blueprints_jni_GlmdbJni
  * Method:    mdb_set_property_byte
- * Signature: (JJIB)I
+ * Signature: (JJIBZ)I
  */
-JNIEXPORT jint JNICALL Java_org_glmdb_blueprints_jni_GlmdbJni_mdb_1set_1property_1byte(JNIEnv *env, jclass that, jlong cursor,
-		jlong vertexId, jint propertyKeyId, jbyte value) {
+JNIEXPORT jint JNICALL Java_org_glmdb_blueprints_jni_GlmdbJni_mdb_1set_1property_1byte
+  (JNIEnv *env, jclass that, jlong cursor, jlong vertexId, jint propertyKeyId, jbyte value, jboolean vertexKey){
 
 	jint rc = 0;
-	rc = setVertexPropertyByte((MDB_cursor *) (long) cursor, (long) vertexId, (int) propertyKeyId, &value);
+	if (vertexKey) {
+		rc = setVertexPropertyByte((MDB_cursor *) (long) cursor, (long) vertexId, (int) propertyKeyId, &value);
+	} else {
+		rc = setEdgePropertyByte((MDB_cursor *) (long) cursor, (long) vertexId, (int) propertyKeyId, &value);
+	}
 	return rc;
 
 }
@@ -329,13 +337,17 @@ JNIEXPORT jint JNICALL Java_org_glmdb_blueprints_jni_GlmdbJni_mdb_1set_1property
 /*
  * Class:     org_glmdb_blueprints_jni_GlmdbJni
  * Method:    mdb_set_property_short
- * Signature: (JJIS)I
+ * Signature: (JJISZ)I
  */
-JNIEXPORT jint JNICALL Java_org_glmdb_blueprints_jni_GlmdbJni_mdb_1set_1property_1short(JNIEnv *env, jclass that, jlong cursor,
-		jlong vertexId, jint propertyKeyId, jshort value) {
+JNIEXPORT jint JNICALL Java_org_glmdb_blueprints_jni_GlmdbJni_mdb_1set_1property_1short
+  (JNIEnv *env, jclass that, jlong cursor, jlong vertexId, jint propertyKeyId, jshort value, jboolean vertexKey) {
 
 	jint rc = 0;
-	rc = setVertexPropertyShort((MDB_cursor *) (long) cursor, (long) vertexId, (int) propertyKeyId, &value);
+	if (vertexKey) {
+		rc = setVertexPropertyShort((MDB_cursor *) (long) cursor, (long) vertexId, (int) propertyKeyId, &value);
+	} else {
+		rc = setEdgePropertyShort((MDB_cursor *) (long) cursor, (long) vertexId, (int) propertyKeyId, &value);
+	}
 	return rc;
 
 }
@@ -343,13 +355,17 @@ JNIEXPORT jint JNICALL Java_org_glmdb_blueprints_jni_GlmdbJni_mdb_1set_1property
 /*
  * Class:     org_glmdb_blueprints_jni_GlmdbJni
  * Method:    mdb_set_property_int
- * Signature: (JJII)I
+ * Signature: (JJIIZ)I
  */
-JNIEXPORT jint JNICALL Java_org_glmdb_blueprints_jni_GlmdbJni_mdb_1set_1property_1int(JNIEnv * env, jclass that, jlong cursor,
-		jlong vertexId, jint propertyKeyId, jint value) {
+JNIEXPORT jint JNICALL Java_org_glmdb_blueprints_jni_GlmdbJni_mdb_1set_1property_1int
+  (JNIEnv *env, jclass that, jlong cursor, jlong vertexId, jint propertyKeyId, jint value, jboolean vertexKey){
 
 	jint rc = 0;
-	rc = setVertexPropertyInt((MDB_cursor *) (long) cursor, (long) vertexId, (int) propertyKeyId, &value);
+	if (vertexKey) {
+		rc = setVertexPropertyInt((MDB_cursor *) (long) cursor, (long) vertexId, (int) propertyKeyId, &value);
+	} else {
+		rc = setEdgePropertyInt((MDB_cursor *) (long) cursor, (long) vertexId, (int) propertyKeyId, &value);
+	}
 	return rc;
 
 }
@@ -357,13 +373,17 @@ JNIEXPORT jint JNICALL Java_org_glmdb_blueprints_jni_GlmdbJni_mdb_1set_1property
 /*
  * Class:     org_glmdb_blueprints_jni_GlmdbJni
  * Method:    mdb_set_property_long
- * Signature: (JJIJ)I
+ * Signature: (JJIJZ)I
  */
-JNIEXPORT jint JNICALL Java_org_glmdb_blueprints_jni_GlmdbJni_mdb_1set_1property_1long(JNIEnv * env, jclass that, jlong cursor,
-		jlong vertexId, jint propertyKeyId, jlong value) {
+JNIEXPORT jint JNICALL Java_org_glmdb_blueprints_jni_GlmdbJni_mdb_1set_1property_1long
+  (JNIEnv *env, jclass that, jlong cursor, jlong vertexId, jint propertyKeyId, jlong value, jboolean vertexKey) {
 
 	jint rc = 0;
-	rc = setVertexPropertyLong((MDB_cursor *) (long) cursor, (long) vertexId, (int) propertyKeyId, &value);
+	if (vertexKey) {
+		rc = setVertexPropertyLong((MDB_cursor *) (long) cursor, (long) vertexId, (int) propertyKeyId, &value);
+	} else {
+		rc = setEdgePropertyLong((MDB_cursor *) (long) cursor, (long) vertexId, (int) propertyKeyId, &value);
+	}
 	return rc;
 
 }
@@ -371,13 +391,17 @@ JNIEXPORT jint JNICALL Java_org_glmdb_blueprints_jni_GlmdbJni_mdb_1set_1property
 /*
  * Class:     org_glmdb_blueprints_jni_GlmdbJni
  * Method:    mdb_set_property_float
- * Signature: (JJIF)I
+ * Signature: (JJIFZ)I
  */
-JNIEXPORT jint JNICALL Java_org_glmdb_blueprints_jni_GlmdbJni_mdb_1set_1property_1float(JNIEnv *env, jclass that, jlong cursor,
-		jlong vertexId, jint propertyKeyId, jfloat value) {
+JNIEXPORT jint JNICALL Java_org_glmdb_blueprints_jni_GlmdbJni_mdb_1set_1property_1float
+  (JNIEnv *env, jclass that, jlong cursor, jlong vertexId, jint propertyKeyId, jfloat value, jboolean vertexKey) {
 
 	jint rc = 0;
-	rc = setVertexPropertyFloat((MDB_cursor *) (long) cursor, (long) vertexId, (int) propertyKeyId, &value);
+	if (vertexKey) {
+		rc = setVertexPropertyFloat((MDB_cursor *) (long) cursor, (long) vertexId, (int) propertyKeyId, &value);
+	} else {
+		rc = setEdgePropertyFloat((MDB_cursor *) (long) cursor, (long) vertexId, (int) propertyKeyId, &value);
+	}
 	return rc;
 
 }
@@ -385,13 +409,17 @@ JNIEXPORT jint JNICALL Java_org_glmdb_blueprints_jni_GlmdbJni_mdb_1set_1property
 /*
  * Class:     org_glmdb_blueprints_jni_GlmdbJni
  * Method:    mdb_set_property_double
- * Signature: (JJID)I
+ * Signature: (JJIDZ)I
  */
-JNIEXPORT jint JNICALL Java_org_glmdb_blueprints_jni_GlmdbJni_mdb_1set_1property_1double(JNIEnv *env, jclass that, jlong cursor,
-		jlong vertexId, jint propertyKeyId, jdouble value) {
+JNIEXPORT jint JNICALL Java_org_glmdb_blueprints_jni_GlmdbJni_mdb_1set_1property_1double
+  (JNIEnv *env, jclass that, jlong cursor, jlong vertexId, jint propertyKeyId, jdouble value, jboolean vertexKey) {
 
 	jint rc = 0;
-	rc = setVertexPropertyDouble((MDB_cursor *) (long) cursor, (long) vertexId, (int) propertyKeyId, &value);
+	if (vertexKey) {
+		rc = setVertexPropertyDouble((MDB_cursor *) (long) cursor, (long) vertexId, (int) propertyKeyId, &value);
+	} else {
+		rc = setEdgePropertyDouble((MDB_cursor *) (long) cursor, (long) vertexId, (int) propertyKeyId, &value);
+	}
 	return rc;
 
 }
@@ -399,13 +427,17 @@ JNIEXPORT jint JNICALL Java_org_glmdb_blueprints_jni_GlmdbJni_mdb_1set_1property
 /*
  * Class:     org_glmdb_blueprints_jni_GlmdbJni
  * Method:    mdb_set_property_char
- * Signature: (JJIC)I
+ * Signature: (JJICZ)I
  */
-JNIEXPORT jint JNICALL Java_org_glmdb_blueprints_jni_GlmdbJni_mdb_1set_1property_1char(JNIEnv *env, jclass that, jlong cursor,
-		jlong vertexId, jint propertyKeyId, jchar value) {
+JNIEXPORT jint JNICALL Java_org_glmdb_blueprints_jni_GlmdbJni_mdb_1set_1property_1char
+  (JNIEnv *env, jclass that, jlong cursor, jlong vertexId, jint propertyKeyId, jchar value, jboolean vertexKey) {
 
 	jint rc = 0;
-	rc = setVertexPropertyChar((MDB_cursor *) (long) cursor, (long) vertexId, (int) propertyKeyId, &value);
+	if (vertexKey) {
+		rc = setVertexPropertyChar((MDB_cursor *) (long) cursor, (long) vertexId, (int) propertyKeyId, &value);
+	} else {
+		rc = setEdgePropertyChar((MDB_cursor *) (long) cursor, (long) vertexId, (int) propertyKeyId, &value);
+	}
 	return rc;
 
 }
@@ -413,10 +445,10 @@ JNIEXPORT jint JNICALL Java_org_glmdb_blueprints_jni_GlmdbJni_mdb_1set_1property
 /*
  * Class:     org_glmdb_blueprints_jni_GlmdbJni
  * Method:    mdb_set_property_string
- * Signature: (JJILjava/lang/String;)I
+ * Signature: (JJILjava/lang/String;Z)I
  */
-JNIEXPORT jint JNICALL Java_org_glmdb_blueprints_jni_GlmdbJni_mdb_1set_1property_1string(JNIEnv *env, jclass that, jlong cursor,
-		jlong vertexId, jint propertyKeyId, jstring value) {
+JNIEXPORT jint JNICALL Java_org_glmdb_blueprints_jni_GlmdbJni_mdb_1set_1property_1string
+  (JNIEnv *env, jclass that, jlong cursor, jlong vertexId, jint propertyKeyId, jstring value, jboolean vertexKey) {
 
 	jint rc = 0;
 	jint strlen = (*env)->GetStringUTFLength(env, value);
@@ -427,7 +459,11 @@ JNIEXPORT jint JNICALL Java_org_glmdb_blueprints_jni_GlmdbJni_mdb_1set_1property
 			goto fail;
 		}
 	}
-	rc = setVertexPropertyString((MDB_cursor *) (long) cursor, (long) vertexId, (int) propertyKeyId, propertyValue);
+	if (vertexKey) {
+		rc = setVertexPropertyString((MDB_cursor *) (long) cursor, (long) vertexId, (int) propertyKeyId, propertyValue);
+	} else {
+		rc = setEdgePropertyString((MDB_cursor *) (long) cursor, (long) vertexId, (int) propertyKeyId, propertyValue);
+	}
 
 	fail: if (value && propertyValue) {
 		(*env)->ReleaseStringUTFChars(env, value, propertyValue);
@@ -439,14 +475,18 @@ JNIEXPORT jint JNICALL Java_org_glmdb_blueprints_jni_GlmdbJni_mdb_1set_1property
 /*
  * Class:     org_glmdb_blueprints_jni_GlmdbJni
  * Method:    mdb_get_property_array
- * Signature: (JJI[[B)I
+ * Signature: (JJI[[BZ)I
  */
-JNIEXPORT jint JNICALL Java_org_glmdb_blueprints_jni_GlmdbJni_mdb_1get_1property_1array(JNIEnv *env, jclass that, jlong cursor,
-		jlong vertexId, jint propertyKeyId, jobjectArray value) {
+JNIEXPORT jint JNICALL Java_org_glmdb_blueprints_jni_GlmdbJni_mdb_1get_1property_1array
+  (JNIEnv *env, jclass that, jlong cursor, jlong vertexId, jint propertyKeyId, jobjectArray value, jboolean vertexKey) {
 
 	jint rc = 0;
 	MDB_val data;
-	rc = getVertexProperty((MDB_cursor *) (long) cursor, (long) vertexId, (int) propertyKeyId, &data);
+	if (vertexKey) {
+		rc = getVertexProperty((MDB_cursor *) (long) cursor, (long) vertexId, (int) propertyKeyId, &data);
+	} else {
+		rc = getEdgeProperty((MDB_cursor *) (long) cursor, (long) vertexId, (int) propertyKeyId, &data);
+	}
 	if (rc == 0) {
 		jbyteArray byteArray = (*env)->NewByteArray(env, (size_t) data.mv_size);
 		jbyte *cbytes = (*env)->GetByteArrayElements(env, byteArray, NULL);
@@ -948,6 +988,25 @@ int setVertexPropertyString(MDB_cursor *cursor, long vertexId, int propertyKeyId
 	return mdb_cursor_put(cursor, &key, &data, 0);
 }
 
+int setEdgePropertyString(MDB_cursor *cursor, long edgeId, int propertyKeyId, char *propertyValue) {
+	MDB_val key, data;
+	EdgeDbId id;
+	id.edgeId = edgeId;
+	id.coreOrPropertyEnum = EPROPERTY_KEY;
+	id.propertykeyId = propertyKeyId;
+	key.mv_size = (sizeof(EdgeDbId));
+	key.mv_data = &id;
+	if (propertyValue != NULL) {
+		data.mv_size = strlen(propertyValue);
+		data.mv_data = propertyValue;
+	} else {
+		//write a null of sorts
+		data.mv_size = strlen("");
+		data.mv_data = "";
+	}
+	return mdb_cursor_put(cursor, &key, &data, 0);
+}
+
 int setVertexPropertyBoolean(MDB_cursor *cursor, long vertexId, int propertyKeyId, jboolean *propertyValue) {
 	MDB_val key, data;
 	VertexDbId id;
@@ -955,6 +1014,25 @@ int setVertexPropertyBoolean(MDB_cursor *cursor, long vertexId, int propertyKeyI
 	id.coreOrPropertyEnum = VPROPERTY_KEY;
 	id.propertykeyId = propertyKeyId;
 	key.mv_size = (sizeof(VertexDbId));
+	key.mv_data = &id;
+	if (propertyValue != NULL) {
+		data.mv_size = sizeof(jboolean);
+		data.mv_data = propertyValue;
+	} else {
+		//write a null of sorts
+		data.mv_size = strlen("");
+		data.mv_data = "";
+	}
+	return mdb_cursor_put(cursor, &key, &data, 0);
+}
+
+int setEdgePropertyBoolean(MDB_cursor *cursor, long edgeId, int propertyKeyId, jboolean *propertyValue) {
+	MDB_val key, data;
+	EdgeDbId id;
+	id.edgeId = edgeId;
+	id.coreOrPropertyEnum = EPROPERTY_KEY;
+	id.propertykeyId = propertyKeyId;
+	key.mv_size = (sizeof(EdgeDbId));
 	key.mv_data = &id;
 	if (propertyValue != NULL) {
 		data.mv_size = sizeof(jboolean);
@@ -986,6 +1064,25 @@ int setVertexPropertyByte(MDB_cursor *cursor, long vertexId, int propertyKeyId, 
 	return mdb_cursor_put(cursor, &key, &data, 0);
 }
 
+int setEdgePropertyByte(MDB_cursor *cursor, long edgeId, int propertyKeyId, jbyte *propertyValue) {
+	MDB_val key, data;
+	EdgeDbId id;
+	id.edgeId = edgeId;
+	id.coreOrPropertyEnum = EPROPERTY_KEY;
+	id.propertykeyId = propertyKeyId;
+	key.mv_size = (sizeof(EdgeDbId));
+	key.mv_data = &id;
+	if (propertyValue != NULL) {
+		data.mv_size = sizeof(jbyte);
+		data.mv_data = propertyValue;
+	} else {
+		//write a null of sorts
+		data.mv_size = strlen("");
+		data.mv_data = "";
+	}
+	return mdb_cursor_put(cursor, &key, &data, 0);
+}
+
 int setVertexPropertyShort(MDB_cursor *cursor, long vertexId, int propertyKeyId, jshort *propertyValue) {
 	MDB_val key, data;
 	VertexDbId id;
@@ -993,6 +1090,25 @@ int setVertexPropertyShort(MDB_cursor *cursor, long vertexId, int propertyKeyId,
 	id.coreOrPropertyEnum = VPROPERTY_KEY;
 	id.propertykeyId = propertyKeyId;
 	key.mv_size = (sizeof(VertexDbId));
+	key.mv_data = &id;
+	if (propertyValue != NULL) {
+		data.mv_size = sizeof(jshort);
+		data.mv_data = propertyValue;
+	} else {
+		//write a null of sorts
+		data.mv_size = strlen("");
+		data.mv_data = "";
+	}
+	return mdb_cursor_put(cursor, &key, &data, 0);
+}
+
+int setEdgePropertyShort(MDB_cursor *cursor, long edgeId, int propertyKeyId, jshort *propertyValue) {
+	MDB_val key, data;
+	EdgeDbId id;
+	id.edgeId = edgeId;
+	id.coreOrPropertyEnum = EPROPERTY_KEY;
+	id.propertykeyId = propertyKeyId;
+	key.mv_size = (sizeof(EdgeDbId));
 	key.mv_data = &id;
 	if (propertyValue != NULL) {
 		data.mv_size = sizeof(jshort);
@@ -1024,6 +1140,25 @@ int setVertexPropertyInt(MDB_cursor *cursor, long vertexId, int propertyKeyId, j
 	return mdb_cursor_put(cursor, &key, &data, 0);
 }
 
+int setEdgePropertyInt(MDB_cursor *cursor, long edgeId, int propertyKeyId, jint *propertyValue) {
+	MDB_val key, data;
+	EdgeDbId id;
+	id.edgeId = edgeId;
+	id.coreOrPropertyEnum = EPROPERTY_KEY;
+	id.propertykeyId = propertyKeyId;
+	key.mv_size = (sizeof(EdgeDbId));
+	key.mv_data = &id;
+	if (propertyValue != NULL) {
+		data.mv_size = sizeof(jint);
+		data.mv_data = propertyValue;
+	} else {
+		//write a null of sorts
+		data.mv_size = strlen("");
+		data.mv_data = "";
+	}
+	return mdb_cursor_put(cursor, &key, &data, 0);
+}
+
 int setVertexPropertyLong(MDB_cursor *cursor, long vertexId, int propertyKeyId, jlong *propertyValue) {
 	MDB_val key, data;
 	VertexDbId id;
@@ -1031,6 +1166,25 @@ int setVertexPropertyLong(MDB_cursor *cursor, long vertexId, int propertyKeyId, 
 	id.coreOrPropertyEnum = VPROPERTY_KEY;
 	id.propertykeyId = propertyKeyId;
 	key.mv_size = (sizeof(VertexDbId));
+	key.mv_data = &id;
+	if (propertyValue != NULL) {
+		data.mv_size = sizeof(jlong);
+		data.mv_data = propertyValue;
+	} else {
+		//write a null of sorts
+		data.mv_size = strlen("");
+		data.mv_data = "";
+	}
+	return mdb_cursor_put(cursor, &key, &data, 0);
+}
+
+int setEdgePropertyLong(MDB_cursor *cursor, long edgeId, int propertyKeyId, jlong *propertyValue) {
+	MDB_val key, data;
+	EdgeDbId id;
+	id.edgeId = edgeId;
+	id.coreOrPropertyEnum = EPROPERTY_KEY;
+	id.propertykeyId = propertyKeyId;
+	key.mv_size = (sizeof(EdgeDbId));
 	key.mv_data = &id;
 	if (propertyValue != NULL) {
 		data.mv_size = sizeof(jlong);
@@ -1062,6 +1216,25 @@ int setVertexPropertyFloat(MDB_cursor *cursor, long vertexId, int propertyKeyId,
 	return mdb_cursor_put(cursor, &key, &data, 0);
 }
 
+int setEdgePropertyFloat(MDB_cursor *cursor, long edgeId, int propertyKeyId, jfloat *propertyValue) {
+	MDB_val key, data;
+	EdgeDbId id;
+	id.edgeId = edgeId;
+	id.coreOrPropertyEnum = EPROPERTY_KEY;
+	id.propertykeyId = propertyKeyId;
+	key.mv_size = (sizeof(EdgeDbId));
+	key.mv_data = &id;
+	if (propertyValue != NULL) {
+		data.mv_size = sizeof(jfloat);
+		data.mv_data = propertyValue;
+	} else {
+		//write a null of sorts
+		data.mv_size = strlen("");
+		data.mv_data = "";
+	}
+	return mdb_cursor_put(cursor, &key, &data, 0);
+}
+
 int setVertexPropertyDouble(MDB_cursor *cursor, long vertexId, int propertyKeyId, jdouble *propertyValue) {
 	MDB_val key, data;
 	VertexDbId id;
@@ -1069,6 +1242,25 @@ int setVertexPropertyDouble(MDB_cursor *cursor, long vertexId, int propertyKeyId
 	id.coreOrPropertyEnum = VPROPERTY_KEY;
 	id.propertykeyId = propertyKeyId;
 	key.mv_size = (sizeof(VertexDbId));
+	key.mv_data = &id;
+	if (propertyValue != NULL) {
+		data.mv_size = sizeof(jdouble);
+		data.mv_data = propertyValue;
+	} else {
+		//write a null of sorts
+		data.mv_size = strlen("");
+		data.mv_data = "";
+	}
+	return mdb_cursor_put(cursor, &key, &data, 0);
+}
+
+int setEdgePropertyDouble(MDB_cursor *cursor, long edgeId, int propertyKeyId, jdouble *propertyValue) {
+	MDB_val key, data;
+	EdgeDbId id;
+	id.edgeId = edgeId;
+	id.coreOrPropertyEnum = EPROPERTY_KEY;
+	id.propertykeyId = propertyKeyId;
+	key.mv_size = (sizeof(EdgeDbId));
 	key.mv_data = &id;
 	if (propertyValue != NULL) {
 		data.mv_size = sizeof(jdouble);
@@ -1100,6 +1292,25 @@ int setVertexPropertyChar(MDB_cursor *cursor, long vertexId, int propertyKeyId, 
 	return mdb_cursor_put(cursor, &key, &data, 0);
 }
 
+int setEdgePropertyChar(MDB_cursor *cursor, long edgeId, int propertyKeyId, jchar *propertyValue) {
+	MDB_val key, data;
+	EdgeDbId id;
+	id.edgeId = edgeId;
+	id.coreOrPropertyEnum = EPROPERTY_KEY;
+	id.propertykeyId = propertyKeyId;
+	key.mv_size = (sizeof(EdgeDbId));
+	key.mv_data = &id;
+	if (propertyValue != NULL) {
+		data.mv_size = sizeof(jchar);
+		data.mv_data = propertyValue;
+	} else {
+		//write a null of sorts
+		data.mv_size = strlen("");
+		data.mv_data = "";
+	}
+	return mdb_cursor_put(cursor, &key, &data, 0);
+}
+
 int getVertexProperty(MDB_cursor *cursor, long vertexId, int propertyKeyId, MDB_val *data) {
 	MDB_val key;
 	VertexDbId id;
@@ -1107,6 +1318,17 @@ int getVertexProperty(MDB_cursor *cursor, long vertexId, int propertyKeyId, MDB_
 	id.coreOrPropertyEnum = VPROPERTY_KEY;
 	id.propertykeyId = propertyKeyId;
 	key.mv_size = (sizeof(VertexDbId));
+	key.mv_data = &id;
+	return mdb_cursor_get(cursor, &key, data, MDB_SET_KEY);
+}
+
+int getEdgeProperty(MDB_cursor *cursor, long edgeId, int propertyKeyId, MDB_val *data) {
+	MDB_val key;
+	EdgeDbId id;
+	id.edgeId = edgeId;
+	id.coreOrPropertyEnum = EPROPERTY_KEY;
+	id.propertykeyId = propertyKeyId;
+	key.mv_size = (sizeof(EdgeDbId));
 	key.mv_data = &id;
 	return mdb_cursor_get(cursor, &key, data, MDB_SET_KEY);
 }

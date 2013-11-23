@@ -99,44 +99,44 @@ public class Glmdb extends NativeObject implements Closeable {
         return edgeId[0];
     }
 
-    public void setProperty(Transaction txn, Cursor cursor, long vertexId, String key, Object value) {
+    public void setProperty(Transaction txn, Cursor cursor, long vertexId, String key, Object value, boolean vertexProperty) {
         if (value instanceof String) {
             Integer propertyKeyId = this.getOrPutPropertyKey(txn, key, PropertyTypeEnum.STRING);
-            checkErrorCode(mdb_set_property_string(cursor.pointer(), vertexId, propertyKeyId, (String)value));
+            checkErrorCode(mdb_set_property_string(cursor.pointer(), vertexId, propertyKeyId, (String)value, vertexProperty));
         } else if (value instanceof Boolean) {
             Integer propertyKeyId = this.getOrPutPropertyKey(txn, key, PropertyTypeEnum.BOOLEAN);
-            checkErrorCode(mdb_set_property_boolean(cursor.pointer(), vertexId, propertyKeyId, (Boolean)value));
+            checkErrorCode(mdb_set_property_boolean(cursor.pointer(), vertexId, propertyKeyId, (Boolean)value, vertexProperty));
         } else if (value instanceof Integer) {
             Integer propertyKeyId = this.getOrPutPropertyKey(txn, key, PropertyTypeEnum.INT);
-            checkErrorCode(mdb_set_property_int(cursor.pointer(), vertexId, propertyKeyId, (Integer)value));
+            checkErrorCode(mdb_set_property_int(cursor.pointer(), vertexId, propertyKeyId, (Integer)value, vertexProperty));
         } else if (value instanceof Long) {
             Integer propertyKeyId = this.getOrPutPropertyKey(txn, key, PropertyTypeEnum.LONG);
-            checkErrorCode(mdb_set_property_long(cursor.pointer(), vertexId, propertyKeyId, (Long)value));
+            checkErrorCode(mdb_set_property_long(cursor.pointer(), vertexId, propertyKeyId, (Long)value, vertexProperty));
         } else if (value instanceof Float) {
             Integer propertyKeyId = this.getOrPutPropertyKey(txn, key, PropertyTypeEnum.FLOAT);
-            checkErrorCode(mdb_set_property_float(cursor.pointer(), vertexId, propertyKeyId, (Float)value));
+            checkErrorCode(mdb_set_property_float(cursor.pointer(), vertexId, propertyKeyId, (Float)value, vertexProperty));
         } else if (value instanceof Double) {
             Integer propertyKeyId = this.getOrPutPropertyKey(txn, key, PropertyTypeEnum.DOUBLE);
-            checkErrorCode(mdb_set_property_double(cursor.pointer(), vertexId, propertyKeyId, (Double)value));
+            checkErrorCode(mdb_set_property_double(cursor.pointer(), vertexId, propertyKeyId, (Double)value, vertexProperty));
         } else if (value instanceof Character) {
             Integer propertyKeyId = this.getOrPutPropertyKey(txn, key, PropertyTypeEnum.CHAR);
-            checkErrorCode(mdb_set_property_char(cursor.pointer(), vertexId, propertyKeyId, (Character)value));
+            checkErrorCode(mdb_set_property_char(cursor.pointer(), vertexId, propertyKeyId, (Character)value, vertexProperty));
         } else if (value instanceof Byte) {
             Integer propertyKeyId = this.getOrPutPropertyKey(txn, key, PropertyTypeEnum.BYTE);
-            checkErrorCode(mdb_set_property_byte(cursor.pointer(), vertexId, propertyKeyId, (Byte)value));
+            checkErrorCode(mdb_set_property_byte(cursor.pointer(), vertexId, propertyKeyId, (Byte)value, vertexProperty));
         } else if (value instanceof Short) {
             Integer propertyKeyId = this.getOrPutPropertyKey(txn, key, PropertyTypeEnum.SHORT);
-            checkErrorCode(mdb_set_property_short(cursor.pointer(), vertexId, propertyKeyId, (Short)value));
+            checkErrorCode(mdb_set_property_short(cursor.pointer(), vertexId, propertyKeyId, (Short)value, vertexProperty));
         } else {
             throw new IllegalStateException(String.format("Unsupported value type %s", new String[]{value.getClass().getName()}));
         }
     }
 
-    public Object getProperty(Cursor cursor, long vertexId, String key) {
+    public Object getProperty(Cursor cursor, long vertexId, String key, boolean vertexProperty) {
         PropertyKeyEnumAndId propertyKeyEnumAndId = this.propertyKeyToIdMap.get(key);
         if (propertyKeyEnumAndId != null) {
             byte[][] value = new byte[1][];
-            checkErrorCode(mdb_get_property_array(cursor.pointer(), vertexId, propertyKeyEnumAndId.id, value));
+            checkErrorCode(mdb_get_property_array(cursor.pointer(), vertexId, propertyKeyEnumAndId.id, value, vertexProperty));
             return bytesToObject(propertyKeyEnumAndId.propertyTypeEnum, value[0]);
         } else {
             return null;

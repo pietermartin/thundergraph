@@ -25,6 +25,16 @@ public class GlmdbEdge extends GlmdbElement implements Edge {
     }
 
     @Override
+    public void setProperty(String key, Object value) {
+        this.glmdb.setProperty(this.txn, this.cursor, this.id, key, value, false);
+    }
+
+    @Override
+    public <T> T getProperty(String key) {
+        return (T) this.glmdb.getProperty(this.cursor, this.id, key, false);
+    }
+
+    @Override
     public Vertex getVertex(Direction direction) throws IllegalArgumentException {
         return null;  //To change body of implemented methods use File | Settings | File Templates.
     }

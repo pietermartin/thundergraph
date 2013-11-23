@@ -11,7 +11,7 @@ import java.util.Set;
  * Date: 2013/11/17
  * Time: 4:06 PM
  */
-public class GlmdbElement implements Element {
+public abstract class GlmdbElement implements Element {
 
     protected Glmdb glmdb;
     protected Transaction txn;
@@ -26,18 +26,8 @@ public class GlmdbElement implements Element {
     }
 
     @Override
-    public <T> T getProperty(String key) {
-        return (T) this.glmdb.getProperty(this.cursor, this.id, key);
-    }
-
-    @Override
     public Set<String> getPropertyKeys() {
         return null;  //To change body of implemented methods use File | Settings | File Templates.
-    }
-
-    @Override
-    public void setProperty(String key, Object value) {
-        this.glmdb.setProperty(this.txn, this.cursor, this.id, key, value);
     }
 
     @Override

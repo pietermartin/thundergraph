@@ -130,82 +130,82 @@ JNIEXPORT jint JNICALL Java_org_glmdb_blueprints_jni_GlmdbJni_mdb_1add_1edge
 /*
  * Class:     org_glmdb_blueprints_jni_GlmdbJni
  * Method:    mdb_set_property_boolean
- * Signature: (JJIZ)I
+ * Signature: (JJIZZ)I
  */
 JNIEXPORT jint JNICALL Java_org_glmdb_blueprints_jni_GlmdbJni_mdb_1set_1property_1boolean
-  (JNIEnv *, jclass, jlong, jlong, jint, jboolean);
+  (JNIEnv *, jclass, jlong, jlong, jint, jboolean, jboolean);
 
 /*
  * Class:     org_glmdb_blueprints_jni_GlmdbJni
  * Method:    mdb_set_property_byte
- * Signature: (JJIB)I
+ * Signature: (JJIBZ)I
  */
 JNIEXPORT jint JNICALL Java_org_glmdb_blueprints_jni_GlmdbJni_mdb_1set_1property_1byte
-  (JNIEnv *, jclass, jlong, jlong, jint, jbyte);
+  (JNIEnv *, jclass, jlong, jlong, jint, jbyte, jboolean);
 
 /*
  * Class:     org_glmdb_blueprints_jni_GlmdbJni
  * Method:    mdb_set_property_short
- * Signature: (JJIS)I
+ * Signature: (JJISZ)I
  */
 JNIEXPORT jint JNICALL Java_org_glmdb_blueprints_jni_GlmdbJni_mdb_1set_1property_1short
-  (JNIEnv *, jclass, jlong, jlong, jint, jshort);
+  (JNIEnv *, jclass, jlong, jlong, jint, jshort, jboolean);
 
 /*
  * Class:     org_glmdb_blueprints_jni_GlmdbJni
  * Method:    mdb_set_property_int
- * Signature: (JJII)I
+ * Signature: (JJIIZ)I
  */
 JNIEXPORT jint JNICALL Java_org_glmdb_blueprints_jni_GlmdbJni_mdb_1set_1property_1int
-  (JNIEnv *, jclass, jlong, jlong, jint, jint);
+  (JNIEnv *, jclass, jlong, jlong, jint, jint, jboolean);
 
 /*
  * Class:     org_glmdb_blueprints_jni_GlmdbJni
  * Method:    mdb_set_property_long
- * Signature: (JJIJ)I
+ * Signature: (JJIJZ)I
  */
 JNIEXPORT jint JNICALL Java_org_glmdb_blueprints_jni_GlmdbJni_mdb_1set_1property_1long
-  (JNIEnv *, jclass, jlong, jlong, jint, jlong);
+  (JNIEnv *, jclass, jlong, jlong, jint, jlong, jboolean);
 
 /*
  * Class:     org_glmdb_blueprints_jni_GlmdbJni
  * Method:    mdb_set_property_float
- * Signature: (JJIF)I
+ * Signature: (JJIFZ)I
  */
 JNIEXPORT jint JNICALL Java_org_glmdb_blueprints_jni_GlmdbJni_mdb_1set_1property_1float
-  (JNIEnv *, jclass, jlong, jlong, jint, jfloat);
+  (JNIEnv *, jclass, jlong, jlong, jint, jfloat, jboolean);
 
 /*
  * Class:     org_glmdb_blueprints_jni_GlmdbJni
  * Method:    mdb_set_property_double
- * Signature: (JJID)I
+ * Signature: (JJIDZ)I
  */
 JNIEXPORT jint JNICALL Java_org_glmdb_blueprints_jni_GlmdbJni_mdb_1set_1property_1double
-  (JNIEnv *, jclass, jlong, jlong, jint, jdouble);
+  (JNIEnv *, jclass, jlong, jlong, jint, jdouble, jboolean);
 
 /*
  * Class:     org_glmdb_blueprints_jni_GlmdbJni
  * Method:    mdb_set_property_char
- * Signature: (JJIC)I
+ * Signature: (JJICZ)I
  */
 JNIEXPORT jint JNICALL Java_org_glmdb_blueprints_jni_GlmdbJni_mdb_1set_1property_1char
-  (JNIEnv *, jclass, jlong, jlong, jint, jchar);
+  (JNIEnv *, jclass, jlong, jlong, jint, jchar, jboolean);
 
 /*
  * Class:     org_glmdb_blueprints_jni_GlmdbJni
  * Method:    mdb_set_property_string
- * Signature: (JJILjava/lang/String;)I
+ * Signature: (JJILjava/lang/String;Z)I
  */
 JNIEXPORT jint JNICALL Java_org_glmdb_blueprints_jni_GlmdbJni_mdb_1set_1property_1string
-  (JNIEnv *, jclass, jlong, jlong, jint, jstring);
+  (JNIEnv *, jclass, jlong, jlong, jint, jstring, jboolean);
 
 /*
  * Class:     org_glmdb_blueprints_jni_GlmdbJni
  * Method:    mdb_get_property_array
- * Signature: (JJI[[B)I
+ * Signature: (JJI[[BZ)I
  */
 JNIEXPORT jint JNICALL Java_org_glmdb_blueprints_jni_GlmdbJni_mdb_1get_1property_1array
-  (JNIEnv *, jclass, jlong, jlong, jint, jobjectArray);
+  (JNIEnv *, jclass, jlong, jlong, jint, jobjectArray, jboolean);
 
 /*
  * Class:     org_glmdb_blueprints_jni_GlmdbJni
