@@ -16,22 +16,10 @@ import java.nio.ByteBuffer;
  * Date: 2013/11/19
  * Time: 11:24 PM
  */
-public class GlmdbGraphTestEdges {
-
-    File dbPath = null;
-
-    @Before
-    public void beforeTests() throws IOException {
-        this.dbPath = new File("/tmp/testdb");
-        FileUtils.deleteDirectory(this.dbPath);
-        this.dbPath.mkdir();
-    }
-
+public class GlmdbGraphEdgesTest extends BaseGlmdbGraphTest {
 
     @Test
     public void testAddEdge() {
-        long start = System.currentTimeMillis();
-        System.out.println();
         GlmdbGraph glmdbGraph = new GlmdbGraph(this.dbPath);
         Vertex vertex1 = glmdbGraph.addVertex(null);
         vertex1.setProperty("name", "vertex1");
@@ -40,9 +28,6 @@ public class GlmdbGraphTestEdges {
         Edge edge = glmdbGraph.addEdge(null, vertex1, vertex2, "testLabel1");
         Assert.assertEquals("testLabel1", edge.getLabel());
         glmdbGraph.commit();
-
-        long end = System.currentTimeMillis();
-        System.out.println("Time taken: " + String.valueOf(end - start));
 
         Vertex vertexTest1 = glmdbGraph.getVertex(0L);
         Assert.assertNotNull(vertexTest1);
@@ -57,15 +42,12 @@ public class GlmdbGraphTestEdges {
         Assert.assertEquals("testLabel1", edgeTest.getLabel());
 
         glmdbGraph.commit();
-
         glmdbGraph.shutdown();
     }
 
 
     @Test
     public void testAddManyEdges() {
-        long start = System.currentTimeMillis();
-        System.out.println();
         GlmdbGraph glmdbGraph = new GlmdbGraph(this.dbPath);
         Vertex vertex1 = glmdbGraph.addVertex(null);
         vertex1.setProperty("name", "vertex1");
@@ -76,9 +58,6 @@ public class GlmdbGraphTestEdges {
             Assert.assertEquals("testLabel1", edge.getLabel());
         }
         glmdbGraph.commit();
-
-        long end = System.currentTimeMillis();
-        System.out.println("Time taken: " + String.valueOf(end - start));
 
         Vertex vertexTest1 = glmdbGraph.getVertex(0L);
         Assert.assertNotNull(vertexTest1);
@@ -99,8 +78,6 @@ public class GlmdbGraphTestEdges {
 
     @Test
     public void testAddEdgePropertyBoolean() {
-        long start = System.currentTimeMillis();
-        System.out.println();
         GlmdbGraph glmdbGraph = new GlmdbGraph(this.dbPath);
         Vertex vertex1 = glmdbGraph.addVertex(null);
         vertex1.setProperty("name", "vertex1");
@@ -110,8 +87,6 @@ public class GlmdbGraphTestEdges {
         edge.setProperty("testPropertyEdge1", true);
         Assert.assertEquals("testLabel1", edge.getLabel());
         glmdbGraph.commit();
-        long end = System.currentTimeMillis();
-        System.out.println("Time taken: " + String.valueOf(end - start));
 
         Edge edgeTest = glmdbGraph.getEdge(0L);
         Assert.assertNotNull("Edge must not be null!!!", edgeTest);
@@ -119,14 +94,11 @@ public class GlmdbGraphTestEdges {
         Assert.assertEquals(true, edgeTest.getProperty("testPropertyEdge1"));
 
         glmdbGraph.commit();
-
         glmdbGraph.shutdown();
     }
 
     @Test
     public void testAddEdgePropertyShort() {
-        long start = System.currentTimeMillis();
-        System.out.println();
         GlmdbGraph glmdbGraph = new GlmdbGraph(this.dbPath);
         Vertex vertex1 = glmdbGraph.addVertex(null);
         vertex1.setProperty("name", "vertex1");
@@ -136,8 +108,6 @@ public class GlmdbGraphTestEdges {
         edge.setProperty("testPropertyEdge1", (short)10);
         Assert.assertEquals("testLabel1", edge.getLabel());
         glmdbGraph.commit();
-        long end = System.currentTimeMillis();
-        System.out.println("Time taken: " + String.valueOf(end - start));
 
         Edge edgeTest = glmdbGraph.getEdge(0L);
         Assert.assertNotNull("Edge must not be null!!!", edgeTest);
@@ -150,8 +120,6 @@ public class GlmdbGraphTestEdges {
 
     @Test
     public void testAddEdgePropertyInt() {
-        long start = System.currentTimeMillis();
-        System.out.println();
         GlmdbGraph glmdbGraph = new GlmdbGraph(this.dbPath);
         Vertex vertex1 = glmdbGraph.addVertex(null);
         vertex1.setProperty("name", "vertex1");
@@ -161,8 +129,6 @@ public class GlmdbGraphTestEdges {
         edge.setProperty("testPropertyEdge1", 10);
         Assert.assertEquals("testLabel1", edge.getLabel());
         glmdbGraph.commit();
-        long end = System.currentTimeMillis();
-        System.out.println("Time taken: " + String.valueOf(end - start));
 
         Edge edgeTest = glmdbGraph.getEdge(0L);
         Assert.assertNotNull("Edge must not be null!!!", edgeTest);
@@ -175,8 +141,6 @@ public class GlmdbGraphTestEdges {
 
     @Test
     public void testAddEdgePropertyLong() {
-        long start = System.currentTimeMillis();
-        System.out.println();
         GlmdbGraph glmdbGraph = new GlmdbGraph(this.dbPath);
         Vertex vertex1 = glmdbGraph.addVertex(null);
         vertex1.setProperty("name", "vertex1");
@@ -186,8 +150,6 @@ public class GlmdbGraphTestEdges {
         edge.setProperty("testPropertyEdge1", 10L);
         Assert.assertEquals("testLabel1", edge.getLabel());
         glmdbGraph.commit();
-        long end = System.currentTimeMillis();
-        System.out.println("Time taken: " + String.valueOf(end - start));
 
         Edge edgeTest = glmdbGraph.getEdge(0L);
         Assert.assertNotNull("Edge must not be null!!!", edgeTest);
@@ -200,8 +162,6 @@ public class GlmdbGraphTestEdges {
 
     @Test
     public void testAddEdgePropertyFloat() {
-        long start = System.currentTimeMillis();
-        System.out.println();
         GlmdbGraph glmdbGraph = new GlmdbGraph(this.dbPath);
         Vertex vertex1 = glmdbGraph.addVertex(null);
         vertex1.setProperty("name", "vertex1");
@@ -211,8 +171,6 @@ public class GlmdbGraphTestEdges {
         edge.setProperty("testPropertyEdge1", 10.101F);
         Assert.assertEquals("testLabel1", edge.getLabel());
         glmdbGraph.commit();
-        long end = System.currentTimeMillis();
-        System.out.println("Time taken: " + String.valueOf(end - start));
 
         Edge edgeTest = glmdbGraph.getEdge(0L);
         Assert.assertNotNull("Edge must not be null!!!", edgeTest);
@@ -225,8 +183,6 @@ public class GlmdbGraphTestEdges {
 
     @Test
     public void testAddEdgePropertyDouble() {
-        long start = System.currentTimeMillis();
-        System.out.println();
         GlmdbGraph glmdbGraph = new GlmdbGraph(this.dbPath);
         Vertex vertex1 = glmdbGraph.addVertex(null);
         vertex1.setProperty("name", "vertex1");
@@ -236,8 +192,6 @@ public class GlmdbGraphTestEdges {
         edge.setProperty("testPropertyEdge1", 10.101D);
         Assert.assertEquals("testLabel1", edge.getLabel());
         glmdbGraph.commit();
-        long end = System.currentTimeMillis();
-        System.out.println("Time taken: " + String.valueOf(end - start));
 
         Edge edgeTest = glmdbGraph.getEdge(0L);
         Assert.assertNotNull("Edge must not be null!!!", edgeTest);
@@ -250,8 +204,6 @@ public class GlmdbGraphTestEdges {
 
     @Test
     public void testAddEdgePropertyChar() {
-        long start = System.currentTimeMillis();
-        System.out.println();
         GlmdbGraph glmdbGraph = new GlmdbGraph(this.dbPath);
         Vertex vertex1 = glmdbGraph.addVertex(null);
         vertex1.setProperty("name", "vertex1");
@@ -261,8 +213,6 @@ public class GlmdbGraphTestEdges {
         edge.setProperty("testPropertyEdge1", 'a');
         Assert.assertEquals("testLabel1", edge.getLabel());
         glmdbGraph.commit();
-        long end = System.currentTimeMillis();
-        System.out.println("Time taken: " + String.valueOf(end - start));
 
         Edge edgeTest = glmdbGraph.getEdge(0L);
         Assert.assertNotNull("Edge must not be null!!!", edgeTest);
@@ -275,8 +225,6 @@ public class GlmdbGraphTestEdges {
 
     @Test
     public void testAddVertexPropertyByte() {
-        long start = System.currentTimeMillis();
-        System.out.println();
         GlmdbGraph glmdbGraph = new GlmdbGraph(this.dbPath);
         Vertex vertex1 = glmdbGraph.addVertex(null);
         vertex1.setProperty("name", "vertex1");
@@ -286,8 +234,6 @@ public class GlmdbGraphTestEdges {
         edge.setProperty("testPropertyEdge1", (byte)0x65);
         Assert.assertEquals("testLabel1", edge.getLabel());
         glmdbGraph.commit();
-        long end = System.currentTimeMillis();
-        System.out.println("Time taken: " + String.valueOf(end - start));
 
         Edge edgeTest = glmdbGraph.getEdge(0L);
         Assert.assertNotNull("Edge must not be null!!!", edgeTest);
@@ -297,6 +243,5 @@ public class GlmdbGraphTestEdges {
         glmdbGraph.commit();
         glmdbGraph.shutdown();
     }
-
 
 }

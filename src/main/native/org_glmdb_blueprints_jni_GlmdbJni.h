@@ -25,6 +25,14 @@ JNIEXPORT jstring JNICALL Java_org_glmdb_blueprints_jni_GlmdbJni_mdb_1strerror
 
 /*
  * Class:     org_glmdb_blueprints_jni_GlmdbJni
+ * Method:    printVertexDb
+ * Signature: (J)I
+ */
+JNIEXPORT jint JNICALL Java_org_glmdb_blueprints_jni_GlmdbJni_printVertexDb
+  (JNIEnv *, jclass, jlong);
+
+/*
+ * Class:     org_glmdb_blueprints_jni_GlmdbJni
  * Method:    glmdb_env_create
  * Signature: (Ljava/lang/String;[J)I
  */
@@ -233,11 +241,91 @@ JNIEXPORT jint JNICALL Java_org_glmdb_blueprints_jni_GlmdbJni_mdb_1get_1vertex
 
 /*
  * Class:     org_glmdb_blueprints_jni_GlmdbJni
+ * Method:    mdb_get_first_vertex
+ * Signature: (J[J)I
+ */
+JNIEXPORT jint JNICALL Java_org_glmdb_blueprints_jni_GlmdbJni_mdb_1get_1first_1vertex
+  (JNIEnv *, jclass, jlong, jlongArray);
+
+/*
+ * Class:     org_glmdb_blueprints_jni_GlmdbJni
+ * Method:    mdb_get_next_vertex
+ * Signature: (J[J)I
+ */
+JNIEXPORT jint JNICALL Java_org_glmdb_blueprints_jni_GlmdbJni_mdb_1get_1next_1vertex
+  (JNIEnv *, jclass, jlong, jlongArray);
+
+/*
+ * Class:     org_glmdb_blueprints_jni_GlmdbJni
+ * Method:    mdb_get_first_vertex_for_key_value
+ * Signature: (J[JI[B)I
+ */
+JNIEXPORT jint JNICALL Java_org_glmdb_blueprints_jni_GlmdbJni_mdb_1get_1first_1vertex_1for_1key_1value
+  (JNIEnv *, jclass, jlong, jlongArray, jint, jbyteArray);
+
+/*
+ * Class:     org_glmdb_blueprints_jni_GlmdbJni
+ * Method:    mdb_get_next_vertex_for_key_value
+ * Signature: (J[JI[B)I
+ */
+JNIEXPORT jint JNICALL Java_org_glmdb_blueprints_jni_GlmdbJni_mdb_1get_1next_1vertex_1for_1key_1value
+  (JNIEnv *, jclass, jlong, jlongArray, jint, jbyteArray);
+
+/*
+ * Class:     org_glmdb_blueprints_jni_GlmdbJni
  * Method:    mdb_get_edge
  * Signature: (JJ[J[I[J[J)I
  */
 JNIEXPORT jint JNICALL Java_org_glmdb_blueprints_jni_GlmdbJni_mdb_1get_1edge
   (JNIEnv *, jclass, jlong, jlong, jlongArray, jintArray, jlongArray, jlongArray);
+
+/*
+ * Class:     org_glmdb_blueprints_jni_GlmdbJni
+ * Method:    mdb_get_first_edge
+ * Signature: (J[J[I[J[J)I
+ */
+JNIEXPORT jint JNICALL Java_org_glmdb_blueprints_jni_GlmdbJni_mdb_1get_1first_1edge
+  (JNIEnv *, jclass, jlong, jlongArray, jintArray, jlongArray, jlongArray);
+
+/*
+ * Class:     org_glmdb_blueprints_jni_GlmdbJni
+ * Method:    mdb_get_next_edge
+ * Signature: (J[J[I[J[J)I
+ */
+JNIEXPORT jint JNICALL Java_org_glmdb_blueprints_jni_GlmdbJni_mdb_1get_1next_1edge
+  (JNIEnv *, jclass, jlong, jlongArray, jintArray, jlongArray, jlongArray);
+
+/*
+ * Class:     org_glmdb_blueprints_jni_GlmdbJni
+ * Method:    mdb_get_first_edge_for_key_value
+ * Signature: (J[J[I[J[JI[B)I
+ */
+JNIEXPORT jint JNICALL Java_org_glmdb_blueprints_jni_GlmdbJni_mdb_1get_1first_1edge_1for_1key_1value
+  (JNIEnv *, jclass, jlong, jlongArray, jintArray, jlongArray, jlongArray, jint, jbyteArray);
+
+/*
+ * Class:     org_glmdb_blueprints_jni_GlmdbJni
+ * Method:    mdb_get_next_edge_for_key_value
+ * Signature: (J[J[I[J[JI[B)I
+ */
+JNIEXPORT jint JNICALL Java_org_glmdb_blueprints_jni_GlmdbJni_mdb_1get_1next_1edge_1for_1key_1value
+  (JNIEnv *, jclass, jlong, jlongArray, jintArray, jlongArray, jlongArray, jint, jbyteArray);
+
+/*
+ * Class:     org_glmdb_blueprints_jni_GlmdbJni
+ * Method:    mdb_get_first_edge_from_vertex
+ * Signature: (JIJ[J[J[J)I
+ */
+JNIEXPORT jint JNICALL Java_org_glmdb_blueprints_jni_GlmdbJni_mdb_1get_1first_1edge_1from_1vertex
+  (JNIEnv *, jclass, jlong, jint, jlong, jlongArray, jlongArray, jlongArray);
+
+/*
+ * Class:     org_glmdb_blueprints_jni_GlmdbJni
+ * Method:    mdb_get_next_edge_from_vertex
+ * Signature: (JIJ[J[J[J)I
+ */
+JNIEXPORT jint JNICALL Java_org_glmdb_blueprints_jni_GlmdbJni_mdb_1get_1next_1edge_1from_1vertex
+  (JNIEnv *, jclass, jlong, jint, jlong, jlongArray, jlongArray, jlongArray);
 
 #ifdef __cplusplus
 }

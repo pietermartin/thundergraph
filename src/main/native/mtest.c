@@ -15,162 +15,101 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <time.h>
-#include "lmdb.h"
+#include "glmdb_jni.c"
 
 int main(int argc,char * argv[])
 {
-	int i = 0, j = 0, rc;
-	MDB_env *env;
-	MDB_dbi dbi;
-	MDB_val key, data;
+	int rc;
+	GLMDB_env *genv;
+	printf("opening graph!\n");
+	rc = openGraph(&genv, "/home/pieter/Downloads/glmdb-blueprints/src/main/native/testdb");
+	if (rc != 0) {
+		printf("opening graph failure  = %i!\n", rc);
+		goto fail;
+	}
+
 	MDB_txn *txn;
-	MDB_stat mst;
-	MDB_cursor *cursor, *cur2;
-	int count;
-	int *values;
-	char sval[32];
+	MDB_cursor *cursor;
+	rc = mdb_txn_begin(genv->env, NULL, 1, &txn);
+	if (rc != 0) {
+		printf("begin transaction failure  = %i!\n", rc);
+		goto fail;
+	}
+	rc = mdb_cursor_open(txn, genv->vertexDb, &cursor);
+	if (rc != 0) {
+		printf("open cursor failure  = %i!\n", rc);
+		goto fail;
+	}
+	MDB_val vertexKey;
+	rc = addVertex(cursor, genv->vertexDb, genv->vertexIdSequence++, &vertexKey);
+	if (rc != 0) {
+		printf("add out vertex failure  = %i!\n", rc);
+		goto fail;
+	}
+	VertexDbId outVertexDbId = (*((VertexDbId *) (vertexKey.mv_data)));
+	signed long long outVertexId = outVertexDbId.vertexId;
 
-	srandom(time(NULL));
-
-	    count = (random()%384) + 64;
-	    values = (int *)malloc(count*sizeof(int));
-
-	    for(i = 0;i<count;i++) {
-			values[i] = random()%1024;
-	    }
-    
-		rc = mdb_env_create(&env);
-		rc = mdb_env_set_mapsize(env, 10485760);
-		rc = mdb_env_open(env, "./testdb", MDB_FIXEDMAP /*|MDB_NOSYNC*/, 0664);
-		rc = mdb_txn_begin(env, NULL, 0, &txn);
-		rc = mdb_open(txn, NULL, 0, &dbi);
-   
-		key.mv_size = sizeof(int);
-		key.mv_data = sval;
-		data.mv_size = sizeof(sval);
-		data.mv_data = sval;
-
-		printf("Adding %d values\n", count);
-	    for (i=0;i<count;i++) {	
-			sprintf(sval, "%03x %d foo bar", values[i], values[i]);
-			rc = mdb_put(txn, dbi, &key, &data, MDB_NOOVERWRITE);
-			if (rc) {
-				j++;
-				data.mv_size = sizeof(sval);
-				data.mv_data = sval;
-			}
-	    }
-		if (j) printf("%d duplicates skipped\n", j);
-		rc = mdb_txn_commit(txn);
-		rc = mdb_env_stat(env, &mst);
-
-		rc = mdb_txn_begin(env, NULL, 1, &txn);
-		rc = mdb_cursor_open(txn, dbi, &cursor);
-		while ((rc = mdb_cursor_get(cursor, &key, &data, MDB_NEXT)) == 0) {
-			printf("key: %p %.*s, data: %p %.*s\n",
-				key.mv_data,  (int) key.mv_size,  (char *) key.mv_data,
-				data.mv_data, (int) data.mv_size, (char *) data.mv_data);
+	int i = 0;
+	for (i = 0; i < 10; i = i + 1) {
+		rc = addVertex(cursor, genv->vertexDb, genv->vertexIdSequence++, &vertexKey);
+		if (rc != 0) {
+			printf("add in vertex failure  = %i!\n", rc);
+			goto fail;
 		}
-		mdb_cursor_close(cursor);
-		mdb_txn_abort(txn);
-
-		j=0;
-		key.mv_data = sval;
-	    for (i= count - 1; i > -1; i-= (random()%5)) {	
-			j++;
-			txn=NULL;
-			rc = mdb_txn_begin(env, NULL, 0, &txn);
-			sprintf(sval, "%03x ", values[i]);
-			rc = mdb_del(txn, dbi, &key, NULL);
-			if (rc) {
-				j--;
-				mdb_txn_abort(txn);
-			} else {
-				rc = mdb_txn_commit(txn);
-			}
-	    }
-	    free(values);
-		printf("Deleted %d values\n", j);
-
-		rc = mdb_env_stat(env, &mst);
-		rc = mdb_txn_begin(env, NULL, 1, &txn);
-		rc = mdb_cursor_open(txn, dbi, &cursor);
-		printf("Cursor next\n");
-		while ((rc = mdb_cursor_get(cursor, &key, &data, MDB_NEXT)) == 0) {
-			printf("key: %.*s, data: %.*s\n",
-				(int) key.mv_size,  (char *) key.mv_data,
-				(int) data.mv_size, (char *) data.mv_data);
+		VertexDbId inVertexDbId = (*((VertexDbId *) (vertexKey.mv_data)));
+		signed long long inVertexId = inVertexDbId.vertexId;
+		rc = addEdge(txn, genv->vertexDb, genv->edgeDb, genv->edgeIdSequence++, 0, outVertexId, inVertexId);
+		if (rc != 0) {
+			printf("add edge failure  = %i!\n", rc);
+			goto fail;
 		}
-		printf("Cursor last\n");
-		rc = mdb_cursor_get(cursor, &key, &data, MDB_LAST);
-		printf("key: %.*s, data: %.*s\n",
-			(int) key.mv_size,  (char *) key.mv_data,
-			(int) data.mv_size, (char *) data.mv_data);
-		printf("Cursor prev\n");
-		while ((rc = mdb_cursor_get(cursor, &key, &data, MDB_PREV)) == 0) {
-			printf("key: %.*s, data: %.*s\n",
-				(int) key.mv_size,  (char *) key.mv_data,
-				(int) data.mv_size, (char *) data.mv_data);
-		}
-		printf("Cursor last/prev\n");
-		rc = mdb_cursor_get(cursor, &key, &data, MDB_LAST);
-			printf("key: %.*s, data: %.*s\n",
-				(int) key.mv_size,  (char *) key.mv_data,
-				(int) data.mv_size, (char *) data.mv_data);
-		rc = mdb_cursor_get(cursor, &key, &data, MDB_PREV);
-			printf("key: %.*s, data: %.*s\n",
-				(int) key.mv_size,  (char *) key.mv_data,
-				(int) data.mv_size, (char *) data.mv_data);
+	}
 
-		mdb_txn_abort(txn);
+	mdb_cursor_close(cursor);
+	mdb_txn_commit(txn);
 
-		printf("Deleting with cursor\n");
-		rc = mdb_txn_begin(env, NULL, 0, &txn);
-		rc = mdb_cursor_open(txn, dbi, &cur2);
-		for (i=0; i<50; i++) {
-			rc = mdb_cursor_get(cur2, &key, &data, MDB_NEXT);
-			if (rc)
-				break;
-			printf("key: %p %.*s, data: %p %.*s\n",
-				key.mv_data,  (int) key.mv_size,  (char *) key.mv_data,
-				data.mv_data, (int) data.mv_size, (char *) data.mv_data);
-			rc = mdb_del(txn, dbi, &key, NULL);
-		}
+	rc = mdb_txn_begin(genv->env, NULL, 1, &txn);
+	if (rc != 0) {
+		printf("transaction begin = %i!\n", rc);
+		goto fail;
+	}
+	rc = mdb_cursor_open(txn, genv->vertexDb, &cursor);
+	if (rc != 0) {
+		printf("open cursor failure  = %i!\n", rc);
+		goto fail;
+	}
+	rc = getVertex(cursor, 0LL, &vertexKey);
+	printKey(vertexKey);
+	if (rc != 0) {
+		printf("get vertex failure  = %i!\n", rc);
+		goto fail;
+	}
 
-		printf("Restarting cursor in txn\n");
-		rc = mdb_cursor_get(cur2, &key, &data, MDB_FIRST);
-		printf("key: %p %.*s, data: %p %.*s\n",
-			key.mv_data,  (int) key.mv_size,  (char *) key.mv_data,
-			data.mv_data, (int) data.mv_size, (char *) data.mv_data);
-		for (i=0; i<32; i++) {
-			rc = mdb_cursor_get(cur2, &key, &data, MDB_NEXT);
-			if (rc) break;
-			printf("key: %p %.*s, data: %p %.*s\n",
-				key.mv_data,  (int) key.mv_size,  (char *) key.mv_data,
-				data.mv_data, (int) data.mv_size, (char *) data.mv_data);
-		}
-		mdb_cursor_close(cur2);
-		rc = mdb_txn_commit(txn);
+	jlong *edgeIdResultC = (jlong *)malloc(sizeof(signed long long));
+	jlong *outVertexIdC = (jlong *)malloc(sizeof(signed long long));
+	jlong *inVertexIdC = (jlong *)malloc(sizeof(signed long long));
 
-		printf("Restarting cursor outside txn\n");
-		rc = mdb_txn_begin(env, NULL, 0, &txn);
-		rc = mdb_cursor_open(txn, dbi, &cursor);
-		rc = mdb_cursor_get(cursor, &key, &data, MDB_FIRST);
-		printf("key: %p %.*s, data: %p %.*s\n",
-			key.mv_data,  (int) key.mv_size,  (char *) key.mv_data,
-			data.mv_data, (int) data.mv_size, (char *) data.mv_data);
-		for (i=0; i<32; i++) {
-			rc = mdb_cursor_get(cursor, &key, &data, MDB_NEXT);
-			if (rc) break;
-			printf("key: %p %.*s, data: %p %.*s\n",
-				key.mv_data,  (int) key.mv_size,  (char *) key.mv_data,
-				data.mv_data, (int) data.mv_size, (char *) data.mv_data);
-		}
-		mdb_cursor_close(cursor);
-		mdb_close(env, dbi);
+	rc = getFirstEdgefromVertex(cursor, 0, 0LL, edgeIdResultC, outVertexIdC, inVertexIdC);
+	if (rc != 0) {
+		printf("getFirstEdgefromVertex failure  = %i!\n", rc);
+		goto fail;
+	}
+	printf("edgeIdResultC = %ld, outVertexIdC = %ld, inVertexIdC = %ld\n", *edgeIdResultC, *outVertexIdC, *inVertexIdC);
 
-		mdb_txn_abort(txn);
-		mdb_env_close(env);
+	rc = getNextEdgefromVertex(cursor, 0, 0LL, edgeIdResultC, outVertexIdC, inVertexIdC);
+	if (rc != 0) {
+		printf("getNextEdgefromVertex failure  = %i!\n", rc);
+		goto fail;
+	}
+	printf("edgeIdResultC = %ld, outVertexIdC = %ld, inVertexIdC = %ld\n", *edgeIdResultC, *outVertexIdC, *inVertexIdC);
 
+	mdb_cursor_close(cursor);
+	mdb_txn_commit(txn);
+
+	traverseDb(genv->env, genv->vertexDb);
+
+	fail:
+	printf("closing graph!\n");
+	closeGraph(genv);
 	return 0;
 }

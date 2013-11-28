@@ -19,6 +19,51 @@ public class Util {
         }
     }
 
+    static byte[] objectToBytes(PropertyTypeEnum propertyTypeEnum, Object object) {
+        switch (propertyTypeEnum) {
+            case BOOLEAN:
+                return toBytes((Boolean)object);
+            case BYTE:
+                return toBytes((Byte)object);
+            case SHORT:
+                return toBytes((Short)object);
+            case INT:
+                return toBytes((Integer)object);
+            case LONG:
+                return toBytes((Long)object);
+            case FLOAT:
+                return toBytes((Float)object);
+            case DOUBLE:
+                return toBytes((Double)object);
+            case CHAR:
+                return toBytes((Character)object);
+            case STRING:
+                return toBytes((String)object);
+            case ARRAY_BOOLEAN:
+                break;
+            case ARRAY_BYTE:
+                break;
+            case ARRAY_SHORT:
+                break;
+            case ARRAY_INT:
+                break;
+            case ARRAY_LONG:
+                break;
+            case ARRAY_FLOAT:
+                break;
+            case ARRAY_DOUBLE:
+                break;
+            case ARRAY_CHAR:
+                break;
+            case ARRAY_STRING:
+                break;
+            default:
+                throw new IllegalStateException("Unknown propertyTypeEnum " + propertyTypeEnum.name());
+        }
+        return null;
+
+    }
+
     static Object bytesToObject(PropertyTypeEnum propertyTypeEnum, byte[] bytes) {
 
         switch (propertyTypeEnum) {
@@ -71,11 +116,19 @@ public class Util {
         return num;
     }
 
+    static byte[] toBytes(Short object) {
+        return ByteBuffer.allocate(2).putShort(object).array();
+    }
+
     static Long toLong(byte[] value) {
         ByteBuffer wrapped = ByteBuffer.wrap(value);
         wrapped.order(ByteOrder.LITTLE_ENDIAN);
         long num = wrapped.getLong();
         return num;
+    }
+
+    static byte[] toBytes(Long object) {
+        return ByteBuffer.allocate(8).putLong(object).array();
     }
 
     static Float toFloat(byte[] value) {
@@ -85,11 +138,19 @@ public class Util {
         return num;
     }
 
+    static byte[] toBytes(Float object) {
+        return ByteBuffer.allocate(4).putFloat(object).array();
+    }
+
     static Double toDouble(byte[] value) {
         ByteBuffer wrapped = ByteBuffer.wrap(value);
         wrapped.order(ByteOrder.LITTLE_ENDIAN);
         double num = wrapped.getDouble();
         return num;
+    }
+
+    static byte[] toBytes(Double object) {
+        return ByteBuffer.allocate(8).putDouble(object).array();
     }
 
     static Character toChar(byte[] value) {
@@ -99,6 +160,10 @@ public class Util {
         return num;
     }
 
+    static byte[] toBytes(Character object) {
+        return ByteBuffer.allocate(2).putChar(object).array();
+    }
+
     static Integer toInt(byte[] value) {
         ByteBuffer wrapped = ByteBuffer.wrap(value);
         wrapped.order(ByteOrder.LITTLE_ENDIAN);
@@ -106,8 +171,28 @@ public class Util {
         return num;
     }
 
+    static byte[] toBytes(Integer object) {
+        return ByteBuffer.allocate(4).putInt(object).array();
+    }
+
     static Boolean toBoolean(byte[] value) {
-        return value[0] != (byte)0x00;
+        return value[0] != (byte) 0x00;
+    }
+
+    static byte[] toBytes(Boolean object) {
+        return new byte[]{(byte)(object ? 0x01 : 0x00)};
+    }
+
+    static byte[] toBytes(Byte object) {
+        return ByteBuffer.allocate(1).put(object).array();
+    }
+
+    static byte[] toBytes(String object) {
+        try {
+            return object.getBytes("UTF-8");
+        } catch (UnsupportedEncodingException e) {
+            throw new RuntimeException(e);
+        }
     }
 
     static String toString(byte[] value) {

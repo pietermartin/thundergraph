@@ -1,9 +1,6 @@
 package org.glmdb.blueprints;
 
 import com.tinkerpop.blueprints.Element;
-import org.glmdb.blueprints.jni.Cursor;
-import org.glmdb.blueprints.jni.Glmdb;
-import org.glmdb.blueprints.jni.Transaction;
 
 import java.util.Set;
 
@@ -13,15 +10,11 @@ import java.util.Set;
  */
 public abstract class GlmdbElement implements Element {
 
-    protected Glmdb glmdb;
-    protected Transaction txn;
-    protected Cursor cursor;
+    protected GlmdbGraph glmdbGraph;
     protected long id;
 
-    public GlmdbElement(Glmdb glmdb, Transaction txn, Cursor cursor, long id) {
-        this.glmdb = glmdb;
-        this.txn = txn;
-        this.cursor = cursor;
+    public GlmdbElement(GlmdbGraph glmdbGraph, long id) {
+        this.glmdbGraph = glmdbGraph;
         this.id = id;
     }
 

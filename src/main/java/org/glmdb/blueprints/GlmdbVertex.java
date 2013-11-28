@@ -14,23 +14,25 @@ import org.glmdb.blueprints.jni.Transaction;
  */
 public class GlmdbVertex extends GlmdbElement implements Vertex {
 
-    public GlmdbVertex(Glmdb glmdb, Transaction txn, Cursor cursor, long id) {
-        super(glmdb, txn, cursor, id);
+    public GlmdbVertex(GlmdbGraph glmdbGraph, long id) {
+        super(glmdbGraph, id);
     }
 
     @Override
     public void setProperty(String key, Object value) {
-        this.glmdb.setProperty(this.txn, this.cursor, this.id, key, value, true);
+        TransactionAndCursor tc = this.glmdbGraph.getWriteTx();
+        this.glmdbGraph.getGlmdb().setProperty(tc.getTxn(), tc.getVertexCursor(), this.id, key, value, true);
     }
 
     @Override
     public <T> T getProperty(String key) {
-        return (T) this.glmdb.getProperty(this.cursor, this.id, key, true);
+        TransactionAndCursor tc = this.glmdbGraph.getReadOnlyTx();
+        return (T) this.glmdbGraph.getGlmdb().getProperty(tc.getVertexCursor(), this.id, key, true);
     }
 
     @Override
     public Iterable<Edge> getEdges(Direction direction, String... labels) {
-        return null;  //To change body of implemented methods use File | Settings | File Templates.
+        return new GlmdbEdgesFromVertexIterable(this.glmdbGraph, this.id, direction, labels);
     }
 
     @Override

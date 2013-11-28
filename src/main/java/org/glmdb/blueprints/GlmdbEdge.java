@@ -3,9 +3,7 @@ package org.glmdb.blueprints;
 import com.tinkerpop.blueprints.Direction;
 import com.tinkerpop.blueprints.Edge;
 import com.tinkerpop.blueprints.Vertex;
-import org.glmdb.blueprints.jni.Cursor;
-import org.glmdb.blueprints.jni.Glmdb;
-import org.glmdb.blueprints.jni.Transaction;
+import com.tinkerpop.blueprints.util.ExceptionFactory;
 
 /**
  * Date: 2013/11/23
@@ -17,8 +15,8 @@ public class GlmdbEdge extends GlmdbElement implements Edge {
     private long outVertexId;
     private long inVertexId;
 
-    public GlmdbEdge(Glmdb glmdb, Transaction txn, Cursor cursor, long id, String label, long outVertexId, long inVertexId) {
-        super(glmdb, txn, cursor, id);
+    public GlmdbEdge(GlmdbGraph glmdbGraph, long id, String label, long outVertexId, long inVertexId) {
+        super(glmdbGraph, id);
         this.label = label;
         this.outVertexId = outVertexId;
         this.inVertexId = inVertexId;
@@ -26,30 +24,30 @@ public class GlmdbEdge extends GlmdbElement implements Edge {
 
     @Override
     public void setProperty(String key, Object value) {
-        this.glmdb.setProperty(this.txn, this.cursor, this.id, key, value, false);
+        TransactionAndCursor tc = this.glmdbGraph.getWriteTx();
+        this.glmdbGraph.getGlmdb().setProperty(tc.getTxn(), tc.getEdgeCursor(), this.id, key, value, false);
     }
 
     @Override
     public <T> T getProperty(String key) {
-        return (T) this.glmdb.getProperty(this.cursor, this.id, key, false);
+        TransactionAndCursor tc = this.glmdbGraph.getReadOnlyTx();
+        return (T) this.glmdbGraph.getGlmdb().getProperty(tc.getEdgeCursor(), this.id, key, false);
     }
 
     @Override
     public Vertex getVertex(Direction direction) throws IllegalArgumentException {
-        return null;  //To change body of implemented methods use File | Settings | File Templates.
+        if (direction.equals(Direction.OUT)) {
+            return new GlmdbVertex(this.glmdbGraph, this.outVertexId);
+        } else if (direction.equals(Direction.IN)) {
+            return new GlmdbVertex(this.glmdbGraph, this.inVertexId);
+        } else {
+            throw ExceptionFactory.bothIsNotSupported();
+        }
     }
 
     @Override
     public String getLabel() {
         return this.label;
-    }
-
-    public long getOutVertexId() {
-        return outVertexId;
-    }
-
-    public long getInVertexId() {
-        return inVertexId;
     }
 
 }

@@ -82,6 +82,56 @@ public class Glmdb extends NativeObject implements Closeable {
         return vertexIdArray[0];
     }
 
+    public boolean getFirstVertex(Cursor cursor, long vertexIdArray[]) {
+        int rc = mdb_get_first_vertex(cursor.pointer(), vertexIdArray);
+        if (rc != MDB_NOTFOUND) {
+            checkErrorCode(rc);
+            return true;
+        } else {
+            return false;
+        }
+    }
+
+    public boolean getNextVertex(Cursor cursor, long vertexIdArray[]) {
+        int rc = mdb_get_next_vertex(cursor.pointer(), vertexIdArray);
+        if (rc != MDB_NOTFOUND) {
+            checkErrorCode(rc);
+            return true;
+        } else {
+            return false;
+        }
+    }
+
+    public boolean getFirstVertexForKeyValue(Cursor cursor, long vertexIdArray[], String key, Object value) {
+        PropertyKeyEnumAndId propertyKeyEnumAndId = this.propertyKeyToIdMap.get(key);
+        if (propertyKeyEnumAndId != null) {
+            int rc = mdb_get_first_vertex_for_key_value(cursor.pointer(), vertexIdArray, propertyKeyEnumAndId.id, objectToBytes(propertyKeyEnumAndId.propertyTypeEnum, value));
+            if (rc != MDB_NOTFOUND) {
+                checkErrorCode(rc);
+                return true;
+            } else {
+                return false;
+            }
+        } else {
+            return false;
+        }
+    }
+
+    public boolean getNextVertexForKeyValue(Cursor cursor, long vertexIdArray[], String key, Object value) {
+        PropertyKeyEnumAndId propertyKeyEnumAndId = this.propertyKeyToIdMap.get(key);
+        if (propertyKeyEnumAndId != null) {
+            int rc = mdb_get_next_vertex_for_key_value(cursor.pointer(), vertexIdArray, propertyKeyEnumAndId.id, objectToBytes(propertyKeyEnumAndId.propertyTypeEnum, value));
+            if (rc != MDB_NOTFOUND) {
+                checkErrorCode(rc);
+                return true;
+            } else {
+                return false;
+            }
+        } else {
+            return false;
+        }
+    }
+
     public void getEdge(Cursor cursor, long edgeId, String labelArray[], long outVertexIdArray[], long inVertexIdArray[]) {
         long edgeIdArray[] = new long[1];
         int labelIdArray[] = new int[1];
@@ -90,6 +140,94 @@ public class Glmdb extends NativeObject implements Closeable {
             throw new IllegalStateException("Edge id from db is not the same as passed in. This is a bug!!!");
         }
         labelArray[0] = this.idToLabelMap.get(labelIdArray[0]);
+    }
+
+    public boolean getFirstEdge(Cursor cursor, long edgeIdArray[], String labelArray[], long outVertexIdArray[], long inVertexIdArray[]) {
+        int labelIdArray[] = new int[1];
+        int rc = mdb_get_first_edge(cursor.pointer(), edgeIdArray, labelIdArray, outVertexIdArray, inVertexIdArray);
+        if (rc != MDB_NOTFOUND) {
+            checkErrorCode(rc);
+            labelArray[0] = this.idToLabelMap.get(labelIdArray[0]);
+            return true;
+        } else {
+            return false;
+        }
+    }
+
+    public boolean getNextEdge(Cursor cursor, long edgeIdArray[], String labelArray[], long outVertexIdArray[], long inVertexIdArray[]) {
+        int labelIdArray[] = new int[1];
+        int rc = mdb_get_next_edge(cursor.pointer(), edgeIdArray, labelIdArray, outVertexIdArray, inVertexIdArray);
+        if (rc != MDB_NOTFOUND) {
+            checkErrorCode(rc);
+            labelArray[0] = this.idToLabelMap.get(labelIdArray[0]);
+            return true;
+        } else {
+            return false;
+        }
+    }
+
+    public boolean getFirstEdgeForKeyValue(Cursor cursor, long edgeIdArray[], String labelArray[], long outVertexIdArray[], long inVertexIdArray[], String key, Object value) {
+        PropertyKeyEnumAndId propertyKeyEnumAndId = this.propertyKeyToIdMap.get(key);
+        if (propertyKeyEnumAndId != null) {
+            int labelIdArray[] = new int[1];
+            int rc = mdb_get_first_edge_for_key_value(cursor.pointer(), edgeIdArray, labelIdArray, outVertexIdArray, inVertexIdArray, propertyKeyEnumAndId.id, objectToBytes(propertyKeyEnumAndId.propertyTypeEnum, value));
+            if (rc != MDB_NOTFOUND) {
+                checkErrorCode(rc);
+                labelArray[0] = this.idToLabelMap.get(labelIdArray[0]);
+                return true;
+            } else {
+                return false;
+            }
+        } else {
+            return false;
+        }
+    }
+
+    public boolean getNextEdgeForKeyValue(Cursor cursor, long edgeIdArray[], String labelArray[], long outVertexIdArray[], long inVertexIdArray[], String key, Object value) {
+        PropertyKeyEnumAndId propertyKeyEnumAndId = this.propertyKeyToIdMap.get(key);
+        if (propertyKeyEnumAndId != null) {
+            int labelIdArray[] = new int[1];
+            int rc = mdb_get_next_edge_for_key_value(cursor.pointer(), edgeIdArray, labelIdArray, outVertexIdArray, inVertexIdArray, propertyKeyEnumAndId.id, objectToBytes(propertyKeyEnumAndId.propertyTypeEnum, value));
+            if (rc != MDB_NOTFOUND) {
+                checkErrorCode(rc);
+                labelArray[0] = this.idToLabelMap.get(labelIdArray[0]);
+                return true;
+            } else {
+                return false;
+            }
+        } else {
+            return false;
+        }
+    }
+
+    public boolean getFirstEdgeFromVertex(Cursor cursor, String label, long fromVertexId, long edgeIdArray[], long outVertexIdArray[], long inVertexIdArray[]) {
+        Integer labelId = this.labelToIdMap.get(label);
+        if (labelId != null) {
+            int rc = mdb_get_first_edge_from_vertex(cursor.pointer(), labelId, fromVertexId, edgeIdArray, outVertexIdArray, inVertexIdArray);
+            if (rc != MDB_NOTFOUND) {
+                checkErrorCode(rc);
+                return true;
+            } else {
+                return false;
+            }
+        } else {
+            return false;
+        }
+    }
+
+    public boolean getNextEdgeFromVertex(Cursor cursor, String label, long fromVertexId, long edgeIdArray[], long outVertexIdArray[], long inVertexIdArray[]) {
+        Integer labelId = this.labelToIdMap.get(label);
+        if (labelId != null) {
+            int rc = mdb_get_next_edge_from_vertex(cursor.pointer(), labelId, fromVertexId, edgeIdArray, outVertexIdArray, inVertexIdArray);
+            if (rc == MDB_NOTFOUND || rc == GLMDB_END_OF_EDGES) {
+                return false;
+            } else {
+                checkErrorCode(rc);
+                return true;
+            }
+        } else {
+            return false;
+        }
     }
 
     public long addEdge(Transaction txn, long outVertexId, long inVertexId, String label) {
@@ -102,31 +240,31 @@ public class Glmdb extends NativeObject implements Closeable {
     public void setProperty(Transaction txn, Cursor cursor, long vertexId, String key, Object value, boolean vertexProperty) {
         if (value instanceof String) {
             Integer propertyKeyId = this.getOrPutPropertyKey(txn, key, PropertyTypeEnum.STRING);
-            checkErrorCode(mdb_set_property_string(cursor.pointer(), vertexId, propertyKeyId, (String)value, vertexProperty));
+            checkErrorCode(mdb_set_property_string(cursor.pointer(), vertexId, propertyKeyId, (String) value, vertexProperty));
         } else if (value instanceof Boolean) {
             Integer propertyKeyId = this.getOrPutPropertyKey(txn, key, PropertyTypeEnum.BOOLEAN);
-            checkErrorCode(mdb_set_property_boolean(cursor.pointer(), vertexId, propertyKeyId, (Boolean)value, vertexProperty));
+            checkErrorCode(mdb_set_property_boolean(cursor.pointer(), vertexId, propertyKeyId, (Boolean) value, vertexProperty));
         } else if (value instanceof Integer) {
             Integer propertyKeyId = this.getOrPutPropertyKey(txn, key, PropertyTypeEnum.INT);
-            checkErrorCode(mdb_set_property_int(cursor.pointer(), vertexId, propertyKeyId, (Integer)value, vertexProperty));
+            checkErrorCode(mdb_set_property_int(cursor.pointer(), vertexId, propertyKeyId, (Integer) value, vertexProperty));
         } else if (value instanceof Long) {
             Integer propertyKeyId = this.getOrPutPropertyKey(txn, key, PropertyTypeEnum.LONG);
-            checkErrorCode(mdb_set_property_long(cursor.pointer(), vertexId, propertyKeyId, (Long)value, vertexProperty));
+            checkErrorCode(mdb_set_property_long(cursor.pointer(), vertexId, propertyKeyId, (Long) value, vertexProperty));
         } else if (value instanceof Float) {
             Integer propertyKeyId = this.getOrPutPropertyKey(txn, key, PropertyTypeEnum.FLOAT);
-            checkErrorCode(mdb_set_property_float(cursor.pointer(), vertexId, propertyKeyId, (Float)value, vertexProperty));
+            checkErrorCode(mdb_set_property_float(cursor.pointer(), vertexId, propertyKeyId, (Float) value, vertexProperty));
         } else if (value instanceof Double) {
             Integer propertyKeyId = this.getOrPutPropertyKey(txn, key, PropertyTypeEnum.DOUBLE);
-            checkErrorCode(mdb_set_property_double(cursor.pointer(), vertexId, propertyKeyId, (Double)value, vertexProperty));
+            checkErrorCode(mdb_set_property_double(cursor.pointer(), vertexId, propertyKeyId, (Double) value, vertexProperty));
         } else if (value instanceof Character) {
             Integer propertyKeyId = this.getOrPutPropertyKey(txn, key, PropertyTypeEnum.CHAR);
-            checkErrorCode(mdb_set_property_char(cursor.pointer(), vertexId, propertyKeyId, (Character)value, vertexProperty));
+            checkErrorCode(mdb_set_property_char(cursor.pointer(), vertexId, propertyKeyId, (Character) value, vertexProperty));
         } else if (value instanceof Byte) {
             Integer propertyKeyId = this.getOrPutPropertyKey(txn, key, PropertyTypeEnum.BYTE);
-            checkErrorCode(mdb_set_property_byte(cursor.pointer(), vertexId, propertyKeyId, (Byte)value, vertexProperty));
+            checkErrorCode(mdb_set_property_byte(cursor.pointer(), vertexId, propertyKeyId, (Byte) value, vertexProperty));
         } else if (value instanceof Short) {
             Integer propertyKeyId = this.getOrPutPropertyKey(txn, key, PropertyTypeEnum.SHORT);
-            checkErrorCode(mdb_set_property_short(cursor.pointer(), vertexId, propertyKeyId, (Short)value, vertexProperty));
+            checkErrorCode(mdb_set_property_short(cursor.pointer(), vertexId, propertyKeyId, (Short) value, vertexProperty));
         } else {
             throw new IllegalStateException(String.format("Unsupported value type %s", new String[]{value.getClass().getName()}));
         }
@@ -199,4 +337,7 @@ public class Glmdb extends NativeObject implements Closeable {
 
     }
 
+    public void printVertexDbX() {
+        checkErrorCode(printVertexDb(pointer()));
+    }
 }
