@@ -38,6 +38,7 @@ public class GlmdbGraph implements TransactionalGraph {
 
     @Override
     public Features getFeatures() {
+        //TODO
         throw new RuntimeException("Not yet implemented!");
     }
 
@@ -68,7 +69,12 @@ public class GlmdbGraph implements TransactionalGraph {
 
     @Override
     public void removeVertex(Vertex vertex) {
-        //To change body of implemented methods use File | Settings | File Templates.
+        vertex.remove();
+    }
+
+    @Override
+    public void removeEdge(Edge edge) {
+        edge.remove();
     }
 
     @Override
@@ -103,11 +109,6 @@ public class GlmdbGraph implements TransactionalGraph {
     }
 
     @Override
-    public void removeEdge(Edge edge) {
-        //To change body of implemented methods use File | Settings | File Templates.
-    }
-
-    @Override
     public Iterable<Edge> getEdges() {
         return new GlmdbAllEdgeIterable(this);
     }
@@ -119,6 +120,7 @@ public class GlmdbGraph implements TransactionalGraph {
 
     @Override
     public GraphQuery query() {
+        //TODO
         return null;  //To change body of implemented methods use File | Settings | File Templates.
     }
 
@@ -132,14 +134,12 @@ public class GlmdbGraph implements TransactionalGraph {
         TransactionAndCursor tc = this.currentTransaction.get();
         if (!tc.isReadOnly()) {
             synchronized (this.glmdb) {
-                tc.getVertexCursor().close();
-                tc.getEdgeCursor().close();
+                tc.closeCursors();
                 tc.getTxn().commit();
                 this.glmdb.synchronizeMaps();
             }
         } else {
-            tc.getVertexCursor().close();
-            tc.getEdgeCursor().close();
+            tc.closeCursors();
             tc.getTxn().commit();
         }
         this.currentTransaction.remove();
@@ -151,14 +151,12 @@ public class GlmdbGraph implements TransactionalGraph {
         TransactionAndCursor tc = this.currentTransaction.get();
         if (!tc.isReadOnly()) {
             synchronized (this.glmdb) {
-                tc.getVertexCursor().close();
-                tc.getEdgeCursor().close();
+                tc.closeCursors();
                 tc.getTxn().abort();
                 this.glmdb.unsynchronizePropertyKeyMap();
             }
         } else {
-            tc.getVertexCursor().close();
-            tc.getEdgeCursor().close();
+            tc.closeCursors();
             tc.getTxn().abort();
         }
         this.currentTransaction.remove();
@@ -207,6 +205,10 @@ public class GlmdbGraph implements TransactionalGraph {
 
     public void printVertexDb() {
         this.glmdb.printVertexDbX();
+    }
+
+    public void printEdgeDb() {
+        this.glmdb.printEdgeDbX();
     }
 
 }

@@ -19,21 +19,6 @@ public abstract class GlmdbElement implements Element {
     }
 
     @Override
-    public Set<String> getPropertyKeys() {
-        return null;  //To change body of implemented methods use File | Settings | File Templates.
-    }
-
-    @Override
-    public <T> T removeProperty(String key) {
-        return null;  //To change body of implemented methods use File | Settings | File Templates.
-    }
-
-    @Override
-    public void remove() {
-        //To change body of implemented methods use File | Settings | File Templates.
-    }
-
-    @Override
     public Object getId() {
         return this.id;
     }

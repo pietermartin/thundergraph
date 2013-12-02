@@ -45,6 +45,32 @@ public class GlmdbGraphEdgesTest extends BaseGlmdbGraphTest {
         glmdbGraph.shutdown();
     }
 
+    @Test
+    public void testAddEdgeViaVertex() {
+        GlmdbGraph glmdbGraph = new GlmdbGraph(this.dbPath);
+        Vertex vertex1 = glmdbGraph.addVertex(null);
+        vertex1.setProperty("name", "vertex1");
+        Vertex vertex2 = glmdbGraph.addVertex(null);
+        vertex2.setProperty("name", "vertex2");
+
+        vertex1.addEdge("testLabel1", vertex2);
+        glmdbGraph.commit();
+
+        Vertex vertexTest1 = glmdbGraph.getVertex(0L);
+        Assert.assertNotNull(vertexTest1);
+        Assert.assertEquals(vertexTest1.getProperty("name"), "vertex1");
+
+        Vertex vertexTest2 = glmdbGraph.getVertex(1L);
+        Assert.assertNotNull(vertexTest2);
+        Assert.assertEquals(vertexTest2.getProperty("name"), "vertex2");
+
+        Edge edgeTest = glmdbGraph.getEdge(0L);
+        Assert.assertNotNull("Edge must not be null!!!", edgeTest);
+        Assert.assertEquals("testLabel1", edgeTest.getLabel());
+
+        glmdbGraph.commit();
+        glmdbGraph.shutdown();
+    }
 
     @Test
     public void testAddManyEdges() {

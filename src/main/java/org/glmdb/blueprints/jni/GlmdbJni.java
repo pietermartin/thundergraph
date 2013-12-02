@@ -128,6 +128,8 @@ public class GlmdbJni {
 
     public static final native int printVertexDb(long glmdb_env);
 
+    public static final native int printEdgeDb(long glmdb_env);
+
     public static final native int glmdb_env_create(String path, long[] env);
 
     public static final native void glmdb_env_close(long glmdb_env);
@@ -148,15 +150,14 @@ public class GlmdbJni {
 
     public static final native int mdb_cursor_open_vertex_db(long txn, long glmdb_env, long[] cursor);
 
-    public static final native int mdb_cursor_open_edge_db(long txn, long glmdb_env, long[] cursor);
+    //Direction here must be OUT or IN, not both as it represent the direction of the current edge
+    public static final native int mdb_cursor_open_and_position_on_edge_vertex_db(long txn, long glmdb_env, long vertexId, int direction, int labelId, long edgeId, long[] cursor);
 
-//    public static final native int mdb_cursor_open_propertykey_db(long txn, long glmdb_env, long[] cursor);
+    public static final native int mdb_cursor_open_edge_db(long txn, long glmdb_env, long[] cursor);
 
     public static final native int mdb_add_vertex(long glmdb_env, long cursor, long vertexId[]);
 
     public static final native int mdb_add_edge(long glmdb_env, long txn, long outVertexId, long inVertexId, int labelId, long edgeId[]);
-
-
 
     public static final native int mdb_set_property_boolean(long cursor, long elementId, int propertykeyId, boolean value, boolean vertexProperty);
 
@@ -178,12 +179,17 @@ public class GlmdbJni {
 
     public static final native int mdb_get_property_array(long cursor, long elementId, int propertyKeyId, byte[][] value, boolean vertexProperty);
 
+    public static final native int mdb_del_property(long cursor, long elementId, int propertyKeyId, byte[][] value, boolean vertexProperty);
+
+    public static final native int mdb_get_property_keys(long cursor, long elementId, int[][] propertyKeyIds, boolean vertexProperty);
 
     public static final native int mdb_set_propertykey(long glmdb_env, long txn, String propertyKey, int propertyTypeEnum, int[] propertyKeyId);
 
     public static final native int mdb_set_label(long glmdb_env, long txn, String label, int[] labelId);
 
     public static final native int mdb_get_vertex(long cursor, long vertexId, long vertexIdResult[]);
+
+    public static final native int mdb_remove_vertex(long glmdb_env, long txn, long vertexId);
 
     public static final native int mdb_get_first_vertex(long cursor, long vertexIdResult[]);
 
@@ -195,6 +201,8 @@ public class GlmdbJni {
 
     public static final native int mdb_get_edge(long cursor, long edgeId, long edgeIdResult[], int[] label, long[] outVertexId, long[] inVertexId);
 
+    public static final native int mdb_remove_edge(long glmdb_env, long txn, long edgeId);
+
     public static final native int mdb_get_first_edge(long cursor, long edgeIdResult[], int[] label, long[] outVertexId, long[] inVertexId);
 
     public static final native int mdb_get_next_edge(long cursor, long edgeIdResult[], int[] label, long[] outVertexId, long[] inVertexId);
@@ -203,8 +211,12 @@ public class GlmdbJni {
 
     public static final native int mdb_get_next_edge_for_key_value(long cursor, long edgeIdResult[], int[] label, long[] outVertexId, long[] inVertexId, int key, byte[] value);
 
-    public static final native int mdb_get_first_edge_from_vertex(long cursor, int labelId, long fromVertexId, long edgeIdResult[], long[] outVertexId, long[] inVertexId);
+    public static final native int mdb_get_first_edge_from_vertex(long cursor, int direction, int labelId, long fromVertexId, long edgeIdResult[], long[] outVertexId, long[] inVertexId);
 
-    public static final native int mdb_get_next_edge_from_vertex(long cursor, int labelId, long fromVertexId, long edgeIdResult[], long[] outVertexId, long[] inVertexId);
+    public static final native int mdb_get_next_edge_from_vertex(long cursor, int direction, int labelId, long fromVertexId, long edgeIdResult[], long[] outVertexId, long[] inVertexId);
+
+    public static final native int mdb_get_first_edge_from_vertex_all_labels(long cursor, int direction, long fromVertexId, int labelId[], long edgeIdResult[], long[] outVertexId, long[] inVertexId);
+
+    public static final native int mdb_get_next_edge_from_vertex_all_labels(long cursor, int direction, long fromVertexId, int labelId[], long edgeIdResult[], long[] outVertexId, long[] inVertexId);
 
 }

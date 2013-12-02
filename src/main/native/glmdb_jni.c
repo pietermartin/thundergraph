@@ -1,5 +1,6 @@
 #include <jni.h>
 #include <stdio.h>
+#include <stdlib.h>
 #include <string.h>
 #include "lmdb.h"
 #include "glmdb_jni.h"
@@ -104,7 +105,21 @@ JNIEXPORT jint JNICALL Java_org_glmdb_blueprints_jni_GlmdbJni_printVertexDb(JNIE
 
 	int rc = 0;
 	GLMDB_env * glmdb_env = (GLMDB_env *) (long) glmdbEnv;
-	traverseDb(glmdb_env->env, glmdb_env->vertexDb);
+	traverseVertexDb(glmdb_env->env, glmdb_env->vertexDb);
+	return rc;
+
+}
+
+/*
+ * Class:     org_glmdb_blueprints_jni_GlmdbJni
+ * Method:    printEdgeDb
+ * Signature: (J)I
+ */
+JNIEXPORT jint JNICALL Java_org_glmdb_blueprints_jni_GlmdbJni_printEdgeDb(JNIEnv *env, jclass that, jlong glmdbEnv) {
+
+	int rc = 0;
+	GLMDB_env * glmdb_env = (GLMDB_env *) (long) glmdbEnv;
+	traverseEdgeDb(glmdb_env->env, glmdb_env->edgeDb);
 	return rc;
 
 }
@@ -205,6 +220,59 @@ JNIEXPORT jint JNICALL Java_org_glmdb_blueprints_jni_GlmdbJni_mdb_1cursor_1open_
 	fail: if (cursorArray && cursor) {
 		(*env)->ReleaseLongArrayElements(env, cursorArray, cursor, 0);
 	}
+	return rc;
+}
+
+/*
+ * Class:     org_glmdb_blueprints_jni_GlmdbJni
+ * Method:    mdb_cursor_open_and_position_on_edge_vertex_db
+ * Signature: (JJJIIJ[J)I
+ */
+JNIEXPORT jint JNICALL Java_org_glmdb_blueprints_jni_GlmdbJni_mdb_1cursor_1open_1and_1position_1on_1edge_1vertex_1db(JNIEnv *env,
+		jclass that, jlong txn, jlong glmdbEnv, jlong vertexId, jint direction, jint labelId, jlong edgeId, jlongArray cursorArray) {
+
+	printf("hi there 1\n");
+	MDB_cursor *mdbCursor;
+	jlong *cursor = NULL;
+	jint rc = 0;
+	GLMDB_env * glmdb_env = (GLMDB_env *) (long) glmdbEnv;
+	if (cursorArray) {
+		if ((cursor = (*env)->GetLongArrayElements(env, cursorArray, NULL)) == NULL) {
+			goto fail;
+		}
+	}
+	rc = (jint) mdb_cursor_open((MDB_txn *) (long) txn, glmdb_env->vertexDb, (MDB_cursor **) cursor);
+	printf("hi there 2\n");
+
+	mdbCursor = (MDB_cursor *)*cursor;
+
+	if (rc != 0) {
+		goto fail;
+	}
+	MDB_val key, data;
+	VertexDbId vertexDbId;
+	vertexDbId.vertexId = vertexId;
+	if (direction == 0) {
+		vertexDbId.coreOrPropertyEnum = OUTLABEL;
+	} else if (direction == 1) {
+		vertexDbId.coreOrPropertyEnum = INLABEL;
+	} else {
+		rc = GLMDB_DB_INVALID_DIRECTION;
+		goto fail;
+	}
+	vertexDbId.propertykeyId = -1;
+	vertexDbId.labelId = labelId;
+	vertexDbId.edgeId = edgeId;
+
+	key.mv_size = sizeof(VertexDbId);
+	key.mv_data = &vertexDbId;
+	rc = mdb_cursor_get((MDB_cursor *) mdbCursor, &key, &data, MDB_SET);
+	printf("hi there 3\n");
+
+	fail: if (cursorArray && cursor) {
+		(*env)->ReleaseLongArrayElements(env, cursorArray, cursor, 0);
+	}
+
 	return rc;
 }
 
@@ -513,6 +581,34 @@ JNIEXPORT jint JNICALL Java_org_glmdb_blueprints_jni_GlmdbJni_mdb_1get_1property
 
 /*
  * Class:     org_glmdb_blueprints_jni_GlmdbJni
+ * Method:    mdb_del_property
+ * Signature: (JJI[[BZ)I
+ */
+JNIEXPORT jint JNICALL Java_org_glmdb_blueprints_jni_GlmdbJni_mdb_1del_1property(JNIEnv *env, jclass that, jlong cursor, jlong elementId,
+		jint propertyKeyId, jobjectArray value, jboolean vertexOrEdge) {
+
+	jint rc = 0;
+	MDB_val data;
+	if (vertexOrEdge) {
+		rc = getVertexProperty((MDB_cursor *) (long) cursor, (long) elementId, (int) propertyKeyId, &data);
+	} else {
+		rc = getEdgeProperty((MDB_cursor *) (long) cursor, (long) elementId, (int) propertyKeyId, &data);
+	}
+	if (rc == 0) {
+		jbyteArray byteArray = (*env)->NewByteArray(env, (size_t) data.mv_size);
+		jbyte *cbytes = (*env)->GetByteArrayElements(env, byteArray, NULL);
+		memcpy(cbytes, data.mv_data, data.mv_size);
+		(*env)->SetObjectArrayElement(env, value, 0, byteArray);
+		(*env)->ReleaseByteArrayElements(env, byteArray, cbytes, 0);
+
+		rc = mdb_cursor_del((MDB_cursor *) (long) cursor, 0);
+	}
+	return rc;
+
+}
+
+/*
+ * Class:     org_glmdb_blueprints_jni_GlmdbJni
  * Method:    mdb_get_property
  * Signature: (JJILorg/glmdb/blueprints/jni/Value;)I
  */
@@ -536,6 +632,47 @@ JNIEXPORT jint JNICALL Java_org_glmdb_blueprints_jni_GlmdbJni_mdb_1get_1property
 	(*env)->SetObjectField(env, value, mvDataFieldId, byteArray);
 	(*env)->ReleaseByteArrayElements(env, byteArray, cbytes, 0);
 	return rc;
+}
+
+/*
+ * Class:     org_glmdb_blueprints_jni_GlmdbJni
+ * Method:    mdb_get_property_keys
+ * Signature: (JJ[[IZ)I
+ */
+JNIEXPORT jint JNICALL Java_org_glmdb_blueprints_jni_GlmdbJni_mdb_1get_1property_1keys(JNIEnv *env, jclass that, jlong cursor,
+		jlong elementId, jobjectArray values, jboolean vertexOrEdge) {
+
+	jint rc = 0;
+	jint *propertyKeyIdSize = (jint *) malloc(sizeof(int));
+	jint *propertyKeyId = (jint *) malloc(sizeof(jint));
+	if (vertexOrEdge) {
+
+		rc = getVertexPropertyKeys((MDB_cursor *) (long) cursor, elementId, propertyKeyIdSize, propertyKeyId);
+		if (rc != 0) {
+			goto fail;
+		}
+
+	} else {
+
+		rc = getEdgePropertyKeys((MDB_cursor *) (long) cursor, elementId, propertyKeyIdSize, propertyKeyId);
+		if (rc != 0) {
+			goto fail;
+		}
+
+	}
+
+	jintArray intArray = (*env)->NewIntArray(env, *propertyKeyIdSize);
+	jint *intArrayC = (*env)->GetIntArrayElements(env, intArray, NULL);
+
+	memcpy(intArrayC, propertyKeyId, *propertyKeyIdSize * sizeof(jint));
+
+	(*env)->SetObjectArrayElement(env, values, 0, intArray);
+	(*env)->ReleaseIntArrayElements(env, intArray, intArrayC, 0);
+
+	fail: free(propertyKeyIdSize);
+	free(propertyKeyId);
+	return rc;
+
 }
 
 /*
@@ -736,6 +873,20 @@ JNIEXPORT jint JNICALL Java_org_glmdb_blueprints_jni_GlmdbJni_mdb_1get_1vertex(J
 
 /*
  * Class:     org_glmdb_blueprints_jni_GlmdbJni
+ * Method:    mdb_remove_vertex
+ * Signature: (JJJ)I
+ */
+JNIEXPORT jint JNICALL Java_org_glmdb_blueprints_jni_GlmdbJni_mdb_1remove_1vertex(JNIEnv *env, jclass that, jlong glmdbEnv, jlong txn,
+		jlong vertexId) {
+
+	GLMDB_env * glmdb_env = (GLMDB_env *) (long) glmdbEnv;
+	MDB_txn * tx = (MDB_txn *) (long) txn;
+	return removeVertex(tx, glmdb_env, vertexId);
+
+}
+
+/*
+ * Class:     org_glmdb_blueprints_jni_GlmdbJni
  * Method:    mdb_get_first_vertex
  * Signature: (J[J)I
  */
@@ -758,14 +909,9 @@ JNIEXPORT jint JNICALL Java_org_glmdb_blueprints_jni_GlmdbJni_mdb_1get_1first_1v
 	if (rc == 0) {
 		VertexDbId vertexDbId = *((VertexDbId *) (key.mv_data));
 		if (vertexDbId.coreOrPropertyEnum == VCORE) {
-			printf("found it on first entry\n");
-
-			printRecord(key, data);
-
 			foundVertex = 0;
 		} else {
-			//TODO error codes
-			rc = -1;
+			rc = GLMDB_DB_CORRUPT;
 		}
 	}
 
@@ -856,8 +1002,7 @@ JNIEXPORT jint JNICALL Java_org_glmdb_blueprints_jni_GlmdbJni_mdb_1get_1first_1v
 
 		VertexDbId vertexDbId = *((VertexDbId *) (key.mv_data));
 		if (vertexDbId.coreOrPropertyEnum == VPROPERTY_KEY && vertexDbId.propertykeyId == (int) propertyKey) {
-			//TODO this should never happen as the first entry is VCORE
-			rc = -1;
+			rc = GLMDB_DB_CORRUPT;
 		}
 
 	}
@@ -978,22 +1123,17 @@ JNIEXPORT jint JNICALL Java_org_glmdb_blueprints_jni_GlmdbJni_mdb_1get_1edge(JNI
 	}
 
 	MDB_val key, data;
-	EdgeDbId id;
-	id.edgeId = (long) edgeId;
-	id.coreOrPropertyEnum = ECORE;
-	id.propertykeyId = -1;
-	key.mv_size = sizeof(EdgeDbId);
-	key.mv_data = &id;
-	rc = mdb_cursor_get((MDB_cursor *) (long) cursor, &key, &data, MDB_SET_KEY);
-
-	if (rc == 0) {
-		EdgeDbId edgeDbId = *((EdgeDbId *) (key.mv_data));
-		*edgeIdResultC = edgeDbId.edgeId;
-		EdgeData edgeData = *((EdgeData *) (data.mv_data));
-		*outVertexIdC = edgeData.vertexOutId;
-		*inVertexIdC = edgeData.vertexInId;
-		*labelIdC = edgeData.labelId;
+	rc = getEdge((MDB_cursor *) (long) cursor, edgeId, &key, &data);
+	if (rc != 0) {
+		goto fail;
 	}
+
+	EdgeDbId edgeDbId = *((EdgeDbId *) (key.mv_data));
+	*edgeIdResultC = edgeDbId.edgeId;
+	EdgeData edgeData = *((EdgeData *) (data.mv_data));
+	*outVertexIdC = edgeData.vertexOutId;
+	*inVertexIdC = edgeData.vertexInId;
+	*labelIdC = edgeData.labelId;
 
 	fail: if (edgeIdResult && edgeIdResultC) {
 		(*env)->ReleaseLongArrayElements(env, edgeIdResult, edgeIdResultC, 0);
@@ -1008,6 +1148,20 @@ JNIEXPORT jint JNICALL Java_org_glmdb_blueprints_jni_GlmdbJni_mdb_1get_1edge(JNI
 		(*env)->ReleaseIntArrayElements(env, labelId, labelIdC, 0);
 	}
 	return rc;
+
+}
+
+/*
+ * Class:     org_glmdb_blueprints_jni_GlmdbJni
+ * Method:    mdb_remove_edge
+ * Signature: (JJJ)I
+ */
+JNIEXPORT jint JNICALL Java_org_glmdb_blueprints_jni_GlmdbJni_mdb_1remove_1edge(JNIEnv *env, jclass that, jlong glmdbEnv, jlong txn,
+		jlong edgeId) {
+
+	GLMDB_env * glmdb_env = (GLMDB_env *) (long) glmdbEnv;
+	MDB_txn * tx = (MDB_txn *) (long) txn;
+	return removeEdge(tx, glmdb_env, edgeId);
 
 }
 
@@ -1063,9 +1217,7 @@ JNIEXPORT jint JNICALL Java_org_glmdb_blueprints_jni_GlmdbJni_mdb_1get_1first_1e
 			foundEdge = 0;
 			break;
 		default:
-			printf("did not understand mdb_cursor_get_first_edge, this should never happen!\n");
-			//TODO glmdb error codes
-			rc = -1;
+			rc = GLMDB_DB_CORRUPT;
 			break;
 		}
 	}
@@ -1225,8 +1377,7 @@ JNIEXPORT jint JNICALL Java_org_glmdb_blueprints_jni_GlmdbJni_mdb_1get_1first_1e
 
 		EdgeDbId edgeDbId = *((EdgeDbId *) (key.mv_data));
 		if (edgeDbId.coreOrPropertyEnum == EPROPERTY_KEY && edgeDbId.propertykeyId == (int) propertyKey) {
-			//TODO this should never happen as the first entry is ECORE
-			rc = -1;
+			rc = GLMDB_DB_CORRUPT;
 		}
 
 	}
@@ -1358,10 +1509,10 @@ JNIEXPORT jint JNICALL Java_org_glmdb_blueprints_jni_GlmdbJni_mdb_1get_1next_1ed
 /*
  * Class:     org_glmdb_blueprints_jni_GlmdbJni
  * Method:    mdb_get_first_edge_from_vertex
- * Signature: (JIJ[J[J[J)I
+ * Signature: (JIIJ[J[J[J)I
  */
-JNIEXPORT jint JNICALL Java_org_glmdb_blueprints_jni_GlmdbJni_mdb_1get_1first_1edge_1from_1vertex(JNIEnv * env, jclass that, jlong cursor,
-		jint labelId, jlong fromVertexId, jlongArray edgeIdResult, jlongArray outVertexId, jlongArray inVertexId) {
+JNIEXPORT jint JNICALL Java_org_glmdb_blueprints_jni_GlmdbJni_mdb_1get_1first_1edge_1from_1vertex(JNIEnv *env, jclass that, jlong cursor,
+		jint direction, jint labelId, jlong fromVertexId, jlongArray edgeIdResult, jlongArray outVertexId, jlongArray inVertexId) {
 
 	jint rc = 0;
 	jlong *edgeIdResultC = NULL;
@@ -1384,7 +1535,7 @@ JNIEXPORT jint JNICALL Java_org_glmdb_blueprints_jni_GlmdbJni_mdb_1get_1first_1e
 		}
 	}
 
-	rc = getFirstEdgefromVertex((MDB_cursor *) (long) cursor, labelId, fromVertexId, edgeIdResultC, outVertexIdC, inVertexIdC);
+	rc = getFirstEdgefromVertex((MDB_cursor *) (long) cursor, direction, labelId, fromVertexId, edgeIdResultC, outVertexIdC, inVertexIdC);
 
 	fail: if (edgeIdResult && edgeIdResultC) {
 		(*env)->ReleaseLongArrayElements(env, edgeIdResult, edgeIdResultC, 0);
@@ -1402,10 +1553,10 @@ JNIEXPORT jint JNICALL Java_org_glmdb_blueprints_jni_GlmdbJni_mdb_1get_1first_1e
 /*
  * Class:     org_glmdb_blueprints_jni_GlmdbJni
  * Method:    mdb_get_next_edge_from_vertex
- * Signature: (JIJ[J[J[J)I
+ * Signature: (JIIJ[J[J[J)I
  */
 JNIEXPORT jint JNICALL Java_org_glmdb_blueprints_jni_GlmdbJni_mdb_1get_1next_1edge_1from_1vertex(JNIEnv *env, jclass that, jlong cursor,
-		jint labelId, jlong fromVertexId, jlongArray edgeIdResult, jlongArray outVertexId, jlongArray inVertexId) {
+		jint direction, jint labelId, jlong fromVertexId, jlongArray edgeIdResult, jlongArray outVertexId, jlongArray inVertexId) {
 
 	jint rc = 0;
 	jlong *edgeIdResultC = NULL;
@@ -1428,9 +1579,119 @@ JNIEXPORT jint JNICALL Java_org_glmdb_blueprints_jni_GlmdbJni_mdb_1get_1next_1ed
 		}
 	}
 
-	rc = getNextEdgefromVertex((MDB_cursor *) (long) cursor, labelId, fromVertexId, edgeIdResultC, outVertexIdC, inVertexIdC);
+	rc = getNextEdgefromVertex((MDB_cursor *) (long) cursor, direction, labelId, fromVertexId, edgeIdResultC, outVertexIdC, inVertexIdC);
 
 	fail: if (edgeIdResult && edgeIdResultC) {
+		(*env)->ReleaseLongArrayElements(env, edgeIdResult, edgeIdResultC, 0);
+	}
+	if (outVertexId && outVertexIdC) {
+		(*env)->ReleaseLongArrayElements(env, outVertexId, outVertexIdC, 0);
+	}
+	if (inVertexId && inVertexIdC) {
+		(*env)->ReleaseLongArrayElements(env, inVertexId, inVertexIdC, 0);
+	}
+	return rc;
+
+}
+
+/*
+ * Class:     org_glmdb_blueprints_jni_GlmdbJni
+ * Method:    mdb_get_first_edge_from_vertex_all_labels
+ * Signature: (JIJ[I[J[J[J)I
+ */
+JNIEXPORT jint JNICALL Java_org_glmdb_blueprints_jni_GlmdbJni_mdb_1get_1first_1edge_1from_1vertex_1all_1labels(JNIEnv *env, jclass that,
+		jlong cursor, jint direction, jlong fromVertexId, jintArray labelIdResult, jlongArray edgeIdResult, jlongArray outVertexId,
+		jlongArray inVertexId){
+
+	jint rc = 0;
+	jint *labelIdResultC = NULL;
+	jlong *edgeIdResultC = NULL;
+	jlong *outVertexIdC = NULL;
+	jlong *inVertexIdC = NULL;
+
+	if (labelIdResult) {
+		if ((labelIdResultC = (*env)->GetIntArrayElements(env, labelIdResult, NULL)) == NULL) {
+			goto fail;
+		}
+	}
+	if (edgeIdResult) {
+		if ((edgeIdResultC = (*env)->GetLongArrayElements(env, edgeIdResult, NULL)) == NULL) {
+			goto fail;
+		}
+	}
+	if (outVertexId) {
+		if ((outVertexIdC = (*env)->GetLongArrayElements(env, outVertexId, NULL)) == NULL) {
+			goto fail;
+		}
+	}
+	if (inVertexId) {
+		if ((inVertexIdC = (*env)->GetLongArrayElements(env, inVertexId, NULL)) == NULL) {
+			goto fail;
+		}
+	}
+
+	rc = getFirstEdgefromVertexAllLabels((MDB_cursor *) (long) cursor, direction, fromVertexId, labelIdResultC, edgeIdResultC, outVertexIdC,
+			inVertexIdC);
+
+	fail: if (labelIdResultC && labelIdResultC) {
+		(*env)->ReleaseIntArrayElements(env, labelIdResult, labelIdResultC, 0);
+	}
+	if (edgeIdResult && edgeIdResultC) {
+		(*env)->ReleaseLongArrayElements(env, edgeIdResult, edgeIdResultC, 0);
+	}
+	if (outVertexId && outVertexIdC) {
+		(*env)->ReleaseLongArrayElements(env, outVertexId, outVertexIdC, 0);
+	}
+	if (inVertexId && inVertexIdC) {
+		(*env)->ReleaseLongArrayElements(env, inVertexId, inVertexIdC, 0);
+	}
+	return rc;
+
+}
+
+/*
+ * Class:     org_glmdb_blueprints_jni_GlmdbJni
+ * Method:    mdb_get_next_edge_from_vertex_all_labels
+ * Signature: (JIJ[I[J[J[J)I
+ */
+JNIEXPORT jint JNICALL Java_org_glmdb_blueprints_jni_GlmdbJni_mdb_1get_1next_1edge_1from_1vertex_1all_1labels(JNIEnv *env, jclass that,
+		jlong cursor, jint direction, jlong fromVertexId, jintArray labelIdResult, jlongArray edgeIdResult, jlongArray outVertexId,
+		jlongArray inVertexId) {
+
+	jint rc = 0;
+	jint *labelIdResultC = NULL;
+	jlong *edgeIdResultC = NULL;
+	jlong *outVertexIdC = NULL;
+	jlong *inVertexIdC = NULL;
+
+	if (labelIdResult) {
+		if ((labelIdResultC = (*env)->GetIntArrayElements(env, labelIdResult, NULL)) == NULL) {
+			goto fail;
+		}
+	}
+	if (edgeIdResult) {
+		if ((edgeIdResultC = (*env)->GetLongArrayElements(env, edgeIdResult, NULL)) == NULL) {
+			goto fail;
+		}
+	}
+	if (outVertexId) {
+		if ((outVertexIdC = (*env)->GetLongArrayElements(env, outVertexId, NULL)) == NULL) {
+			goto fail;
+		}
+	}
+	if (inVertexId) {
+		if ((inVertexIdC = (*env)->GetLongArrayElements(env, inVertexId, NULL)) == NULL) {
+			goto fail;
+		}
+	}
+
+	rc = getNextEdgefromVertexAllLabels((MDB_cursor *) (long) cursor, direction, fromVertexId, labelIdResultC, edgeIdResultC, outVertexIdC,
+			inVertexIdC);
+
+	fail: if (labelIdResult && labelIdResultC) {
+		(*env)->ReleaseIntArrayElements(env, labelIdResult, labelIdResultC, 0);
+	}
+	if (edgeIdResult && edgeIdResultC) {
 		(*env)->ReleaseLongArrayElements(env, edgeIdResult, edgeIdResultC, 0);
 	}
 	if (outVertexId && outVertexIdC) {
@@ -1624,6 +1885,103 @@ int addVertex(MDB_cursor *cursor, MDB_dbi vertexDb, jlong vertexId, MDB_val *ver
 	return mdb_cursor_put(cursor, vertexKey, &data, MDB_NOOVERWRITE);
 }
 
+int removeVertex(MDB_txn *txn, GLMDB_env *genv, jlong vertexId) {
+	//Remove all out and in edges
+	int rc;
+	MDB_val key, data;
+	MDB_val inverseKey, inverseData;
+	VertexDbId inverseId;
+	initVertexDbId(&inverseId);
+	MDB_cursor *vertexCursor;
+	MDB_cursor *inverseCursor;
+	MDB_cursor *edgeCursor;
+	rc = mdb_cursor_open(txn, genv->vertexDb, &vertexCursor);
+	if (rc != 0) {
+		goto fail;
+	}
+	rc = mdb_cursor_open(txn, genv->vertexDb, &inverseCursor);
+	if (rc != 0) {
+		goto fail;
+	}
+	rc = mdb_cursor_open(txn, genv->edgeDb, &edgeCursor);
+	if (rc != 0) {
+		goto fail;
+	}
+	VertexDbId id;
+	initVertexDbId(&id);
+	id.vertexId = vertexId;
+	id.coreOrPropertyEnum = VCORE;
+	key.mv_size = sizeof(VertexDbId);
+	key.mv_data = &id;
+	rc = mdb_cursor_get((MDB_cursor *) (long) vertexCursor, &key, &data, MDB_SET_RANGE);
+	if (rc != 0) {
+		goto fail;
+	}
+	rc = mdb_cursor_del((MDB_cursor *) (long) vertexCursor, 0);
+	if (rc != 0) {
+		goto fail;
+	}
+	while ((rc = mdb_cursor_get((MDB_cursor *) (long) vertexCursor, &key, &data, MDB_NEXT)) == 0) {
+		VertexDbId vertexDbId = *((VertexDbId *) (key.mv_data));
+		if (vertexId == vertexDbId.vertexId) {
+			if (vertexDbId.coreOrPropertyEnum == OUTLABEL || vertexDbId.coreOrPropertyEnum == INLABEL) {
+				rc = internalRemoveEdge(edgeCursor, vertexDbId.edgeId);
+				if (rc != 0) {
+					rc = GLMDB_DB_CORRUPT;
+					goto fail;
+				}
+				//get the inverse side
+				inverseId.vertexId = *(long long *) data.mv_data;
+				inverseId.coreOrPropertyEnum = (vertexDbId.coreOrPropertyEnum == OUTLABEL ? INLABEL : OUTLABEL);
+				inverseId.labelId = vertexDbId.labelId;
+				inverseId.edgeId = vertexDbId.edgeId;
+				inverseKey.mv_size = sizeof(VertexDbId);
+				inverseKey.mv_data = &inverseId;
+
+				//delete current
+				rc = mdb_cursor_del((MDB_cursor *) (long) vertexCursor, 0);
+				if (rc != 0) {
+					rc = GLMDB_DB_CORRUPT;
+					goto fail;
+				}
+
+				rc = mdb_cursor_get((MDB_cursor *) (long) inverseCursor, &inverseKey, &inverseData, MDB_SET);
+				if (rc != 0) {
+					rc = GLMDB_DB_CORRUPT;
+					goto fail;
+				}
+				rc = mdb_cursor_del((MDB_cursor *) (long) inverseCursor, 0);
+				if (rc != 0) {
+					rc = GLMDB_DB_CORRUPT;
+					goto fail;
+				}
+			} else if (vertexDbId.coreOrPropertyEnum == VPROPERTY_KEY) {
+				rc = mdb_cursor_del((MDB_cursor *) (long) vertexCursor, 0);
+				if (rc != 0) {
+					rc = GLMDB_DB_CORRUPT;
+					goto fail;
+				}
+			} else if (vertexDbId.coreOrPropertyEnum == VCORE) {
+				rc = GLMDB_DB_CORRUPT;
+				goto fail;
+			} else {
+				rc = GLMDB_DB_CORRUPT;
+				goto fail;
+			}
+		} else {
+			break;
+		}
+	}
+	if (rc == MDB_NOTFOUND) {
+		//This means MDB_NEXT returned nada, i.e. there were no more edges to delete
+		rc = 0;
+	}
+	fail: mdb_cursor_close(vertexCursor);
+	mdb_cursor_close(inverseCursor);
+	mdb_cursor_close(edgeCursor);
+	return rc;
+}
+
 int getVertex(MDB_cursor *cursor, jlong vertexId, MDB_val *vertexKey) {
 	MDB_val data;
 	VertexDbId id;
@@ -1635,7 +1993,7 @@ int getVertex(MDB_cursor *cursor, jlong vertexId, MDB_val *vertexKey) {
 	return mdb_cursor_get((MDB_cursor *) (long) cursor, vertexKey, &data, MDB_SET_KEY);
 }
 
-int getFirstEdgefromVertex(MDB_cursor *cursor, jint labelId, jlong fromVertexId, jlong *edgeIdResultC, jlong *outVertexIdC,
+int getFirstEdgefromVertex(MDB_cursor *cursor, jint direction, jint labelId, jlong fromVertexId, jlong *edgeIdResultC, jlong *outVertexIdC,
 		jlong *inVertexIdC) {
 
 	int rc;
@@ -1643,21 +2001,72 @@ int getFirstEdgefromVertex(MDB_cursor *cursor, jint labelId, jlong fromVertexId,
 	VertexDbId id;
 	initVertexDbId(&id);
 	id.vertexId = fromVertexId;
-	id.coreOrPropertyEnum = OUTLABEL;
+	switch (direction) {
+	case 0:
+		id.coreOrPropertyEnum = OUTLABEL;
+		break;
+	case 1:
+		id.coreOrPropertyEnum = INLABEL;
+		break;
+	case 2:
+		//for direction both place the cursor at the first out label
+		id.coreOrPropertyEnum = OUTLABEL;
+		break;
+	default:
+		rc = GLMDB_UNDEFINED_DIRECTION;
+		goto fail;
+	}
 	id.labelId = labelId;
 	key.mv_size = sizeof(VertexDbId);
 	key.mv_data = &id;
 	rc = mdb_cursor_get((MDB_cursor *) (long) cursor, &key, &data, MDB_SET_RANGE);
 	if (rc == 0) {
-		VertexDbId vertexDbId = (*((VertexDbId *) (key.mv_data)));
-		*edgeIdResultC = vertexDbId.edgeId;
-		*outVertexIdC = vertexDbId.vertexId;
-		*inVertexIdC = *((signed long long *) data.mv_data);
+		VertexDbId vertexDbId = *((VertexDbId *) (key.mv_data));
+		if (fromVertexId == vertexDbId.vertexId && labelId == vertexDbId.labelId) {
+
+			switch (direction) {
+			case 0:
+				if (vertexDbId.coreOrPropertyEnum != OUTLABEL) {
+					rc = GLMDB_END_OF_EDGES;
+					goto fail;
+				}
+				*outVertexIdC = vertexDbId.vertexId;
+				*inVertexIdC = *((jlong *) (data.mv_data));
+				break;
+			case 1:
+				if (vertexDbId.coreOrPropertyEnum != INLABEL) {
+					rc = GLMDB_END_OF_EDGES;
+					goto fail;
+				}
+				*outVertexIdC = *((jlong *) (data.mv_data));
+				*inVertexIdC = vertexDbId.vertexId;
+				break;
+			case 2:
+				if (vertexDbId.coreOrPropertyEnum == OUTLABEL) {
+					*outVertexIdC = vertexDbId.vertexId;
+					*inVertexIdC = *((jlong *) (data.mv_data));
+				} else if (vertexDbId.coreOrPropertyEnum == INLABEL) {
+					*outVertexIdC = *((jlong *) (data.mv_data));
+					*inVertexIdC = vertexDbId.vertexId;
+				} else {
+					rc = GLMDB_END_OF_EDGES;
+					goto fail;
+				}
+				break;
+			default:
+				rc = GLMDB_UNDEFINED_DIRECTION;
+				goto fail;
+			}
+
+			*edgeIdResultC = vertexDbId.edgeId;
+		} else {
+			rc = GLMDB_END_OF_EDGES;
+		}
 	}
-	return rc;
+	fail: return rc;
 }
 
-int getNextEdgefromVertex(MDB_cursor *cursor, jint labelId, jlong fromVertexId, jlong *edgeIdResultC, jlong *outVertexIdC,
+int getNextEdgefromVertex(MDB_cursor *cursor, jint direction, jint labelId, jlong fromVertexId, jlong *edgeIdResultC, jlong *outVertexIdC,
 		jlong *inVertexIdC) {
 
 	int rc = 0;
@@ -1669,15 +2078,178 @@ int getNextEdgefromVertex(MDB_cursor *cursor, jint labelId, jlong fromVertexId, 
 	rc = mdb_cursor_get((MDB_cursor *) (long) cursor, &key, &data, MDB_NEXT);
 	if (rc == 0) {
 		VertexDbId vertexDbId = *((VertexDbId *) (key.mv_data));
-		if (fromVertexId == vertexDbId.vertexId && vertexDbId.coreOrPropertyEnum == OUTLABEL && labelId == vertexDbId.labelId) {
+		if (fromVertexId == vertexDbId.vertexId && labelId == vertexDbId.labelId) {
+
+			switch (direction) {
+			case 0:
+				if (vertexDbId.coreOrPropertyEnum != OUTLABEL) {
+					rc = GLMDB_END_OF_EDGES;
+					goto fail;
+				}
+				*outVertexIdC = vertexDbId.vertexId;
+				*inVertexIdC = *((jlong *) (data.mv_data));
+				break;
+			case 1:
+				if (vertexDbId.coreOrPropertyEnum != INLABEL) {
+					rc = GLMDB_END_OF_EDGES;
+					goto fail;
+				}
+				*outVertexIdC = *((jlong *) (data.mv_data));
+				*inVertexIdC = vertexDbId.vertexId;
+				break;
+			case 2:
+				if (vertexDbId.coreOrPropertyEnum == OUTLABEL) {
+					*outVertexIdC = vertexDbId.vertexId;
+					*inVertexIdC = *((jlong *) (data.mv_data));
+				} else if (vertexDbId.coreOrPropertyEnum == INLABEL) {
+					*outVertexIdC = *((jlong *) (data.mv_data));
+					*inVertexIdC = vertexDbId.vertexId;
+				} else {
+					rc = GLMDB_END_OF_EDGES;
+					goto fail;
+				}
+				break;
+			default:
+				rc = GLMDB_UNDEFINED_DIRECTION;
+				goto fail;
+			}
 			*edgeIdResultC = vertexDbId.edgeId;
-			*outVertexIdC = vertexDbId.vertexId;
-			*inVertexIdC = *((jlong *) (data.mv_data));
 		} else {
 			rc = GLMDB_END_OF_EDGES;
 		}
 	}
-	return rc;
+	fail: return rc;
+}
+
+int getFirstEdgefromVertexAllLabels(MDB_cursor *cursor, jint direction, jlong fromVertexId, jint *labelIdResultC, jlong *edgeIdResultC,
+		jlong *outVertexIdC, jlong *inVertexIdC) {
+
+
+	printf("here I am xxxxxxxxxxxxxxxxxxx\n");
+	int rc;
+	MDB_val key, data;
+	VertexDbId id;
+	initVertexDbId(&id);
+	id.vertexId = fromVertexId;
+	switch (direction) {
+	case 0:
+		id.coreOrPropertyEnum = OUTLABEL;
+		break;
+	case 1:
+		id.coreOrPropertyEnum = INLABEL;
+		break;
+	case 2:
+		//for direction both place the cursor at the first out label
+		id.coreOrPropertyEnum = OUTLABEL;
+		break;
+	default:
+		rc = GLMDB_UNDEFINED_DIRECTION;
+		goto fail;
+	}
+	key.mv_size = sizeof(VertexDbId);
+	key.mv_data = &id;
+	rc = mdb_cursor_get((MDB_cursor *) (long) cursor, &key, &data, MDB_SET_RANGE);
+	if (rc == 0) {
+		VertexDbId vertexDbId = *((VertexDbId *) (key.mv_data));
+		if (fromVertexId == vertexDbId.vertexId) {
+
+			switch (direction) {
+			case 0:
+				if (vertexDbId.coreOrPropertyEnum != OUTLABEL) {
+					rc = GLMDB_END_OF_EDGES;
+					goto fail;
+				}
+				*outVertexIdC = vertexDbId.vertexId;
+				*inVertexIdC = *((jlong *) (data.mv_data));
+				break;
+			case 1:
+				if (vertexDbId.coreOrPropertyEnum != INLABEL) {
+					rc = GLMDB_END_OF_EDGES;
+					goto fail;
+				}
+				*outVertexIdC = *((jlong *) (data.mv_data));
+				*inVertexIdC = vertexDbId.vertexId;
+				break;
+			case 2:
+				if (vertexDbId.coreOrPropertyEnum == OUTLABEL) {
+					*outVertexIdC = vertexDbId.vertexId;
+					*inVertexIdC = *((jlong *) (data.mv_data));
+				} else if (vertexDbId.coreOrPropertyEnum == INLABEL) {
+					*outVertexIdC = *((jlong *) (data.mv_data));
+					*inVertexIdC = vertexDbId.vertexId;
+				} else {
+					rc = GLMDB_END_OF_EDGES;
+					goto fail;
+				}
+				break;
+			default:
+				rc = GLMDB_UNDEFINED_DIRECTION;
+				goto fail;
+			}
+			*labelIdResultC = vertexDbId.labelId;
+			printf("here I am yyy %i\n", vertexDbId.labelId);
+			*edgeIdResultC = vertexDbId.edgeId;
+		} else {
+			rc = GLMDB_END_OF_EDGES;
+		}
+	}
+	fail: return rc;
+}
+
+int getNextEdgefromVertexAllLabels(MDB_cursor *cursor, jint direction, jlong fromVertexId, jint *labelIdResultC, jlong *edgeIdResultC,
+		jlong *outVertexIdC, jlong *inVertexIdC) {
+
+	int rc = 0;
+	VertexDbId id;
+	initVertexDbId(&id);
+	MDB_val key, data;
+	key.mv_size = sizeof(VertexDbId);
+	key.mv_data = &id;
+	rc = mdb_cursor_get((MDB_cursor *) (long) cursor, &key, &data, MDB_NEXT);
+	if (rc == 0) {
+		VertexDbId vertexDbId = *((VertexDbId *) (key.mv_data));
+		if (fromVertexId == vertexDbId.vertexId) {
+
+			switch (direction) {
+			case 0:
+				if (vertexDbId.coreOrPropertyEnum != OUTLABEL) {
+					rc = GLMDB_END_OF_EDGES;
+					goto fail;
+				}
+				*outVertexIdC = vertexDbId.vertexId;
+				*inVertexIdC = *((jlong *) (data.mv_data));
+				break;
+			case 1:
+				if (vertexDbId.coreOrPropertyEnum != INLABEL) {
+					rc = GLMDB_END_OF_EDGES;
+					goto fail;
+				}
+				*outVertexIdC = *((jlong *) (data.mv_data));
+				*inVertexIdC = vertexDbId.vertexId;
+				break;
+			case 2:
+				if (vertexDbId.coreOrPropertyEnum == OUTLABEL) {
+					*outVertexIdC = vertexDbId.vertexId;
+					*inVertexIdC = *((jlong *) (data.mv_data));
+				} else if (vertexDbId.coreOrPropertyEnum == INLABEL) {
+					*outVertexIdC = *((jlong *) (data.mv_data));
+					*inVertexIdC = vertexDbId.vertexId;
+				} else {
+					rc = GLMDB_END_OF_EDGES;
+					goto fail;
+				}
+				break;
+			default:
+				rc = GLMDB_UNDEFINED_DIRECTION;
+				goto fail;
+			}
+			*labelIdResultC = vertexDbId.labelId;
+			*edgeIdResultC = vertexDbId.edgeId;
+		} else {
+			rc = GLMDB_END_OF_EDGES;
+		}
+	}
+	fail: return rc;
 }
 
 int setVertexPropertyString(MDB_cursor *cursor, jlong vertexId, jint propertyKeyId, char *propertyValue) {
@@ -2017,6 +2589,89 @@ int getVertexProperty(MDB_cursor *cursor, jlong vertexId, jint propertyKeyId, MD
 	return mdb_cursor_get(cursor, &key, data, MDB_SET_KEY);
 }
 
+int getVertexPropertyKeys(MDB_cursor *cursor, jlong vertexId, jint *propertyKeyArraySizeC, jint *propertyKeyArrayC) {
+
+	jint rc = 0;
+
+	MDB_val key, data;
+	VertexDbId vertexDbId;
+	initVertexDbId(&vertexDbId);
+	vertexDbId.vertexId = vertexId;
+	vertexDbId.coreOrPropertyEnum = VPROPERTY_KEY;
+	key.mv_size = sizeof(VertexDbId);
+	key.mv_data = &vertexDbId;
+
+	rc = mdb_cursor_get(cursor, &key, &data, MDB_SET_RANGE);
+	if (rc != 0) {
+		goto fail;
+	}
+	vertexDbId = *((VertexDbId *) (key.mv_data));
+	if (vertexDbId.vertexId != vertexId || vertexDbId.coreOrPropertyEnum != VPROPERTY_KEY) {
+		rc = MDB_NOTFOUND;
+		goto fail;
+	}
+	*propertyKeyArraySizeC = 1;
+	propertyKeyArrayC[*propertyKeyArraySizeC - 1] = vertexDbId.propertykeyId;
+
+	while ((rc = mdb_cursor_get(cursor, &key, &data, MDB_NEXT)) == 0) {
+		VertexDbId vertexDbId = *((VertexDbId *) (key.mv_data));
+		if (vertexDbId.vertexId != vertexId || vertexDbId.coreOrPropertyEnum != VPROPERTY_KEY) {
+			break;
+		}
+		*propertyKeyArraySizeC = *propertyKeyArraySizeC + 1;
+		propertyKeyArrayC = (jint *) realloc((jint *) propertyKeyArrayC, *propertyKeyArraySizeC * sizeof(jint));
+		propertyKeyArrayC[*propertyKeyArraySizeC - 1] = vertexDbId.propertykeyId;
+	}
+	fail: return rc;
+
+}
+
+int getEdgePropertyKeys(MDB_cursor *cursor, jlong edgeId, jint *propertyKeyArraySizeC, jint *propertyKeyArrayC) {
+
+	jint rc = 0;
+
+	MDB_val key, data;
+	EdgeDbId edgeDbId;
+	initEdgeDbId(&edgeDbId);
+	edgeDbId.edgeId = edgeId;
+	edgeDbId.coreOrPropertyEnum = EPROPERTY_KEY;
+	key.mv_size = sizeof(EdgeDbId);
+	key.mv_data = &edgeDbId;
+
+	rc = mdb_cursor_get(cursor, &key, &data, MDB_SET_RANGE);
+	if (rc != 0) {
+		goto fail;
+	}
+	edgeDbId = *((EdgeDbId *) (key.mv_data));
+	if (edgeDbId.edgeId != edgeId || edgeDbId.coreOrPropertyEnum != EPROPERTY_KEY) {
+		rc = MDB_NOTFOUND;
+		goto fail;
+	}
+	*propertyKeyArraySizeC = 1;
+	propertyKeyArrayC[*propertyKeyArraySizeC - 1] = edgeDbId.propertykeyId;
+
+	while ((rc = mdb_cursor_get(cursor, &key, &data, MDB_NEXT)) == 0) {
+		EdgeDbId edgeDbId = *((EdgeDbId *) (key.mv_data));
+		if (edgeDbId.edgeId != edgeId || edgeDbId.coreOrPropertyEnum != EPROPERTY_KEY) {
+			break;
+		}
+		*propertyKeyArraySizeC = *propertyKeyArraySizeC + 1;
+		propertyKeyArrayC = (jint *) realloc((jint *) propertyKeyArrayC, *propertyKeyArraySizeC * sizeof(jint));
+		propertyKeyArrayC[*propertyKeyArraySizeC - 1] = edgeDbId.propertykeyId;
+	}
+	fail: return rc;
+
+}
+
+int removeVertexProperty(MDB_cursor *cursor, jlong vertexId, jint propertyKeyId) {
+	MDB_val data;
+	int rc = getVertexProperty(cursor, vertexId, propertyKeyId, &data);
+	if (rc == 0) {
+		rc = mdb_cursor_del(cursor, 0);
+	}
+	return rc;
+}
+
 int getEdgeProperty(MDB_cursor *cursor, jlong edgeId, jint propertyKeyId, MDB_val *data) {
 	MDB_val key;
 	EdgeDbId id;
@@ -2028,8 +2683,18 @@ int getEdgeProperty(MDB_cursor *cursor, jlong edgeId, jint propertyKeyId, MDB_va
 	return mdb_cursor_get(cursor, &key, data, MDB_SET_KEY);
 }
 
+int removeEdgeProperty(MDB_cursor *cursor, jlong edgeId, jint propertyKeyId) {
+	MDB_val data;
+	int rc = getEdgeProperty(cursor, edgeId, propertyKeyId, &data);
+	if (rc == 0) {
+		rc = mdb_cursor_del(cursor, 0);
+	}
+	return rc;
+}
+
 //MDB_val *edgeKey is out only
 int addEdge(MDB_txn *txn, MDB_dbi vertexDb, MDB_dbi edgeDb, jlong edgeId, jint labelId, jlong vertexOutId, jlong vertexInId) {
+
 	int rc = addEdgeToEdgeDb(txn, edgeDb, edgeId, labelId, vertexOutId, vertexInId);
 	if (rc == 0) {
 		rc = addEdgeToVertexDb(txn, vertexDb, edgeId, labelId, vertexOutId, vertexInId);
@@ -2038,7 +2703,7 @@ int addEdge(MDB_txn *txn, MDB_dbi vertexDb, MDB_dbi edgeDb, jlong edgeId, jint l
 }
 
 int addEdgeToEdgeDb(MDB_txn *txn, MDB_dbi edgeDb, jlong edgeId, jint labelId, jlong vertexOutId, jlong vertexInId) {
-	MDB_val data, edgeKey;
+	MDB_val edgeKey, data;
 	EdgeDbId id;
 	id.edgeId = edgeId;
 	id.coreOrPropertyEnum = ECORE;
@@ -2053,6 +2718,7 @@ int addEdgeToEdgeDb(MDB_txn *txn, MDB_dbi edgeDb, jlong edgeId, jint labelId, jl
 
 	data.mv_size = sizeof(EdgeData);
 	data.mv_data = &edgeData;
+
 	return mdb_put(txn, edgeDb, &edgeKey, &data, MDB_NOOVERWRITE);
 }
 
@@ -2084,10 +2750,137 @@ int addEdgeToVertexDb(MDB_txn *txn, MDB_dbi vertexDb, jlong edgeId, jint labelId
 		dataIn.mv_size = sizeof(jlong);
 		dataIn.mv_data = &vertexOutId;
 		rc = mdb_put(txn, vertexDb, &edgeVertexDbKeyIn, &dataIn, MDB_NOOVERWRITE);
-	} else {
-		printf("oops %i\n", rc);
 	}
 	return rc;
+}
+
+/**
+ * This only removes the edge from the edge db, not the related edges in the vertexDb
+ */
+int internalRemoveEdge(MDB_cursor *cursor, jlong edgeId) {
+	MDB_val edgeKey, edgeData;
+	int rc = getEdge(cursor, edgeId, &edgeKey, &edgeData);
+	if (rc == 0) {
+		rc = mdb_cursor_del((MDB_cursor *) (long) cursor, 0);
+	}
+	return rc;
+}
+
+int removeEdge(MDB_txn *txn, GLMDB_env *genv, jlong edgeId) {
+
+	printf("hale 1\n");
+	int rc = 0;
+	MDB_val edgeKey, vertexKey, data, vertexData;
+	MDB_cursor *edgeCursor;
+	MDB_cursor *vertexCursor;
+
+	rc = mdb_cursor_open(txn, genv->vertexDb, &vertexCursor);
+	if (rc != 0) {
+		goto fail;
+	}
+	rc = mdb_cursor_open(txn, genv->edgeDb, &edgeCursor);
+	if (rc != 0) {
+		goto fail;
+	}
+
+	rc = getEdge(edgeCursor, edgeId, &edgeKey, &data);
+	if (rc != 0) {
+		goto fail;
+	}
+
+	EdgeData edgeData = *((EdgeData *) (data.mv_data));
+
+	VertexDbId vertexDbId;
+
+	//Delete the out edge
+	vertexDbId.vertexId = edgeData.vertexOutId;
+	vertexDbId.coreOrPropertyEnum = OUTLABEL;
+	vertexDbId.labelId = edgeData.labelId;
+	vertexDbId.edgeId = edgeId;
+	vertexKey.mv_size = sizeof(VertexDbId);
+	vertexKey.mv_data = &vertexDbId;
+
+	rc = mdb_cursor_get(vertexCursor, &vertexKey, &vertexData, MDB_SET);
+	if (rc != 0) {
+		printf("hale 2\n");
+		rc = GLMDB_DB_CORRUPT;
+		goto fail;
+	}
+	rc = mdb_cursor_del((MDB_cursor *) (long) vertexCursor, 0);
+	if (rc != 0) {
+		printf("hale 3\n");
+		rc = GLMDB_DB_CORRUPT;
+		goto fail;
+	}
+
+	//Delete the in edge
+	vertexDbId.vertexId = edgeData.vertexInId;
+	vertexDbId.coreOrPropertyEnum = INLABEL;
+	vertexDbId.labelId = edgeData.labelId;
+	vertexDbId.edgeId = edgeId;
+	vertexKey.mv_size = sizeof(VertexDbId);
+	vertexKey.mv_data = &vertexDbId;
+
+	rc = mdb_cursor_get(vertexCursor, &vertexKey, &vertexData, MDB_SET);
+	if (rc != 0) {
+		printf("hale 4\n");
+		rc = GLMDB_DB_CORRUPT;
+		goto fail;
+	}
+	rc = mdb_cursor_del((MDB_cursor *) (long) vertexCursor, 0);
+	if (rc != 0) {
+		printf("hale 5\n");
+		rc = GLMDB_DB_CORRUPT;
+		goto fail;
+	}
+
+	//delete the edge
+	rc = mdb_cursor_del((MDB_cursor *) (long) edgeCursor, 0);
+	if (rc != 0) {
+		printf("hale 6\n");
+		rc = GLMDB_DB_CORRUPT;
+		goto fail;
+	}
+
+	printEdgeRecord(edgeKey, data);
+	while ((rc = mdb_cursor_get((MDB_cursor *) (long) edgeCursor, &edgeKey, &data, MDB_NEXT)) == 0) {
+		printEdgeRecord(edgeKey, data);
+		printf("hale 8 %i\n", rc);
+		EdgeDbId edgeDbId = *((EdgeDbId *) (edgeKey.mv_data));
+		if (edgeDbId.edgeId == edgeId) {
+			rc = mdb_cursor_del((MDB_cursor *) (long) edgeCursor, 0);
+			if (rc != 0) {
+				printf("hale 7 %i\n", rc);
+				rc = GLMDB_DB_CORRUPT;
+				goto fail;
+			}
+		} else {
+			break;
+		}
+	}
+	if (rc == MDB_NOTFOUND) {
+		rc = 0;
+	}
+	if (rc != 0) {
+		printf("hale 8\n");
+		rc = GLMDB_DB_CORRUPT;
+		goto fail;
+	}
+
+	fail: mdb_cursor_close(vertexCursor);
+	mdb_cursor_close(edgeCursor);
+
+	return rc;
+}
+
+int getEdge(MDB_cursor *cursor, jlong edgeId, MDB_val *edgeKey, MDB_val *edgeData) {
+	EdgeDbId id;
+	id.edgeId = (long) edgeId;
+	id.coreOrPropertyEnum = ECORE;
+	id.propertykeyId = -1;
+	(*edgeKey).mv_size = sizeof(EdgeDbId);
+	(*edgeKey).mv_data = &id;
+	return mdb_cursor_get((MDB_cursor *) (long) cursor, edgeKey, edgeData, MDB_SET_KEY);
 }
 
 int compareVertexDbId(const MDB_val *key1, const MDB_val *key2) {
@@ -2180,7 +2973,7 @@ void printDbStats(MDB_env *env, MDB_dbi vertexDb, char *name) {
 	mdb_txn_commit(txn);
 }
 
-void printRecord(MDB_val key, MDB_val data) {
+void printVertexRecord(MDB_val key, MDB_val data) {
 
 	VertexDbId vertexDbId = (*((VertexDbId *) (key.mv_data)));
 	switch (vertexDbId.coreOrPropertyEnum) {
@@ -2201,6 +2994,23 @@ void printRecord(MDB_val key, MDB_val data) {
 	case INLABEL:
 		printf("key: %lld, type = INLABEL, propertyKey: %i, labelId = %i, edgeId = %lld,  data: %lld\n", (long long) vertexDbId.vertexId,
 				vertexDbId.propertykeyId, vertexDbId.labelId, (long long) vertexDbId.edgeId, *(long long *) data.mv_data);
+		break;
+	}
+}
+
+void printEdgeRecord(MDB_val key, MDB_val data) {
+
+	EdgeDbId edgeDbId = (*((EdgeDbId *) (key.mv_data)));
+	EdgeData edgeData = (*((EdgeData *) (data.mv_data)));
+	switch (edgeDbId.coreOrPropertyEnum) {
+	case ECORE:
+		printf("key: %lld, type = ECORE, propertyKey: %i, labelId = %i, vertexOutId = %lld,  vertexInId = %lld\n",
+				(long long) edgeDbId.edgeId, edgeDbId.propertykeyId, edgeData.labelId, (long long) edgeData.vertexOutId,
+				(long long) edgeData.vertexInId);
+		break;
+	case EPROPERTY_KEY:
+		printf("key: %lld, type = EPROPERTY_KEY, propertyKey: %i, data: %.*s\n", (long long) edgeDbId.edgeId, edgeDbId.propertykeyId,
+				(int) data.mv_size, (char *) data.mv_data);
 		break;
 	}
 }
@@ -2231,7 +3041,7 @@ void printKey(MDB_val key) {
 	}
 }
 
-int traverseDb(MDB_env *env, MDB_dbi dbi) {
+int traverseVertexDb(MDB_env *env, MDB_dbi dbi) {
 	int rc, i = 0;
 	MDB_txn *txn;
 	MDB_cursor *cursor;
@@ -2240,7 +3050,26 @@ int traverseDb(MDB_env *env, MDB_dbi dbi) {
 	mdb_cursor_open(txn, dbi, &cursor);
 	while ((rc = mdb_cursor_get(cursor, &key, &data, MDB_NEXT)) == 0) {
 //		if (i % 10000 == 0) {
-		printRecord(key, data);
+		printVertexRecord(key, data);
+		i = i + 1;
+//		}
+	}
+	mdb_cursor_close(cursor);
+	mdb_txn_abort(txn);
+	printf("traverse fini\n");
+	return 0;
+}
+
+int traverseEdgeDb(MDB_env *env, MDB_dbi dbi) {
+	int rc, i = 0;
+	MDB_txn *txn;
+	MDB_cursor *cursor;
+	MDB_val key, data;
+	mdb_txn_begin(env, NULL, 1, &txn);
+	mdb_cursor_open(txn, dbi, &cursor);
+	while ((rc = mdb_cursor_get(cursor, &key, &data, MDB_NEXT)) == 0) {
+//		if (i % 10000 == 0) {
+		printEdgeRecord(key, data);
 		i = i + 1;
 //		}
 	}

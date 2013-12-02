@@ -5,6 +5,8 @@ import com.tinkerpop.blueprints.Edge;
 import com.tinkerpop.blueprints.Vertex;
 import com.tinkerpop.blueprints.util.ExceptionFactory;
 
+import java.util.Set;
+
 /**
  * Date: 2013/11/23
  * Time: 8:54 PM
@@ -35,6 +37,19 @@ public class GlmdbEdge extends GlmdbElement implements Edge {
     }
 
     @Override
+    public <T> T removeProperty(String key) {
+        TransactionAndCursor tc = this.glmdbGraph.getWriteTx();
+        return (T) this.glmdbGraph.getGlmdb().removeProperty(tc.getVertexCursor(), this.id, key, false);
+    }
+
+    @Override
+    public Set<String> getPropertyKeys() {
+        TransactionAndCursor tc = this.glmdbGraph.getReadOnlyTx();
+        return this.glmdbGraph.getGlmdb().getPropertyKeys(tc.getVertexCursor(), this.id, false);
+    }
+
+
+    @Override
     public Vertex getVertex(Direction direction) throws IllegalArgumentException {
         if (direction.equals(Direction.OUT)) {
             return new GlmdbVertex(this.glmdbGraph, this.outVertexId);
@@ -46,8 +61,22 @@ public class GlmdbEdge extends GlmdbElement implements Edge {
     }
 
     @Override
+    public void remove() {
+        TransactionAndCursor tc = this.glmdbGraph.getWriteTx();
+        this.glmdbGraph.getGlmdb().removeEdge(tc.getTxn(), this.id);
+    }
+
+    @Override
     public String getLabel() {
         return this.label;
+    }
+
+    long getOutVertexId() {
+        return outVertexId;
+    }
+
+    long getInVertexId() {
+        return inVertexId;
     }
 
 }
