@@ -231,7 +231,6 @@ JNIEXPORT jint JNICALL Java_org_glmdb_blueprints_jni_GlmdbJni_mdb_1cursor_1open_
 JNIEXPORT jint JNICALL Java_org_glmdb_blueprints_jni_GlmdbJni_mdb_1cursor_1open_1and_1position_1on_1edge_1vertex_1db(JNIEnv *env,
 		jclass that, jlong txn, jlong glmdbEnv, jlong vertexId, jint direction, jint labelId, jlong edgeId, jlongArray cursorArray) {
 
-	printf("hi there 1\n");
 	MDB_cursor *mdbCursor;
 	jlong *cursor = NULL;
 	jint rc = 0;
@@ -242,9 +241,8 @@ JNIEXPORT jint JNICALL Java_org_glmdb_blueprints_jni_GlmdbJni_mdb_1cursor_1open_
 		}
 	}
 	rc = (jint) mdb_cursor_open((MDB_txn *) (long) txn, glmdb_env->vertexDb, (MDB_cursor **) cursor);
-	printf("hi there 2\n");
 
-	mdbCursor = (MDB_cursor *)*cursor;
+	mdbCursor = (MDB_cursor *) *cursor;
 
 	if (rc != 0) {
 		goto fail;
@@ -267,7 +265,6 @@ JNIEXPORT jint JNICALL Java_org_glmdb_blueprints_jni_GlmdbJni_mdb_1cursor_1open_
 	key.mv_size = sizeof(VertexDbId);
 	key.mv_data = &vertexDbId;
 	rc = mdb_cursor_get((MDB_cursor *) mdbCursor, &key, &data, MDB_SET);
-	printf("hi there 3\n");
 
 	fail: if (cursorArray && cursor) {
 		(*env)->ReleaseLongArrayElements(env, cursorArray, cursor, 0);
@@ -1601,7 +1598,7 @@ JNIEXPORT jint JNICALL Java_org_glmdb_blueprints_jni_GlmdbJni_mdb_1get_1next_1ed
  */
 JNIEXPORT jint JNICALL Java_org_glmdb_blueprints_jni_GlmdbJni_mdb_1get_1first_1edge_1from_1vertex_1all_1labels(JNIEnv *env, jclass that,
 		jlong cursor, jint direction, jlong fromVertexId, jintArray labelIdResult, jlongArray edgeIdResult, jlongArray outVertexId,
-		jlongArray inVertexId){
+		jlongArray inVertexId) {
 
 	jint rc = 0;
 	jint *labelIdResultC = NULL;
@@ -1913,11 +1910,15 @@ int removeVertex(MDB_txn *txn, GLMDB_env *genv, jlong vertexId) {
 	id.coreOrPropertyEnum = VCORE;
 	key.mv_size = sizeof(VertexDbId);
 	key.mv_data = &id;
-	rc = mdb_cursor_get((MDB_cursor *) (long) vertexCursor, &key, &data, MDB_SET_RANGE);
+	rc = mdb_cursor_get((MDB_cursor *) (long) vertexCursor, &key, &data, MDB_SET);
 	if (rc != 0) {
 		goto fail;
 	}
+	printf("before 1\n");
+	printKey(key);
 	rc = mdb_cursor_del((MDB_cursor *) (long) vertexCursor, 0);
+	printf("after 1\n");
+	printKey(key);
 	if (rc != 0) {
 		goto fail;
 	}
@@ -1939,7 +1940,12 @@ int removeVertex(MDB_txn *txn, GLMDB_env *genv, jlong vertexId) {
 				inverseKey.mv_data = &inverseId;
 
 				//delete current
+				printf("before 2\n");
+				printKey(key);
 				rc = mdb_cursor_del((MDB_cursor *) (long) vertexCursor, 0);
+
+				printf("after 2\n");
+				printKey(key);
 				if (rc != 0) {
 					rc = GLMDB_DB_CORRUPT;
 					goto fail;
@@ -1953,6 +1959,16 @@ int removeVertex(MDB_txn *txn, GLMDB_env *genv, jlong vertexId) {
 				rc = mdb_cursor_del((MDB_cursor *) (long) inverseCursor, 0);
 				if (rc != 0) {
 					rc = GLMDB_DB_CORRUPT;
+					goto fail;
+				}
+
+				//Ensure the delete did not stuff the cursor up
+				printf("before current %i\n", rc);
+				printKey(key);
+				rc = mdb_cursor_get((MDB_cursor *) (long) vertexCursor, &key, &data, MDB_GET_CURRENT);
+				printf("after current %i\n", rc);
+				printKey(key);
+				if (rc != 0) {
 					goto fail;
 				}
 			} else if (vertexDbId.coreOrPropertyEnum == VPROPERTY_KEY) {
@@ -1972,11 +1988,12 @@ int removeVertex(MDB_txn *txn, GLMDB_env *genv, jlong vertexId) {
 			break;
 		}
 	}
+	fail:
 	if (rc == MDB_NOTFOUND) {
 		//This means MDB_NEXT returned nada, i.e. there were no more edges to delete
 		rc = 0;
 	}
-	fail: mdb_cursor_close(vertexCursor);
+	mdb_cursor_close(vertexCursor);
 	mdb_cursor_close(inverseCursor);
 	mdb_cursor_close(edgeCursor);
 	return rc;
@@ -2076,47 +2093,55 @@ int getNextEdgefromVertex(MDB_cursor *cursor, jint direction, jint labelId, jlon
 	key.mv_size = sizeof(VertexDbId);
 	key.mv_data = &id;
 	rc = mdb_cursor_get((MDB_cursor *) (long) cursor, &key, &data, MDB_NEXT);
-	if (rc == 0) {
-		VertexDbId vertexDbId = *((VertexDbId *) (key.mv_data));
-		if (fromVertexId == vertexDbId.vertexId && labelId == vertexDbId.labelId) {
-
-			switch (direction) {
-			case 0:
-				if (vertexDbId.coreOrPropertyEnum != OUTLABEL) {
-					rc = GLMDB_END_OF_EDGES;
-					goto fail;
-				}
-				*outVertexIdC = vertexDbId.vertexId;
-				*inVertexIdC = *((jlong *) (data.mv_data));
-				break;
-			case 1:
-				if (vertexDbId.coreOrPropertyEnum != INLABEL) {
-					rc = GLMDB_END_OF_EDGES;
-					goto fail;
-				}
-				*outVertexIdC = *((jlong *) (data.mv_data));
-				*inVertexIdC = vertexDbId.vertexId;
-				break;
-			case 2:
-				if (vertexDbId.coreOrPropertyEnum == OUTLABEL) {
-					*outVertexIdC = vertexDbId.vertexId;
-					*inVertexIdC = *((jlong *) (data.mv_data));
-				} else if (vertexDbId.coreOrPropertyEnum == INLABEL) {
-					*outVertexIdC = *((jlong *) (data.mv_data));
-					*inVertexIdC = vertexDbId.vertexId;
-				} else {
-					rc = GLMDB_END_OF_EDGES;
-					goto fail;
-				}
-				break;
-			default:
-				rc = GLMDB_UNDEFINED_DIRECTION;
+	printf("getNextEdgefromVertex 1%i\n", rc);
+	printKey(key);
+	if (rc != 0) {
+		goto fail;
+	}
+	rc = mdb_cursor_get((MDB_cursor *) (long) cursor, &key, &data, MDB_GET_CURRENT);
+	printf("getNextEdgefromVertex 2%i\n", rc);
+	printKey(key);
+	if (rc != 0) {
+		goto fail;
+	}
+	VertexDbId vertexDbId = *((VertexDbId *) (key.mv_data));
+	if (fromVertexId == vertexDbId.vertexId && labelId == vertexDbId.labelId) {
+		switch (direction) {
+		case 0:
+			if (vertexDbId.coreOrPropertyEnum != OUTLABEL) {
+				rc = GLMDB_END_OF_EDGES;
 				goto fail;
 			}
-			*edgeIdResultC = vertexDbId.edgeId;
-		} else {
-			rc = GLMDB_END_OF_EDGES;
+			*outVertexIdC = vertexDbId.vertexId;
+			*inVertexIdC = *((jlong *) (data.mv_data));
+			break;
+		case 1:
+			if (vertexDbId.coreOrPropertyEnum != INLABEL) {
+				rc = GLMDB_END_OF_EDGES;
+				goto fail;
+			}
+			*outVertexIdC = *((jlong *) (data.mv_data));
+			*inVertexIdC = vertexDbId.vertexId;
+			break;
+		case 2:
+			if (vertexDbId.coreOrPropertyEnum == OUTLABEL) {
+				*outVertexIdC = vertexDbId.vertexId;
+				*inVertexIdC = *((jlong *) (data.mv_data));
+			} else if (vertexDbId.coreOrPropertyEnum == INLABEL) {
+				*outVertexIdC = *((jlong *) (data.mv_data));
+				*inVertexIdC = vertexDbId.vertexId;
+			} else {
+				rc = GLMDB_END_OF_EDGES;
+				goto fail;
+			}
+			break;
+		default:
+			rc = GLMDB_UNDEFINED_DIRECTION;
+			goto fail;
 		}
+		*edgeIdResultC = vertexDbId.edgeId;
+	} else {
+		rc = GLMDB_END_OF_EDGES;
 	}
 	fail: return rc;
 }
@@ -2124,8 +2149,6 @@ int getNextEdgefromVertex(MDB_cursor *cursor, jint direction, jint labelId, jlon
 int getFirstEdgefromVertexAllLabels(MDB_cursor *cursor, jint direction, jlong fromVertexId, jint *labelIdResultC, jlong *edgeIdResultC,
 		jlong *outVertexIdC, jlong *inVertexIdC) {
 
-
-	printf("here I am xxxxxxxxxxxxxxxxxxx\n");
 	int rc;
 	MDB_val key, data;
 	VertexDbId id;
@@ -2187,7 +2210,6 @@ int getFirstEdgefromVertexAllLabels(MDB_cursor *cursor, jint direction, jlong fr
 				goto fail;
 			}
 			*labelIdResultC = vertexDbId.labelId;
-			printf("here I am yyy %i\n", vertexDbId.labelId);
 			*edgeIdResultC = vertexDbId.edgeId;
 		} else {
 			rc = GLMDB_END_OF_EDGES;
@@ -2276,13 +2298,24 @@ int setEdgePropertyString(MDB_cursor *cursor, jlong edgeId, jint propertyKeyId, 
 		MDB_val key, data;
 		EdgeDbId id;
 		id.edgeId = edgeId;
-		id.coreOrPropertyEnum = EPROPERTY_KEY;
+		id.coreOrPropertyEnum = ECORE;
 		id.propertykeyId = propertyKeyId;
 		key.mv_size = sizeof(EdgeDbId);
 		key.mv_data = &id;
 		data.mv_size = strlen(propertyValue);
 		data.mv_data = propertyValue;
-		return mdb_cursor_put(cursor, &key, &data, 0);
+
+		int rc = mdb_cursor_get(cursor, &key, &data, MDB_SET);
+		if (rc == 0) {
+			id.coreOrPropertyEnum = EPROPERTY_KEY;
+			key.mv_size = sizeof(EdgeDbId);
+			key.mv_data = &id;
+			data.mv_size = strlen(propertyValue);
+			data.mv_data = propertyValue;
+			return mdb_cursor_put(cursor, &key, &data, 0);
+		} else {
+			return GLMDB_DB_INVALID_EDGE;
+		}
 	} else {
 		return GLMDB_WRITE_NULL;
 	}
@@ -2768,7 +2801,6 @@ int internalRemoveEdge(MDB_cursor *cursor, jlong edgeId) {
 
 int removeEdge(MDB_txn *txn, GLMDB_env *genv, jlong edgeId) {
 
-	printf("hale 1\n");
 	int rc = 0;
 	MDB_val edgeKey, vertexKey, data, vertexData;
 	MDB_cursor *edgeCursor;
@@ -2802,13 +2834,11 @@ int removeEdge(MDB_txn *txn, GLMDB_env *genv, jlong edgeId) {
 
 	rc = mdb_cursor_get(vertexCursor, &vertexKey, &vertexData, MDB_SET);
 	if (rc != 0) {
-		printf("hale 2\n");
 		rc = GLMDB_DB_CORRUPT;
 		goto fail;
 	}
 	rc = mdb_cursor_del((MDB_cursor *) (long) vertexCursor, 0);
 	if (rc != 0) {
-		printf("hale 3\n");
 		rc = GLMDB_DB_CORRUPT;
 		goto fail;
 	}
@@ -2823,13 +2853,11 @@ int removeEdge(MDB_txn *txn, GLMDB_env *genv, jlong edgeId) {
 
 	rc = mdb_cursor_get(vertexCursor, &vertexKey, &vertexData, MDB_SET);
 	if (rc != 0) {
-		printf("hale 4\n");
 		rc = GLMDB_DB_CORRUPT;
 		goto fail;
 	}
 	rc = mdb_cursor_del((MDB_cursor *) (long) vertexCursor, 0);
 	if (rc != 0) {
-		printf("hale 5\n");
 		rc = GLMDB_DB_CORRUPT;
 		goto fail;
 	}
@@ -2837,20 +2865,20 @@ int removeEdge(MDB_txn *txn, GLMDB_env *genv, jlong edgeId) {
 	//delete the edge
 	rc = mdb_cursor_del((MDB_cursor *) (long) edgeCursor, 0);
 	if (rc != 0) {
-		printf("hale 6\n");
 		rc = GLMDB_DB_CORRUPT;
 		goto fail;
 	}
 
-	printEdgeRecord(edgeKey, data);
 	while ((rc = mdb_cursor_get((MDB_cursor *) (long) edgeCursor, &edgeKey, &data, MDB_NEXT)) == 0) {
-		printEdgeRecord(edgeKey, data);
-		printf("hale 8 %i\n", rc);
 		EdgeDbId edgeDbId = *((EdgeDbId *) (edgeKey.mv_data));
 		if (edgeDbId.edgeId == edgeId) {
 			rc = mdb_cursor_del((MDB_cursor *) (long) edgeCursor, 0);
+			if (rc == MDB_NOTFOUND) {
+				//This happens at the end of the keys when it iterates forever on the last record.
+				//When we delete what is already deleted it returns MDB_NOTFOUND
+				break;
+			}
 			if (rc != 0) {
-				printf("hale 7 %i\n", rc);
 				rc = GLMDB_DB_CORRUPT;
 				goto fail;
 			}
@@ -2862,7 +2890,6 @@ int removeEdge(MDB_txn *txn, GLMDB_env *genv, jlong edgeId) {
 		rc = 0;
 	}
 	if (rc != 0) {
-		printf("hale 8\n");
 		rc = GLMDB_DB_CORRUPT;
 		goto fail;
 	}
@@ -3056,7 +3083,6 @@ int traverseVertexDb(MDB_env *env, MDB_dbi dbi) {
 	}
 	mdb_cursor_close(cursor);
 	mdb_txn_abort(txn);
-	printf("traverse fini\n");
 	return 0;
 }
 
@@ -3075,7 +3101,6 @@ int traverseEdgeDb(MDB_env *env, MDB_dbi dbi) {
 	}
 	mdb_cursor_close(cursor);
 	mdb_txn_abort(txn);
-	printf("traverse fini\n");
 	return 0;
 }
 

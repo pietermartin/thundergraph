@@ -8,6 +8,7 @@ import org.junit.Assert;
 import org.junit.Test;
 
 import java.util.ArrayList;
+import java.util.Iterator;
 import java.util.List;
 
 /**
@@ -145,5 +146,111 @@ public class GlmdbVertexesFromVertexTest extends BaseGlmdbGraphTest {
 
         glmdbGraph.shutdown();
     }
+
+    @Test
+    public void removeVertexfromIterTest() {
+        GlmdbGraph glmdbGraph = new GlmdbGraph(this.dbPath);
+        Vertex vertex1 = glmdbGraph.addVertex(null);
+        vertex1.setProperty("name", "vertexOut1");
+        for (int i = 0; i < 10; i++) {
+            Vertex vertex2 = glmdbGraph.addVertex(null);
+            vertex2.setProperty("name", "vertexIn" + i);
+            Edge edge = glmdbGraph.addEdge(null, vertex1, vertex2, "testLabel1");
+            edge.setProperty("name", "edge1" + i);
+        }
+        glmdbGraph.commit();
+        Assert.assertEquals(1, countIter(glmdbGraph.getVertex(5L).getEdges(Direction.IN, "testLabel1").iterator()));
+        glmdbGraph.commit();
+
+//        glmdbGraph.printVertexDb();
+
+        int count = 0;
+        Vertex v = glmdbGraph.getVertex(0L);
+        Iterator<Vertex> iterator = v.getVertices(Direction.OUT, "testLabel1").iterator();
+        while (iterator.hasNext()){
+            iterator.next();
+            count++;
+            if (count == 5) {
+                iterator.remove();
+            }
+        }
+        glmdbGraph.commit();
+        Assert.assertNull(glmdbGraph.getVertex(5L));
+        glmdbGraph.commit();
+
+        v = glmdbGraph.getVertex(0L);
+        iterator = v.getVertices(Direction.OUT, "testLabel1").iterator();
+        while (iterator.hasNext()){
+            Vertex vertex = iterator.next();
+            System.out.println(vertex.getProperty("name"));
+            iterator.remove();
+        }
+        glmdbGraph.commit();
+
+        Assert.assertEquals(0, countIter(glmdbGraph.getVertex(0L).getVertices(Direction.OUT, "testLabel1").iterator()));
+        Assert.assertEquals(0, countIter(glmdbGraph.getVertex(0L).getEdges(Direction.OUT, "testLabel1").iterator()));
+        glmdbGraph.commit();
+
+        glmdbGraph.printVertexDb();
+        glmdbGraph.shutdown();
+
+    }
+
+    @Test
+    public void removeEdgefromIterWithoutLabelTest() {
+        GlmdbGraph glmdbGraph = new GlmdbGraph(this.dbPath);
+        Vertex vertex1 = glmdbGraph.addVertex(null);
+        vertex1.setProperty("name", "vertexOut1");
+        for (int i = 0; i < 10; i++) {
+            Vertex vertex2 = glmdbGraph.addVertex(null);
+            vertex2.setProperty("name", "vertexIn1");
+            Edge edge = glmdbGraph.addEdge(null, vertex1, vertex2, "testLabel1");
+            edge.setProperty("name", "edge1" + i);
+        }
+        glmdbGraph.commit();
+        Assert.assertEquals(1, countIter(glmdbGraph.getVertex(5L).getEdges(Direction.IN, "testLabel1").iterator()));
+        glmdbGraph.commit();
+
+        glmdbGraph.printVertexDb();
+
+        int count = 0;
+        Vertex v = glmdbGraph.getVertex(0L);
+        Iterator<Vertex> iterator = v.getVertices(Direction.OUT).iterator();
+        while (iterator.hasNext()){
+            Vertex vertex = iterator.next();
+            count++;
+            if (count == 5) {
+                iterator.remove();
+            }
+        }
+        glmdbGraph.commit();
+        Assert.assertNull(glmdbGraph.getVertex(5L));
+        glmdbGraph.commit();
+
+        v = glmdbGraph.getVertex(0L);
+        iterator = v.getVertices(Direction.OUT).iterator();
+        while (iterator.hasNext()){
+            iterator.next();
+            iterator.remove();
+        }
+        glmdbGraph.commit();
+
+        Assert.assertEquals(0, countIter(glmdbGraph.getVertex(0L).getEdges(Direction.OUT, "testLabel1").iterator()));
+        glmdbGraph.commit();
+
+        glmdbGraph.printVertexDb();
+        glmdbGraph.shutdown();
+
+    }
+
+    private int countIter(Iterator iter) {
+        int count = 0;
+        while (iter.hasNext()) {
+            count++;
+            iter.next();
+        }
+        return count;
+    }
+
 
 }

@@ -4,10 +4,7 @@ import com.tinkerpop.blueprints.Direction;
 import com.tinkerpop.blueprints.Vertex;
 import org.glmdb.blueprints.jni.Cursor;
 
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Iterator;
-import java.util.List;
+import java.util.*;
 
 /**
  * Date: 2013/11/24
@@ -16,7 +13,7 @@ import java.util.List;
 public class GlmdbVertexesFromVertexIterable<T extends Vertex> implements Iterable<GlmdbVertex> {
 
     private final GlmdbGraph glmdbGraph;
-    private final TransactionAndCursor tc;
+    private TransactionAndCursor tc;
     private final long vertexId;
     private final Direction direction;
     private final List<String> labels;
@@ -41,33 +38,62 @@ public class GlmdbVertexesFromVertexIterable<T extends Vertex> implements Iterab
     private class VertexesIteratorForLabel implements Iterator<GlmdbVertex> {
 
         private Cursor cursor;
+        private boolean cursorIsReadOnly;
+        private GlmdbVertex internalNext;
         private GlmdbVertex next;
         private boolean goToFirst = true;
         private String currentLabel;
+        private long currentEdgeOutVertexId;
         private Iterator<String> labelIterator;
 
         private VertexesIteratorForLabel() {
             this.labelIterator = GlmdbVertexesFromVertexIterable.this.labels.iterator();
             //No need to check hasNext as Iterator<GlmdbEdge> iterator() ensures there is at least one label.
             this.currentLabel = this.labelIterator.next();
+            this.cursorIsReadOnly = GlmdbVertexesFromVertexIterable.this.tc.isReadOnly();
             this.cursor = GlmdbVertexesFromVertexIterable.this.glmdbGraph.getGlmdb().openCursorToVertexDb(GlmdbVertexesFromVertexIterable.this.tc.getTxn());
             GlmdbVertexesFromVertexIterable.this.tc.addIteratorCursor(this.cursor);
         }
 
         @Override
         public boolean hasNext() {
-            this.next = internalNext();
+            if (this.next == null) {
+                this.next = internalNext();
+                this.internalNext = this.next;
+            }
             return this.next != null;
         }
 
         @Override
         public GlmdbVertex next() {
-            return this.next;
+            if (this.next == null) {
+                this.next = internalNext();
+                if (this.next == null) {
+                    throw new NoSuchElementException();
+                }
+                this.internalNext = this.next;
+            }
+            GlmdbVertex result = this.next;
+            this.next = null;
+            return result;
         }
 
         @Override
         public void remove() {
-            //TODO
+            if (this.cursorIsReadOnly) {
+                //Upgrade transaction to a writable one.
+                //Replace the current cursor with a new one from the writable transaction
+                GlmdbVertexesFromVertexIterable.this.tc = GlmdbVertexesFromVertexIterable.this.glmdbGraph.getWriteTx();
+                this.cursorIsReadOnly = false;
+                this.cursor = GlmdbVertexesFromVertexIterable.this.glmdbGraph.getGlmdb().openAndPositionCursorOnEdgeInVertexDb(
+                        GlmdbVertexesFromVertexIterable.this.tc.getTxn(),
+                        GlmdbVertexesFromVertexIterable.this.vertexId,
+                        (this.currentEdgeOutVertexId == GlmdbVertexesFromVertexIterable.this.vertexId ? Direction.OUT : Direction.IN),
+                        this.currentLabel,
+                        this.internalNext.id
+                );
+            }
+            GlmdbVertexesFromVertexIterable.this.glmdbGraph.getGlmdb().removeVertex(GlmdbVertexesFromVertexIterable.this.tc.getTxn(), this.internalNext.id);
         }
 
         private GlmdbVertex internalNext() {
@@ -81,6 +107,7 @@ public class GlmdbVertexesFromVertexIterable<T extends Vertex> implements Iterab
                     this.goToFirst = false;
                     if (GlmdbVertexesFromVertexIterable.this.glmdbGraph.getGlmdb().getFirstEdgeFromVertex(
                             this.cursor, GlmdbVertexesFromVertexIterable.this.direction, currentLabel, GlmdbVertexesFromVertexIterable.this.vertexId, edgeIdArray, outVertexIdArray, inVertexIdArray)) {
+                        this.currentEdgeOutVertexId = outVertexIdArray[0];
                         return new GlmdbVertex(GlmdbVertexesFromVertexIterable.this.glmdbGraph, inVertexIdArray[0]);
                     } else {
                          if (this.labelIterator.hasNext()) {
@@ -93,6 +120,7 @@ public class GlmdbVertexesFromVertexIterable<T extends Vertex> implements Iterab
                 } else {
                     if (GlmdbVertexesFromVertexIterable.this.glmdbGraph.getGlmdb().getNextEdgeFromVertex(
                             this.cursor, GlmdbVertexesFromVertexIterable.this.direction, currentLabel, GlmdbVertexesFromVertexIterable.this.vertexId, edgeIdArray, outVertexIdArray, inVertexIdArray)) {
+                        this.currentEdgeOutVertexId = outVertexIdArray[0];
                         return new GlmdbVertex(GlmdbVertexesFromVertexIterable.this.glmdbGraph, inVertexIdArray[0]);
                     } else {
                         if (this.labelIterator.hasNext()) {
@@ -111,28 +139,58 @@ public class GlmdbVertexesFromVertexIterable<T extends Vertex> implements Iterab
     private class VertexesIterator implements Iterator<GlmdbVertex> {
 
         private Cursor cursor;
+        private boolean cursorIsReadOnly;
         private GlmdbVertex next;
+        private GlmdbVertex internalNext;
         private boolean goToFirst = true;
+        private String currentLabel;
+        private long currentEdgeOutVertexId;
 
         private VertexesIterator() {
+            this.cursorIsReadOnly = GlmdbVertexesFromVertexIterable.this.tc.isReadOnly();
             this.cursor = GlmdbVertexesFromVertexIterable.this.glmdbGraph.getGlmdb().openCursorToVertexDb(GlmdbVertexesFromVertexIterable.this.tc.getTxn());
             GlmdbVertexesFromVertexIterable.this.tc.addIteratorCursor(this.cursor);
         }
 
         @Override
         public boolean hasNext() {
-            this.next = internalNext();
+            if (this.next == null) {
+                this.next = internalNext();
+                this.internalNext = this.next;
+            }
             return this.next != null;
         }
 
         @Override
         public GlmdbVertex next() {
-            return this.next;
+            if (this.next == null) {
+                this.next = internalNext();
+                if (this.next == null) {
+                    throw new NoSuchElementException();
+                }
+                this.internalNext = this.next;
+            }
+            GlmdbVertex result = this.next;
+            this.next = null;
+            return result;
         }
 
         @Override
         public void remove() {
-            //TODO
+            if (this.cursorIsReadOnly) {
+                //Upgrade transaction to a writable one.
+                //Replace the current cursor with a new one from the writable transaction
+                GlmdbVertexesFromVertexIterable.this.tc = GlmdbVertexesFromVertexIterable.this.glmdbGraph.getWriteTx();
+                this.cursorIsReadOnly = false;
+                this.cursor = GlmdbVertexesFromVertexIterable.this.glmdbGraph.getGlmdb().openAndPositionCursorOnEdgeInVertexDb(
+                        GlmdbVertexesFromVertexIterable.this.tc.getTxn(),
+                        GlmdbVertexesFromVertexIterable.this.vertexId,
+                        (this.currentEdgeOutVertexId == GlmdbVertexesFromVertexIterable.this.vertexId ? Direction.OUT : Direction.IN),
+                        this.currentLabel,
+                        this.internalNext.id
+                );
+            }
+            GlmdbVertexesFromVertexIterable.this.glmdbGraph.getGlmdb().removeVertex(GlmdbVertexesFromVertexIterable.this.tc.getTxn(), this.internalNext.id);
         }
 
         private GlmdbVertex internalNext() {
@@ -146,6 +204,8 @@ public class GlmdbVertexesFromVertexIterable<T extends Vertex> implements Iterab
                 this.goToFirst = false;
                 if (GlmdbVertexesFromVertexIterable.this.glmdbGraph.getGlmdb().getFirstEdgeFromVertex(
                         this.cursor, GlmdbVertexesFromVertexIterable.this.direction, GlmdbVertexesFromVertexIterable.this.vertexId, labelArray, edgeIdArray, outVertexIdArray, inVertexIdArray)) {
+                    this.currentLabel = labelArray[0];
+                    this.currentEdgeOutVertexId = outVertexIdArray[0];
                     return new GlmdbVertex(GlmdbVertexesFromVertexIterable.this.glmdbGraph, inVertexIdArray[0]);
                 } else {
                     return null;
@@ -153,6 +213,8 @@ public class GlmdbVertexesFromVertexIterable<T extends Vertex> implements Iterab
             } else {
                 if (GlmdbVertexesFromVertexIterable.this.glmdbGraph.getGlmdb().getNextEdgeFromVertex(
                         this.cursor, GlmdbVertexesFromVertexIterable.this.direction, GlmdbVertexesFromVertexIterable.this.vertexId, labelArray, edgeIdArray, outVertexIdArray, inVertexIdArray)) {
+                    this.currentLabel = labelArray[0];
+                    this.currentEdgeOutVertexId = outVertexIdArray[0];
                     return new GlmdbVertex(GlmdbVertexesFromVertexIterable.this.glmdbGraph, inVertexIdArray[0]);
                 } else {
                     return null;

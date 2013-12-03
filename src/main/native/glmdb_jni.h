@@ -36,6 +36,7 @@ extern "C" {
 #define GLMDB_UNDEFINED_DIRECTION	(-30597)
 #define GLMDB_DB_CORRUPT	(-30596)
 #define GLMDB_DB_INVALID_DIRECTION	(-30595)
+#define GLMDB_DB_INVALID_EDGE	(-30594)
 
 typedef struct GLMDB_env {
 	MDB_env *env;

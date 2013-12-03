@@ -13,7 +13,7 @@ import org.junit.Test;
  */
 public class ThunderSpeedTest extends BaseGlmdbGraphTest {
 
-    @Test
+//    @Test
     public void testSpeedDude() {
         GlmdbGraph g = new GlmdbGraph(this.dbPath);
         StopWatch stopWatch = new StopWatch();

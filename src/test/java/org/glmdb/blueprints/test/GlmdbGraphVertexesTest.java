@@ -43,6 +43,8 @@ public class GlmdbGraphVertexesTest extends BaseGlmdbGraphTest  {
         Assert.assertNotNull(vertex);
         Assert.assertEquals("pieter11000", vertex.getProperty("name1"));
 
+        glmdbGraph.printVertexDb();
+
         glmdbGraph.commit();
         glmdbGraph.shutdown();
     }

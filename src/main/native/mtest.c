@@ -47,19 +47,19 @@ int main(int argc,char * argv[])
 		goto fail;
 	}
 
-	jchar *propertyValue1 = malloc(5);
+	char *propertyValue1 = malloc(5);
 	char v1[] = "12345";
 	memcpy(propertyValue1, v1, 5);
-	rc = setVertexPropertyChar(cursor, 0, 0, propertyValue1);
+	rc = setVertexPropertyString(cursor, 0, 0, propertyValue1);
 	if (rc != 0) {
 		printf("setVertexPropertyChar failure  = %i!\n", rc);
 		goto fail;
 	}
 
-	jchar *propertyValue2 = malloc(5);
+	char *propertyValue2 = malloc(5);
 	char v2[] = "12345";
 	memcpy(propertyValue2, v2, 5);
-	rc = setVertexPropertyChar(cursor, 0, 1, propertyValue2);
+	rc = setVertexPropertyString(cursor, 0, 1, propertyValue2);
 	if (rc != 0) {
 		printf("setVertexPropertyChar failure  = %i!\n", rc);
 		goto fail;
@@ -69,7 +69,7 @@ int main(int argc,char * argv[])
 	jint *propertyKeyIdSize = (jint *)malloc(sizeof(int));
 	jint *propertyKeyId = (jint *)malloc(sizeof(jint));
 	rc = getVertexPropertyKeys(cursor, 0, propertyKeyIdSize, propertyKeyId);
-	if (rc != 0) {
+	if (rc != 0 && rc != MDB_NOTFOUND) {
 		int j;
 		for (j = 0; j < *propertyKeyIdSize; j++) {
 			printf("propertykey id = %i\n", propertyKeyId[j]);
@@ -95,10 +95,31 @@ int main(int argc,char * argv[])
 			printf("add edge failure  = %i!\n", rc);
 			goto fail;
 		}
-	}
+		MDB_cursor *edgeCursor;
+		rc = mdb_cursor_open(txn, genv->edgeDb, &edgeCursor);
+		if (rc != 0) {
+			printf("open cursor failure  = %i!\n", rc);
+			goto fail;
+		}
 
+		char *edgePropertyValue2 = malloc(5);
+		char v2[] = "12345";
+		memcpy(edgePropertyValue2, v2, 5);
+
+		rc = setEdgePropertyString(edgeCursor, genv->edgeIdSequence - 1, 0, edgePropertyValue2);
+
+		mdb_cursor_close(edgeCursor);
+
+		if (rc != 0) {
+			printf("setEdgePropertyChar failure  = %i!\n", rc);
+			goto fail;
+		}
+	}
 	mdb_cursor_close(cursor);
 	mdb_txn_commit(txn);
+
+	printf("before traverseEdgeDb\n");
+	traverseEdgeDb(genv->env, genv->edgeDb);
 
 	rc = mdb_txn_begin(genv->env, NULL, 1, &txn);
 	if (rc != 0) {
@@ -138,8 +159,12 @@ int main(int argc,char * argv[])
 	mdb_cursor_close(cursor);
 	mdb_txn_commit(txn);
 
-	printf("before del\n");
+	printf("before traverseVertexDb\n");
 	traverseVertexDb(genv->env, genv->vertexDb);
+
+
+	printf("before traverseEdgeDb\n");
+	traverseEdgeDb(genv->env, genv->edgeDb);
 
 	rc = mdb_txn_begin(genv->env, NULL, 1, &txn);
 	if (rc != 0) {
@@ -153,15 +178,25 @@ int main(int argc,char * argv[])
 	}
 
 	rc = removeEdge(txn, genv, 9LL);
-	rc = removeEdge(txn, genv, 8LL);
-	rc = removeEdge(txn, genv, 7LL);
-	rc = removeEdge(txn, genv, 6LL);
-	rc = removeEdge(txn, genv, 5LL);
-	rc = removeEdge(txn, genv, 4LL);
-	rc = removeEdge(txn, genv, 3LL);
-	rc = removeEdge(txn, genv, 2LL);
-	rc = removeEdge(txn, genv, 1LL);
-	rc = removeEdge(txn, genv, 0LL);
+	printf("rc = %i\n", rc);
+//	rc = removeEdge(txn, genv, 8LL);
+//	printf("rc = %i\n", rc);
+//	rc = removeEdge(txn, genv, 7LL);
+//	printf("rc = %i\n", rc);
+//	rc = removeEdge(txn, genv, 6LL);
+//	printf("rc = %i\n", rc);
+//	rc = removeEdge(txn, genv, 5LL);
+//	printf("rc = %i\n", rc);
+//	rc = removeEdge(txn, genv, 4LL);
+//	printf("rc = %i\n", rc);
+//	rc = removeEdge(txn, genv, 3LL);
+//	printf("rc = %i\n", rc);
+//	rc = removeEdge(txn, genv, 2LL);
+//	printf("rc = %i\n", rc);
+//	rc = removeEdge(txn, genv, 1LL);
+//	printf("rc = %i\n", rc);
+//	rc = removeEdge(txn, genv, 0LL);
+//	printf("rc = %i\n", rc);
 
 //	rc = removeVertex(txn, genv, 10LL);
 //	rc = removeVertex(txn, genv, 9LL);
@@ -176,8 +211,11 @@ int main(int argc,char * argv[])
 
 	mdb_txn_commit(txn);
 
-	printf("after del\n");
+	printf("before traverseVertexDb\n");
 	traverseVertexDb(genv->env, genv->vertexDb);
+
+	printf("before traverseEdgeDb\n");
+	traverseEdgeDb(genv->env, genv->edgeDb);
 
 	fail:
 	printf("closing graph!\n");

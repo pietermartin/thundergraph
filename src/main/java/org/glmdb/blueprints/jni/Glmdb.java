@@ -83,7 +83,11 @@ public class Glmdb extends NativeObject implements Closeable {
 
     public long getVertex(Cursor cursor, long vertexId) {
         long vertexIdArray[] = new long[1];
-        checkErrorCode(mdb_get_vertex(cursor.pointer(), vertexId, vertexIdArray));
+        int rc = mdb_get_vertex(cursor.pointer(), vertexId, vertexIdArray);
+        if (rc == MDB_NOTFOUND) {
+            return -1;
+        }
+        checkErrorCode(rc);
         return vertexIdArray[0];
     }
 

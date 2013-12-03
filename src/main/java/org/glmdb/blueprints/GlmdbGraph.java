@@ -57,8 +57,8 @@ public class GlmdbGraph implements TransactionalGraph {
         Long vertexId = (Long)id;
         TransactionAndCursor tc = this.getReadOnlyTx();
         long vertexIdResult =  this.glmdb.getVertex(tc.getVertexCursor(), vertexId.longValue());
-        if (vertexIdResult != vertexId) {
-            throw new RuntimeException("db returned a vertex with a different id! This is a bug, should never happen");
+        if (vertexIdResult != -1 && vertexIdResult != vertexId) {
+            throw new IllegalStateException("db returned a vertex with a different id! This is a bug, should never happen");
         }
         if (vertexIdResult != -1) {
             return new GlmdbVertex(this, vertexId);
