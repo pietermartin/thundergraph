@@ -6,12 +6,13 @@ import org.glmdb.blueprints.jni.Glmdb;
 import org.glmdb.blueprints.jni.Transaction;
 
 import java.io.File;
+import java.util.Set;
 
 /**
  * Date: 2013/11/17
  * Time: 4:07 PM
  */
-public class GlmdbGraph implements TransactionalGraph {
+public class GlmdbGraph implements TransactionalGraph, KeyIndexableGraph {
 
     private Glmdb glmdb;
     private ThreadLocal<TransactionAndCursor> currentTransaction;
@@ -211,4 +212,18 @@ public class GlmdbGraph implements TransactionalGraph {
         this.glmdb.printEdgeDbX();
     }
 
+    @Override
+    public <T extends Element> void dropKeyIndex(String key, Class<T> elementClass) {
+        //To change body of implemented methods use File | Settings | File Templates.
+    }
+
+    @Override
+    public <T extends Element> void createKeyIndex(String key, Class<T> elementClass, Parameter... indexParameters) {
+        //To change body of implemented methods use File | Settings | File Templates.
+    }
+
+    @Override
+    public <T extends Element> Set<String> getIndexedKeys(Class<T> elementClass) {
+        return null;  //To change body of implemented methods use File | Settings | File Templates.
+    }
 }

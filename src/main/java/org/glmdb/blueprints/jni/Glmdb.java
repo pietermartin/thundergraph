@@ -26,6 +26,7 @@ public class Glmdb extends NativeObject implements Closeable {
 
     public Glmdb(String path) {
         super(create(path));
+        loadPropertyKeys();
     }
 
     private static long create(String path) {
@@ -58,6 +59,12 @@ public class Glmdb extends NativeObject implements Closeable {
     public Cursor openCursorToVertexDb(Transaction tx) {
         long cursor[] = new long[1];
         checkErrorCode(mdb_cursor_open_vertex_db(tx.pointer(), pointer(), cursor));
+        return new Cursor(this, cursor[0]);
+    }
+
+    public Cursor openCursorToPropertyKeyDb(Transaction tx) {
+        long cursor[] = new long[1];
+        checkErrorCode(mdb_cursor_open_property_key_db(tx.pointer(), pointer(), cursor));
         return new Cursor(this, cursor[0]);
     }
 
@@ -346,6 +353,31 @@ public class Glmdb extends NativeObject implements Closeable {
         } else {
             return Collections.emptySet();
         }
+    }
+
+    private void loadPropertyKeys() {
+
+        int propertyKeyIdArray[] = new int[1];
+        int propertyTypeEnumArray[] = new int[1];
+        boolean propertyIndexedArray[] = new boolean[1];
+        byte[][] propertyKeyArray = new byte[1][];
+
+        Transaction txn = createReadOnlyTransaction();
+        Cursor c = openCursorToPropertyKeyDb(txn);
+        int rc = mdb_get_first_property_key(c.pointer(), propertyKeyIdArray, propertyTypeEnumArray, propertyIndexedArray, propertyKeyArray);
+        while (rc == 0) {
+            PropertyTypeEnum propertyTypeEnum = PropertyTypeEnum.fromOrdinal(propertyTypeEnumArray[0]);
+            String key = (String)bytesToObject(PropertyTypeEnum.STRING, propertyKeyArray[0]);
+            this.propertyKeyToIdMap.put(key, new PropertyKeyEnumAndId(propertyTypeEnum, propertyKeyIdArray[0]));
+            this.propertyKeyIdToNameMap.put(propertyKeyIdArray[0], key);
+            rc = mdb_get_next_property_key(c.pointer(), propertyTypeEnumArray, propertyKeyIdArray, propertyIndexedArray, propertyKeyArray);
+        }
+        if (rc != 0 && rc != MDB_NOTFOUND) {
+            checkErrorCode(rc);
+        }
+
+        mdb_cursor_close(c.pointer());
+        mdb_txn_commit(txn.pointer());
     }
 
     private Integer getOrPutPropertyKey(Transaction txn, String propertyKey, PropertyTypeEnum propertyTypeEnum) {

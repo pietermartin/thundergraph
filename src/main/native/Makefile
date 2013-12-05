@@ -30,7 +30,7 @@ IFLAGS  = -I/usr/lib/jvm/java-7-openjdk-amd64/include
 
 IHDRS	= lmdb.h
 ILIBS	= libglmdb_jni.a libglmdb_jni.so
-IPROGS	= mdb_stat mdb_copy mtest
+IPROGS	= mdb_stat mdb_copy mtest mtest2
 IDOCS	= mdb_stat.1 mdb_copy.1
 PROGS	= $(IPROGS) 
 all:	$(ILIBS) $(PROGS)
@@ -62,7 +62,7 @@ liblmdb.a:	mdb.o midl.o
 mdb_stat: mdb_stat.o liblmdb.a
 mdb_copy: mdb_copy.o liblmdb.a
 mtest:    mtest.o    liblmdb.a
-#mtest2:	mtest2.o liblmdb.a
+mtest2:	  mtest2.o   liblmdb.a
 #mtest3:	mtest3.o liblmdb.a
 #mtest4:	mtest4.o liblmdb.a
 #mtest5:	mtest5.o liblmdb.a
