@@ -6,7 +6,8 @@ package org.glmdb.blueprints.jni;
  */
 public enum PropertyTypeEnum {
     BOOLEAN, BYTE, SHORT, INT, LONG, FLOAT,  DOUBLE, CHAR, STRING,
-    ARRAY_BOOLEAN, ARRAY_BYTE, ARRAY_SHORT, ARRAY_INT, ARRAY_LONG, ARRAY_FLOAT, ARRAY_DOUBLE, ARRAY_CHAR, ARRAY_STRING;
+    ARRAY_BOOLEAN, ARRAY_BYTE, ARRAY_SHORT, ARRAY_INT, ARRAY_LONG, ARRAY_FLOAT, ARRAY_DOUBLE, ARRAY_CHAR, ARRAY_STRING,
+    UNSET /*UNSET occurs on createkeyIndex when the type of the key is not known*/;
 
     public static PropertyTypeEnum fromOrdinal(int ordinal) {
 
@@ -47,6 +48,8 @@ public enum PropertyTypeEnum {
                 return ARRAY_CHAR;
             case 17:
                 return ARRAY_STRING;
+            case 18:
+                return UNSET;
             default:
                 throw new IllegalStateException("Unknown PropertyTypeEnum ordinal " + ordinal);
 

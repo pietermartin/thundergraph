@@ -70,7 +70,7 @@ int addVertexAnd2Properties(GLMDB_env *genv) {
 	char *propertyKey = malloc(5);
 	char propertyKeyName[] = "name1";
 	memcpy(propertyKey, propertyKeyName, 5);
-	setPropertyKey(genv, txn, GLMDB_STRING, propertyKeyId, propertyKey);
+	setPropertyKey(genv, txn, STRING, propertyKeyId, propertyKey, 1);
 	free(propertyKeyId);
 	free(propertyKey);
 
@@ -79,7 +79,7 @@ int addVertexAnd2Properties(GLMDB_env *genv) {
 	char *propertyKey2 = malloc(5);
 	char propertyKeyName2[] = "name2";
 	memcpy(propertyKey2, propertyKeyName2, 5);
-	setPropertyKey(genv, txn, GLMDB_STRING, propertyKeyId2, propertyKey2);
+	setPropertyKey(genv, txn, STRING, propertyKeyId2, propertyKey2, 1);
 	free(propertyKeyId2);
 	free(propertyKey2);
 

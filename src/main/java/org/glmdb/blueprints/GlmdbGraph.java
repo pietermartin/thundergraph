@@ -219,7 +219,19 @@ public class GlmdbGraph implements TransactionalGraph, KeyIndexableGraph {
 
     @Override
     public <T extends Element> void createKeyIndex(String key, Class<T> elementClass, Parameter... indexParameters) {
-        //To change body of implemented methods use File | Settings | File Templates.
+        if (key == null) {
+            throw new IllegalStateException("key in createKeyIndex can not be null");
+        }
+        if (elementClass == null) {
+            throw new IllegalStateException("elementClass in createKeyIndex can not be null");
+        }
+        if (elementClass.equals(Vertex.class)) {
+//            this.glmdb.createVertexKeyIndex(key);
+        } else if (elementClass.equals(Edge.class)) {
+//            this.glmdb.createEdgeKeyIndex(key);
+        } else {
+            throw new IllegalStateException("Unsupported elementClass " + elementClass.getName());
+        }
     }
 
     @Override

@@ -122,10 +122,10 @@ JNIEXPORT jint JNICALL Java_org_glmdb_blueprints_jni_GlmdbJni_mdb_1cursor_1open_
 /*
  * Class:     org_glmdb_blueprints_jni_GlmdbJni
  * Method:    mdb_cursor_open_property_key_db
- * Signature: (JJ[J)I
+ * Signature: (JJ[JZ)I
  */
 JNIEXPORT jint JNICALL Java_org_glmdb_blueprints_jni_GlmdbJni_mdb_1cursor_1open_1property_1key_1db
-  (JNIEnv *, jclass, jlong, jlong, jlongArray);
+  (JNIEnv *, jclass, jlong, jlong, jlongArray, jboolean);
 
 /*
  * Class:     org_glmdb_blueprints_jni_GlmdbJni
@@ -258,10 +258,10 @@ JNIEXPORT jint JNICALL Java_org_glmdb_blueprints_jni_GlmdbJni_mdb_1get_1property
 /*
  * Class:     org_glmdb_blueprints_jni_GlmdbJni
  * Method:    mdb_set_propertykey
- * Signature: (JJLjava/lang/String;I[I)I
+ * Signature: (JJLjava/lang/String;I[IZ)I
  */
 JNIEXPORT jint JNICALL Java_org_glmdb_blueprints_jni_GlmdbJni_mdb_1set_1propertykey
-  (JNIEnv *, jclass, jlong, jlong, jstring, jint, jintArray);
+  (JNIEnv *, jclass, jlong, jlong, jstring, jint, jintArray, jboolean);
 
 /*
  * Class:     org_glmdb_blueprints_jni_GlmdbJni

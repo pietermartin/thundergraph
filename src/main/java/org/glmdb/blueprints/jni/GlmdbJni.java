@@ -150,7 +150,7 @@ public class GlmdbJni {
 
     public static final native int mdb_cursor_open_vertex_db(long txn, long glmdb_env, long[] cursor);
 
-    public static final native int mdb_cursor_open_property_key_db(long txn, long glmdb_env, long[] cursor);
+    public static final native int mdb_cursor_open_property_key_db(long txn, long glmdb_env, long[] cursor, boolean vertex);
 
     //Direction here must be OUT or IN, not both as it represent the direction of the current edge
     public static final native int mdb_cursor_open_and_position_on_edge_vertex_db(long txn, long glmdb_env, long vertexId, int direction, int labelId, long edgeId, long[] cursor);
@@ -185,7 +185,7 @@ public class GlmdbJni {
 
     public static final native int mdb_get_property_keys(long cursor, long elementId, int[][] propertyKeyIds, boolean vertexProperty);
 
-    public static final native int mdb_set_propertykey(long glmdb_env, long txn, String propertyKey, int propertyTypeEnum, int[] propertyKeyId);
+    public static final native int mdb_set_propertykey(long glmdb_env, long txn, String propertyKey, int propertyTypeEnum, int[] propertyKeyId, boolean vertex);
 
     public static final native int mdb_get_first_property_key(long cursor, int propertyKeyIdArray[], int propertyTypeEnumArray[], boolean propertyIndexedArray[], byte[][] propertyKeyArray);
 

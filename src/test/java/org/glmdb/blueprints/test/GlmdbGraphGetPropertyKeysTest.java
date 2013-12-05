@@ -64,7 +64,7 @@ public class GlmdbGraphGetPropertyKeysTest extends BaseGlmdbGraphTest  {
         glmdbGraph.printVertexDb();
 
         Set<String> propertyKeys = glmdbGraph.getEdge(0L).getPropertyKeys();
-        Assert.assertEquals(0, propertyKeys.size());
+        Assert.assertEquals(1, propertyKeys.size());
 
         propertyKeys = glmdbGraph.getEdge(1L).getPropertyKeys();
         Assert.assertEquals(1, propertyKeys.size());

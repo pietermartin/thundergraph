@@ -1,5 +1,6 @@
 package org.glmdb.blueprints.test;
 
+import com.tinkerpop.blueprints.Direction;
 import com.tinkerpop.blueprints.Edge;
 import com.tinkerpop.blueprints.Vertex;
 import org.apache.commons.lang.time.StopWatch;
@@ -13,7 +14,7 @@ import org.junit.Test;
  */
 public class ThunderSpeedTest extends BaseGlmdbGraphTest {
 
-//    @Test
+    @Test
     public void testSpeedDude() {
         GlmdbGraph g = new GlmdbGraph(this.dbPath);
         StopWatch stopWatch = new StopWatch();
@@ -22,7 +23,7 @@ public class ThunderSpeedTest extends BaseGlmdbGraphTest {
         Vertex one = g.addVertex(null);
         one.setProperty("one", "1");
         long previousSplitTime = 0;
-        for (int i = 0; i < 100000000; i++) {
+        for (int i = 0; i < 10000000; i++) {
             Vertex many = g.addVertex(null);
             many.setProperty("many", "2");
             g.addEdge(null, one, many, "toMany");
@@ -39,6 +40,14 @@ public class ThunderSpeedTest extends BaseGlmdbGraphTest {
         stopWatch.stop();
         System.out.println(stopWatch.toString());
 
+        stopWatch.reset();
+        stopWatch.start();
+        Vertex startV = g.getVertex(0L);
+        for (Vertex v : startV.getVertices(Direction.OUT, "toMany")) {
+            v.getProperty("many");
+        }
+        stopWatch.stop();
+        System.out.println(stopWatch.toString());
         g.shutdown();
     }
 }

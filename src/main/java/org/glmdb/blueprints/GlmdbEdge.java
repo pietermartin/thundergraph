@@ -45,7 +45,7 @@ public class GlmdbEdge extends GlmdbElement implements Edge {
     @Override
     public Set<String> getPropertyKeys() {
         TransactionAndCursor tc = this.glmdbGraph.getReadOnlyTx();
-        return this.glmdbGraph.getGlmdb().getPropertyKeys(tc.getVertexCursor(), this.id, false);
+        return this.glmdbGraph.getGlmdb().getPropertyKeys(tc.getEdgeCursor(), this.id, false);
     }
 
 

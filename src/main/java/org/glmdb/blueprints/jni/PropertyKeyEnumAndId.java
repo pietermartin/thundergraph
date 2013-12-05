@@ -8,10 +8,12 @@ class PropertyKeyEnumAndId {
 
     PropertyTypeEnum propertyTypeEnum;
     int id;
+    boolean indexed;
 
-    PropertyKeyEnumAndId(PropertyTypeEnum propertyTypeEnum, int id) {
+    PropertyKeyEnumAndId(PropertyTypeEnum propertyTypeEnum, int id, boolean indexed) {
         this.propertyTypeEnum = propertyTypeEnum;
         this.id = id;
+        this.indexed = indexed;
     }
 
 }

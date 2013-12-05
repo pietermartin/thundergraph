@@ -243,14 +243,4 @@ public class GlmdbVertexesFromVertexTest extends BaseGlmdbGraphTest {
 
     }
 
-    private int countIter(Iterator iter) {
-        int count = 0;
-        while (iter.hasNext()) {
-            count++;
-            iter.next();
-        }
-        return count;
-    }
-
-
 }
