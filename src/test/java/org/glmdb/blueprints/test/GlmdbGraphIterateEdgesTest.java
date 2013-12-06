@@ -3,7 +3,7 @@ package org.glmdb.blueprints.test;
 import com.tinkerpop.blueprints.Direction;
 import com.tinkerpop.blueprints.Edge;
 import com.tinkerpop.blueprints.Vertex;
-import org.glmdb.blueprints.GlmdbGraph;
+import org.glmdb.blueprints.ThunderGraph;
 import org.junit.Assert;
 import org.junit.Test;
 
@@ -19,22 +19,22 @@ public class GlmdbGraphIterateEdgesTest extends BaseGlmdbGraphTest  {
 
     @Test
     public void testAddEdge() {
-        GlmdbGraph glmdbGraph = new GlmdbGraph(this.dbPath);
-        Vertex vertex1 = glmdbGraph.addVertex(null);
+        ThunderGraph thunderGraph = new ThunderGraph(this.dbPath);
+        Vertex vertex1 = thunderGraph.addVertex(null);
         vertex1.setProperty("name", "vertexOut1");
         for (int i = 0; i < 1000; i++) {
-            Vertex vertex2 = glmdbGraph.addVertex(null);
+            Vertex vertex2 = thunderGraph.addVertex(null);
             vertex2.setProperty("name", "vertexIn" + i);
-            Edge edge = glmdbGraph.addEdge(null, vertex1, vertex2, "testLabel1");
+            Edge edge = thunderGraph.addEdge(null, vertex1, vertex2, "testLabel1");
             edge.setProperty("name", "edge" + i);
         }
-        glmdbGraph.commit();
+        thunderGraph.commit();
 
         List<String> edgeName = new ArrayList<String>();
         List<String> vertexOutName = new ArrayList<String>();
         List<String> vertexInName = new ArrayList<String>();
         int count = 0;
-        Iterable<Edge> iter = glmdbGraph.getEdges();
+        Iterable<Edge> iter = thunderGraph.getEdges();
         for (Edge edge : iter) {
             if (count % 100 == 0) {
                 edgeName.add((String)edge.getProperty("name"));
@@ -51,26 +51,26 @@ public class GlmdbGraphIterateEdgesTest extends BaseGlmdbGraphTest  {
         Assert.assertEquals("vertexIn0", vertexInName.get(0));
         Assert.assertEquals("vertexIn900", vertexInName.get(9));
 
-        glmdbGraph.commit();
-        glmdbGraph.shutdown();
+        thunderGraph.commit();
+        thunderGraph.shutdown();
     }
 
 
     @Test
     public void testCursorReset() {
-        GlmdbGraph glmdbGraph = new GlmdbGraph(this.dbPath);
-        Vertex vertex1 = glmdbGraph.addVertex(null);
+        ThunderGraph thunderGraph = new ThunderGraph(this.dbPath);
+        Vertex vertex1 = thunderGraph.addVertex(null);
         vertex1.setProperty("name", "vertexOut1");
         for (int i = 0; i < 1000; i++) {
-            Vertex vertex2 = glmdbGraph.addVertex(null);
+            Vertex vertex2 = thunderGraph.addVertex(null);
             vertex2.setProperty("name", "vertexIn" + i);
-            Edge edge = glmdbGraph.addEdge(null, vertex1, vertex2, "testLabel1");
+            Edge edge = thunderGraph.addEdge(null, vertex1, vertex2, "testLabel1");
             edge.setProperty("name", "edge" + i);
         }
-        glmdbGraph.commit();
+        thunderGraph.commit();
 
         int count = 0;
-        Iterable<Edge> iter = glmdbGraph.getEdges();
+        Iterable<Edge> iter = thunderGraph.getEdges();
         for (Edge edge : iter) {
             if (count == 500) {
                 break;
@@ -82,7 +82,7 @@ public class GlmdbGraphIterateEdgesTest extends BaseGlmdbGraphTest  {
         List<String> edgeName = new ArrayList<String>();
         List<String> vertexOutName = new ArrayList<String>();
         List<String> vertexInName = new ArrayList<String>();
-        iter = glmdbGraph.getEdges();
+        iter = thunderGraph.getEdges();
         for (Edge edge : iter) {
             if (count % 100 == 0) {
                 edgeName.add((String)edge.getProperty("name"));
@@ -99,33 +99,33 @@ public class GlmdbGraphIterateEdgesTest extends BaseGlmdbGraphTest  {
         Assert.assertEquals("vertexIn0", vertexInName.get(0));
         Assert.assertEquals("vertexIn900", vertexInName.get(9));
 
-        glmdbGraph.commit();
-        glmdbGraph.shutdown();
+        thunderGraph.commit();
+        thunderGraph.shutdown();
     }
 
 
     @Test
     public void testIterEdgesForKeyValue() {
-        GlmdbGraph glmdbGraph = new GlmdbGraph(this.dbPath);
-        Vertex vertex1 = glmdbGraph.addVertex(null);
+        ThunderGraph thunderGraph = new ThunderGraph(this.dbPath);
+        Vertex vertex1 = thunderGraph.addVertex(null);
         vertex1.setProperty("name", "vertexOut1");
         for (int i = 0; i < 1000; i++) {
-            Vertex vertex2 = glmdbGraph.addVertex(null);
+            Vertex vertex2 = thunderGraph.addVertex(null);
             if (i < 500) {
                 vertex2.setProperty("name", "vertexIn1");
-                Edge edge = glmdbGraph.addEdge(null, vertex1, vertex2, "testLabel1");
+                Edge edge = thunderGraph.addEdge(null, vertex1, vertex2, "testLabel1");
                 edge.setProperty("name", "edge1");
             } else {
                 vertex2.setProperty("name", "vertexIn2");
-                Edge edge = glmdbGraph.addEdge(null, vertex1, vertex2, "testLabel1");
+                Edge edge = thunderGraph.addEdge(null, vertex1, vertex2, "testLabel1");
                 edge.setProperty("name", "edge2");
             }
         }
-        glmdbGraph.commit();
+        thunderGraph.commit();
 
         List<String> edgeName = new ArrayList<String>();
         int count = 0;
-        Iterable<Edge> iter = glmdbGraph.getEdges("name", "edge1");
+        Iterable<Edge> iter = thunderGraph.getEdges("name", "edge1");
         for (Edge edge : iter) {
             edgeName.add((String)edge.getProperty("name"));
             count++;
@@ -137,7 +137,7 @@ public class GlmdbGraphIterateEdgesTest extends BaseGlmdbGraphTest  {
 
         edgeName.clear();
         count = 0;
-        iter = glmdbGraph.getEdges("name", "edge2");
+        iter = thunderGraph.getEdges("name", "edge2");
         for (Edge edge : iter) {
             edgeName.add((String)edge.getProperty("name"));
             count++;
@@ -147,7 +147,7 @@ public class GlmdbGraphIterateEdgesTest extends BaseGlmdbGraphTest  {
         Assert.assertEquals("edge2", edgeName.get(1));
         Assert.assertEquals("edge2", edgeName.get(499));
 
-        glmdbGraph.commit();
-        glmdbGraph.shutdown();
+        thunderGraph.commit();
+        thunderGraph.shutdown();
     }
 }

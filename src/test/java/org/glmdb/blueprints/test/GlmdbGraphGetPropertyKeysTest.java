@@ -2,7 +2,7 @@ package org.glmdb.blueprints.test;
 
 import com.tinkerpop.blueprints.Edge;
 import com.tinkerpop.blueprints.Vertex;
-import org.glmdb.blueprints.GlmdbGraph;
+import org.glmdb.blueprints.ThunderGraph;
 import org.junit.Assert;
 import org.junit.Test;
 
@@ -16,18 +16,18 @@ public class GlmdbGraphGetPropertyKeysTest extends BaseGlmdbGraphTest  {
 
     @Test
     public void testPropertyKeys() {
-        GlmdbGraph glmdbGraph = new GlmdbGraph(this.dbPath);
+        ThunderGraph thunderGraph = new ThunderGraph(this.dbPath);
         for (int i = 0; i < 5; i++) {
-            Vertex vertex = glmdbGraph.addVertex(null);
+            Vertex vertex = thunderGraph.addVertex(null);
             vertex.setProperty("name0", "pieter0" + i);
             vertex.setProperty("name1", "pieter1" + i);
             vertex.setProperty("name2", "pieter2" + i);
             vertex.setProperty("name3", "pieter3" + i);
         }
-        glmdbGraph.commit();
-        glmdbGraph.printVertexDb();
+        thunderGraph.commit();
+        thunderGraph.printVertexDb();
 
-        Set<String> propertyKeys = glmdbGraph.getVertex(1L).getPropertyKeys();
+        Set<String> propertyKeys = thunderGraph.getVertex(1L).getPropertyKeys();
         Assert.assertEquals(4, propertyKeys.size());
         boolean hasName0 = false;
         boolean hasName1 = false;
@@ -47,35 +47,35 @@ public class GlmdbGraphGetPropertyKeysTest extends BaseGlmdbGraphTest  {
             }
         }
         Assert.assertTrue(hasName0 && hasName1 && hasName2 && hasName3);
-        glmdbGraph.shutdown();
+        thunderGraph.shutdown();
     }
 
     @Test
     public void testEdgePropertyKeys() {
-        GlmdbGraph glmdbGraph = new GlmdbGraph(this.dbPath);
-        Vertex vertex = glmdbGraph.addVertex(null);
+        ThunderGraph thunderGraph = new ThunderGraph(this.dbPath);
+        Vertex vertex = thunderGraph.addVertex(null);
         for (int i = 0; i < 5; i++) {
-            Vertex vertex1 = glmdbGraph.addVertex(null);
+            Vertex vertex1 = thunderGraph.addVertex(null);
             vertex1.setProperty("name", "a" + i);
             Edge edge = vertex.addEdge("label1", vertex1);
             edge.setProperty("name" + i, i);
         }
-        glmdbGraph.commit();
-        glmdbGraph.printVertexDb();
+        thunderGraph.commit();
+        thunderGraph.printVertexDb();
 
-        Set<String> propertyKeys = glmdbGraph.getEdge(0L).getPropertyKeys();
+        Set<String> propertyKeys = thunderGraph.getEdge(0L).getPropertyKeys();
         Assert.assertEquals(1, propertyKeys.size());
 
-        propertyKeys = glmdbGraph.getEdge(1L).getPropertyKeys();
+        propertyKeys = thunderGraph.getEdge(1L).getPropertyKeys();
         Assert.assertEquals(1, propertyKeys.size());
 
-        propertyKeys = glmdbGraph.getEdge(2L).getPropertyKeys();
+        propertyKeys = thunderGraph.getEdge(2L).getPropertyKeys();
         Assert.assertEquals(1, propertyKeys.size());
 
-        propertyKeys = glmdbGraph.getEdge(3L).getPropertyKeys();
+        propertyKeys = thunderGraph.getEdge(3L).getPropertyKeys();
         Assert.assertEquals(1, propertyKeys.size());
 
-        glmdbGraph.shutdown();
+        thunderGraph.shutdown();
     }
 
 }

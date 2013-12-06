@@ -10,12 +10,12 @@ import java.util.Iterator;
  */
 public class GlmdbAllEdgeIterable<T extends Edge> implements Iterable<GlmdbEdge> {
 
-    private final GlmdbGraph glmdbGraph;
+    private final ThunderGraph thunderGraph;
     private final TransactionAndCursor tc;
 
-    public GlmdbAllEdgeIterable(GlmdbGraph glmdbGraph) {
-        this.glmdbGraph = glmdbGraph;
-        this.tc = this.glmdbGraph.getReadOnlyTx();
+    public GlmdbAllEdgeIterable(ThunderGraph thunderGraph) {
+        this.thunderGraph = thunderGraph;
+        this.tc = this.thunderGraph.getReadOnlyTx();
     }
 
     @Override
@@ -48,14 +48,14 @@ public class GlmdbAllEdgeIterable<T extends Edge> implements Iterable<GlmdbEdge>
                 long inVertexIdArray[] = new long[1];
                 if (this.goToFirst) {
                     this.goToFirst = false;
-                    if (GlmdbAllEdgeIterable.this.glmdbGraph.getGlmdb().getFirstEdge(tc.getEdgeCursor(), edgeIdArray, labelArray, outVertexIdArray, inVertexIdArray)) {
-                        return new GlmdbEdge(GlmdbAllEdgeIterable.this.glmdbGraph, edgeIdArray[0], labelArray[0], outVertexIdArray[0], inVertexIdArray[0]);
+                    if (GlmdbAllEdgeIterable.this.thunderGraph.getGlmdb().getFirstEdge(tc.getEdgeCursor(), edgeIdArray, labelArray, outVertexIdArray, inVertexIdArray)) {
+                        return new GlmdbEdge(GlmdbAllEdgeIterable.this.thunderGraph, edgeIdArray[0], labelArray[0], outVertexIdArray[0], inVertexIdArray[0]);
                     } else {
                         return null;
                     }
                 } else {
-                    if (GlmdbAllEdgeIterable.this.glmdbGraph.getGlmdb().getNextEdge(tc.getEdgeCursor(), edgeIdArray, labelArray, outVertexIdArray, inVertexIdArray)) {
-                        return new GlmdbEdge(GlmdbAllEdgeIterable.this.glmdbGraph, edgeIdArray[0], labelArray[0], outVertexIdArray[0], inVertexIdArray[0]);
+                    if (GlmdbAllEdgeIterable.this.thunderGraph.getGlmdb().getNextEdge(tc.getEdgeCursor(), edgeIdArray, labelArray, outVertexIdArray, inVertexIdArray)) {
+                        return new GlmdbEdge(GlmdbAllEdgeIterable.this.thunderGraph, edgeIdArray[0], labelArray[0], outVertexIdArray[0], inVertexIdArray[0]);
                     } else {
                         return null;
                     }

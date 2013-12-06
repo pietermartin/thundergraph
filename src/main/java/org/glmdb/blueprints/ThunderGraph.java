@@ -12,22 +12,61 @@ import java.util.Set;
  * Date: 2013/11/17
  * Time: 4:07 PM
  */
-public class GlmdbGraph implements TransactionalGraph, KeyIndexableGraph {
+public class ThunderGraph implements TransactionalGraph, KeyIndexableGraph {
 
     private Glmdb glmdb;
     private ThreadLocal<TransactionAndCursor> currentTransaction;
-
-    public GlmdbGraph(String dbPath) {
+    private Features thunderGraphFeatures;
+    
+    public ThunderGraph(String dbPath) {
         this(new File(dbPath));
     }
 
-    public GlmdbGraph(File dbPath) {
+    public ThunderGraph(File dbPath) {
         if (dbPath == null) {
             throw new IllegalStateException("The dbPath can not be null!");
         }
         if (!dbPath.exists()) {
             throw new IllegalStateException(String.format("The dbPath %s does not exist!", new String[]{dbPath.getAbsolutePath()}));
         }
+
+        this.thunderGraphFeatures = new Features();
+
+        thunderGraphFeatures.isPersistent = true; // Depends on setting
+
+        // General
+        thunderGraphFeatures.ignoresSuppliedIds = true;
+        thunderGraphFeatures.isWrapper = false;
+        thunderGraphFeatures.supportsDuplicateEdges = true;
+        thunderGraphFeatures.supportsEdgeIndex = false;
+        thunderGraphFeatures.supportsEdgeIteration = true;
+        thunderGraphFeatures.supportsEdgeProperties = true;
+        thunderGraphFeatures.supportsEdgeRetrieval = true;
+        thunderGraphFeatures.supportsIndices = false;
+        thunderGraphFeatures.supportsSelfLoops = true;
+        thunderGraphFeatures.supportsThreadedTransactions = true;
+        thunderGraphFeatures.supportsTransactions = true;
+        thunderGraphFeatures.supportsVertexIndex = false;
+        thunderGraphFeatures.supportsVertexIteration = true;
+        thunderGraphFeatures.supportsVertexProperties = true;
+        thunderGraphFeatures.supportsEdgeKeyIndex = true;
+        thunderGraphFeatures.supportsKeyIndices = true;
+        thunderGraphFeatures.supportsVertexKeyIndex = true;
+
+        // Serialization
+        thunderGraphFeatures.supportsBooleanProperty = true;
+        thunderGraphFeatures.supportsDoubleProperty = true;
+        thunderGraphFeatures.supportsDuplicateEdges = true;
+        thunderGraphFeatures.supportsFloatProperty = true;
+        thunderGraphFeatures.supportsIntegerProperty = true;
+        thunderGraphFeatures.supportsLongProperty = true;
+        thunderGraphFeatures.supportsMapProperty = true;
+        thunderGraphFeatures.supportsMixedListProperty = true;
+        thunderGraphFeatures.supportsPrimitiveArrayProperty = true;
+        thunderGraphFeatures.supportsSerializableObjectProperty = true;
+        thunderGraphFeatures.supportsStringProperty = true;
+        thunderGraphFeatures.supportsUniformListProperty = true;
+        
         glmdb = new Glmdb(dbPath.getAbsolutePath());
         this.currentTransaction = new ThreadLocal<TransactionAndCursor>();
     }
@@ -39,19 +78,21 @@ public class GlmdbGraph implements TransactionalGraph, KeyIndexableGraph {
 
     @Override
     public Features getFeatures() {
-        //TODO
-        throw new RuntimeException("Not yet implemented!");
+        return this.thunderGraphFeatures;
     }
 
     @Override
     public Vertex addVertex(Object id) {
         TransactionAndCursor tc = this.getWriteTx();
         long vertexId = this.glmdb.addVertex(tc.getVertexCursor());
-        return new GlmdbVertex(this, vertexId);
+        return new ThunderVertex(this, vertexId);
     }
 
     @Override
     public Vertex getVertex(Object id) {
+        if (id == null) {
+            throw new IllegalArgumentException("The vertex ID passed to getVertex() is null");
+        }
         if (!(id instanceof Long)) {
             throw new IllegalStateException("Vertex id must be a java.lang.Long");
         }
@@ -62,7 +103,7 @@ public class GlmdbGraph implements TransactionalGraph, KeyIndexableGraph {
             throw new IllegalStateException("db returned a vertex with a different id! This is a bug, should never happen");
         }
         if (vertexIdResult != -1) {
-            return new GlmdbVertex(this, vertexId);
+            return new ThunderVertex(this, vertexId);
         } else {
             return null;
         }
@@ -127,6 +168,9 @@ public class GlmdbGraph implements TransactionalGraph, KeyIndexableGraph {
 
     @Override
     public void shutdown() {
+        if (this.isTxActive()) {
+            this.rollback();
+        }
         this.glmdb.close();
     }
 
@@ -161,6 +205,10 @@ public class GlmdbGraph implements TransactionalGraph, KeyIndexableGraph {
             tc.getTxn().abort();
         }
         this.currentTransaction.remove();
+    }
+
+    public boolean isTxActive() {
+        return this.currentTransaction.get() != null;
     }
 
     TransactionAndCursor getReadOnlyTx() {
@@ -200,18 +248,6 @@ public class GlmdbGraph implements TransactionalGraph, KeyIndexableGraph {
         return tc;
     }
 
-    Glmdb getGlmdb() {
-        return glmdb;
-    }
-
-    public void printVertexDb() {
-        this.glmdb.printVertexDbX();
-    }
-
-    public void printEdgeDb() {
-        this.glmdb.printEdgeDbX();
-    }
-
     @Override
     public <T extends Element> void dropKeyIndex(String key, Class<T> elementClass) {
         //To change body of implemented methods use File | Settings | File Templates.
@@ -226,9 +262,12 @@ public class GlmdbGraph implements TransactionalGraph, KeyIndexableGraph {
             throw new IllegalStateException("elementClass in createKeyIndex can not be null");
         }
         if (elementClass.equals(Vertex.class)) {
-//            this.glmdb.createVertexKeyIndex(key);
+            TransactionAndCursor tc = this.getWriteTx();
+            this.glmdb.createKeyIndex(tc.getTxn(), key, true);
+
         } else if (elementClass.equals(Edge.class)) {
-//            this.glmdb.createEdgeKeyIndex(key);
+            TransactionAndCursor tc = this.getWriteTx();
+            this.glmdb.createKeyIndex(tc.getTxn(), key, false);
         } else {
             throw new IllegalStateException("Unsupported elementClass " + elementClass.getName());
         }
@@ -238,4 +277,25 @@ public class GlmdbGraph implements TransactionalGraph, KeyIndexableGraph {
     public <T extends Element> Set<String> getIndexedKeys(Class<T> elementClass) {
         return null;  //To change body of implemented methods use File | Settings | File Templates.
     }
+
+    Glmdb getGlmdb() {
+        return glmdb;
+    }
+
+    public void printVertexDb() {
+        this.glmdb.printVertexDbX();
+    }
+
+    public void printEdgeDb() {
+        this.glmdb.printEdgeDbX();
+    }
+
+    public void printVertexPropertyKeyDb() {
+        this.glmdb.printVertexPropertyKeyDbX();
+    }
+
+    public void printEdgePropertyKeyDb() {
+        this.glmdb.printEdgepropertyKeyDbX();
+    }
+
 }

@@ -6,7 +6,6 @@ import java.io.Closeable;
 import java.util.*;
 
 import static org.glmdb.blueprints.jni.GlmdbJni.*;
-import static org.glmdb.blueprints.jni.Util.checkErrorCode;
 import static org.glmdb.blueprints.jni.Util.*;
 
 /**
@@ -293,32 +292,32 @@ public class Glmdb extends NativeObject implements Closeable {
 
     public void setProperty(Transaction txn, Cursor cursor, long vertexId, String key, Object value, boolean vertex) {
         if (value instanceof String) {
-            Integer propertyKeyId = this.getOrPutPropertyKey(txn, key, PropertyTypeEnum.STRING, vertex);
-            checkErrorCode(mdb_set_property_string(cursor.pointer(), vertexId, propertyKeyId, (String) value, vertex));
+            PropertyKeyEnumAndId propertyKeyEnumAndId = this.getOrPutPropertyKey(txn, key, PropertyTypeEnum.STRING, vertex, false);
+            checkErrorCode(mdb_set_property_string(this.pointer(), txn.pointer(), cursor.pointer(), vertexId, propertyKeyEnumAndId.id, (String) value, vertex, propertyKeyEnumAndId.indexed));
         } else if (value instanceof Boolean) {
-            Integer propertyKeyId = this.getOrPutPropertyKey(txn, key, PropertyTypeEnum.BOOLEAN, vertex);
-            checkErrorCode(mdb_set_property_boolean(cursor.pointer(), vertexId, propertyKeyId, (Boolean) value, vertex));
+            PropertyKeyEnumAndId propertyKeyEnumAndId = this.getOrPutPropertyKey(txn, key, PropertyTypeEnum.BOOLEAN, vertex, false);
+            checkErrorCode(mdb_set_property_boolean(cursor.pointer(), vertexId, propertyKeyEnumAndId.id, (Boolean) value, vertex));
         } else if (value instanceof Integer) {
-            Integer propertyKeyId = this.getOrPutPropertyKey(txn, key, PropertyTypeEnum.INT, vertex);
-            checkErrorCode(mdb_set_property_int(cursor.pointer(), vertexId, propertyKeyId, (Integer) value, vertex));
+            PropertyKeyEnumAndId propertyKeyEnumAndId = this.getOrPutPropertyKey(txn, key, PropertyTypeEnum.INT, vertex, false);
+            checkErrorCode(mdb_set_property_int(cursor.pointer(), vertexId, propertyKeyEnumAndId.id, (Integer) value, vertex));
         } else if (value instanceof Long) {
-            Integer propertyKeyId = this.getOrPutPropertyKey(txn, key, PropertyTypeEnum.LONG, vertex);
-            checkErrorCode(mdb_set_property_long(cursor.pointer(), vertexId, propertyKeyId, (Long) value, vertex));
+            PropertyKeyEnumAndId propertyKeyEnumAndId = this.getOrPutPropertyKey(txn, key, PropertyTypeEnum.LONG, vertex, false);
+            checkErrorCode(mdb_set_property_long(cursor.pointer(), vertexId, propertyKeyEnumAndId.id, (Long) value, vertex));
         } else if (value instanceof Float) {
-            Integer propertyKeyId = this.getOrPutPropertyKey(txn, key, PropertyTypeEnum.FLOAT, vertex);
-            checkErrorCode(mdb_set_property_float(cursor.pointer(), vertexId, propertyKeyId, (Float) value, vertex));
+            PropertyKeyEnumAndId propertyKeyEnumAndId = this.getOrPutPropertyKey(txn, key, PropertyTypeEnum.FLOAT, vertex, false);
+            checkErrorCode(mdb_set_property_float(cursor.pointer(), vertexId, propertyKeyEnumAndId.id, (Float) value, vertex));
         } else if (value instanceof Double) {
-            Integer propertyKeyId = this.getOrPutPropertyKey(txn, key, PropertyTypeEnum.DOUBLE, vertex);
-            checkErrorCode(mdb_set_property_double(cursor.pointer(), vertexId, propertyKeyId, (Double) value, vertex));
+            PropertyKeyEnumAndId propertyKeyEnumAndId = this.getOrPutPropertyKey(txn, key, PropertyTypeEnum.DOUBLE, vertex, false);
+            checkErrorCode(mdb_set_property_double(cursor.pointer(), vertexId, propertyKeyEnumAndId.id, (Double) value, vertex));
         } else if (value instanceof Character) {
-            Integer propertyKeyId = this.getOrPutPropertyKey(txn, key, PropertyTypeEnum.CHAR, vertex);
-            checkErrorCode(mdb_set_property_char(cursor.pointer(), vertexId, propertyKeyId, (Character) value, vertex));
+            PropertyKeyEnumAndId propertyKeyEnumAndId = this.getOrPutPropertyKey(txn, key, PropertyTypeEnum.CHAR, vertex, false);
+            checkErrorCode(mdb_set_property_char(cursor.pointer(), vertexId, propertyKeyEnumAndId.id, (Character) value, vertex));
         } else if (value instanceof Byte) {
-            Integer propertyKeyId = this.getOrPutPropertyKey(txn, key, PropertyTypeEnum.BYTE, vertex);
-            checkErrorCode(mdb_set_property_byte(cursor.pointer(), vertexId, propertyKeyId, (Byte) value, vertex));
+            PropertyKeyEnumAndId propertyKeyEnumAndId = this.getOrPutPropertyKey(txn, key, PropertyTypeEnum.BYTE, vertex, false);
+            checkErrorCode(mdb_set_property_byte(cursor.pointer(), vertexId, propertyKeyEnumAndId.id, (Byte) value, vertex));
         } else if (value instanceof Short) {
-            Integer propertyKeyId = this.getOrPutPropertyKey(txn, key, PropertyTypeEnum.SHORT, vertex);
-            checkErrorCode(mdb_set_property_short(cursor.pointer(), vertexId, propertyKeyId, (Short) value, vertex));
+            PropertyKeyEnumAndId propertyKeyEnumAndId = this.getOrPutPropertyKey(txn, key, PropertyTypeEnum.SHORT, vertex, false);
+            checkErrorCode(mdb_set_property_short(cursor.pointer(), vertexId, propertyKeyEnumAndId.id, (Short) value, vertex));
         } else {
             throw new IllegalStateException(String.format("Unsupported value type %s", new String[]{value.getClass().getName()}));
         }
@@ -414,7 +413,7 @@ public class Glmdb extends NativeObject implements Closeable {
         }
     }
 
-    private Integer getOrPutPropertyKey(Transaction txn, String propertyKey, PropertyTypeEnum propertyTypeEnum, boolean vertex) {
+    private PropertyKeyEnumAndId getOrPutPropertyKey(Transaction txn, String propertyKey, PropertyTypeEnum propertyTypeEnum, boolean vertex, boolean indexed) {
 
         Map<String, PropertyKeyEnumAndId> tmpPropertyKeyToIdMap;
         Map<String, PropertyKeyEnumAndId> tmpPropertyKeyToIdToSyncMap;
@@ -437,17 +436,32 @@ public class Glmdb extends NativeObject implements Closeable {
         int propertyKeyId;
         if (propertyKeyEnumAndId == null) {
             int propertyKeyIdArray[] = new int[1];
-            //TODO set vertex or edge
-            checkErrorCode(mdb_set_propertykey(this.pointer(), txn.pointer(), propertyKey, propertyTypeEnum.ordinal(), propertyKeyIdArray, vertex));
+            checkErrorCode(mdb_set_propertykey(this.pointer(), txn.pointer(), propertyKey, propertyTypeEnum.ordinal(), propertyKeyIdArray, vertex, indexed, false));
             propertyKeyId = propertyKeyIdArray[0];
-            tmpPropertyKeyToIdMap.put(propertyKey, new PropertyKeyEnumAndId(propertyTypeEnum, propertyKeyId, false));
-            tmpPropertyKeyToIdToSyncMap.put(propertyKey, new PropertyKeyEnumAndId(propertyTypeEnum, propertyKeyId, false));
+            propertyKeyEnumAndId = new PropertyKeyEnumAndId(propertyTypeEnum, propertyKeyId, indexed);
+            tmpPropertyKeyToIdMap.put(propertyKey, propertyKeyEnumAndId);
+            tmpPropertyKeyToIdToSyncMap.put(propertyKey, propertyKeyEnumAndId);
             tmpPropertyKeyIdToNameMap.put(propertyKeyId, propertyKey);
             tmpPropertyKeyIdToNameSyncMap.put(propertyKeyId, propertyKey);
         } else {
-            propertyKeyId = propertyKeyEnumAndId.id;
+            //Check if the property's indexed property needs updating
+            if (indexed != propertyKeyEnumAndId.indexed) {
+                //TODO reindex all properties
+                int propertyKeyIdArray[] = new int[] {propertyKeyEnumAndId.id};
+                checkErrorCode(mdb_set_propertykey(this.pointer(), txn.pointer(), propertyKey, propertyKeyEnumAndId.propertyTypeEnum.ordinal(), propertyKeyIdArray, vertex, indexed, true));
+                propertyKeyId = propertyKeyIdArray[0];
+                //Do a little sanity check
+                if (propertyKeyId != propertyKeyEnumAndId.id) {
+                    throw new IllegalStateException("Property key id is suppose to be the same!!! This should never happen!!!");
+                }
+                propertyKeyEnumAndId.indexed = true;
+                tmpPropertyKeyToIdMap.put(propertyKey, propertyKeyEnumAndId);
+                tmpPropertyKeyToIdToSyncMap.put(propertyKey, propertyKeyEnumAndId);
+                tmpPropertyKeyIdToNameMap.put(propertyKeyId, propertyKey);
+                tmpPropertyKeyIdToNameSyncMap.put(propertyKeyId, propertyKey);
+            }
         }
-        return propertyKeyId;
+        return propertyKeyEnumAndId;
     }
 
     private Integer getOrPutLabel(Transaction txn, String label) {
@@ -499,6 +513,18 @@ public class Glmdb extends NativeObject implements Closeable {
 
     public void printEdgeDbX() {
         checkErrorCode(printEdgeDb(pointer()));
+    }
+
+    public void printVertexPropertyKeyDbX() {
+        checkErrorCode(printVertexPropertyKeyDb(pointer()));
+    }
+
+    public void printEdgepropertyKeyDbX() {
+        checkErrorCode(printEdgePropertyKeyDb(pointer()));
+    }
+
+    public void createKeyIndex(Transaction txn, String key, boolean vertex) {
+        this.getOrPutPropertyKey(txn, key, PropertyTypeEnum.UNSET, vertex, true);
     }
 
 }

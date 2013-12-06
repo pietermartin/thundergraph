@@ -1,7 +1,6 @@
 package org.glmdb.blueprints;
 
 import com.tinkerpop.blueprints.Edge;
-import com.tinkerpop.blueprints.Vertex;
 
 import java.util.Iterator;
 
@@ -11,14 +10,14 @@ import java.util.Iterator;
  */
 public class GlmdbEdgeForKeyValueIterable<T extends Edge> implements Iterable<GlmdbEdge> {
 
-    private final GlmdbGraph glmdbGraph;
+    private final ThunderGraph thunderGraph;
     private final TransactionAndCursor tc;
     private String key;
     private Object value;
 
-    public GlmdbEdgeForKeyValueIterable(GlmdbGraph glmdbGraph, String key, Object value) {
-        this.glmdbGraph = glmdbGraph;
-        this.tc = this.glmdbGraph.getReadOnlyTx();
+    public GlmdbEdgeForKeyValueIterable(ThunderGraph thunderGraph, String key, Object value) {
+        this.thunderGraph = thunderGraph;
+        this.tc = this.thunderGraph.getReadOnlyTx();
         this.key = key;
         this.value = value;
     }
@@ -53,14 +52,14 @@ public class GlmdbEdgeForKeyValueIterable<T extends Edge> implements Iterable<Gl
                 long inVertexIdArray[] = new long[1];
                 if (this.goToFirst) {
                     this.goToFirst = false;
-                    if (GlmdbEdgeForKeyValueIterable.this.glmdbGraph.getGlmdb().getFirstEdgeForKeyValue(tc.getEdgeCursor(), edgeIdArray, labelArray, outVertexIdArray, inVertexIdArray, GlmdbEdgeForKeyValueIterable.this.key, GlmdbEdgeForKeyValueIterable.this.value)) {
-                        return new GlmdbEdge(GlmdbEdgeForKeyValueIterable.this.glmdbGraph, edgeIdArray[0], labelArray[0], outVertexIdArray[0], inVertexIdArray[0]);
+                    if (GlmdbEdgeForKeyValueIterable.this.thunderGraph.getGlmdb().getFirstEdgeForKeyValue(tc.getEdgeCursor(), edgeIdArray, labelArray, outVertexIdArray, inVertexIdArray, GlmdbEdgeForKeyValueIterable.this.key, GlmdbEdgeForKeyValueIterable.this.value)) {
+                        return new GlmdbEdge(GlmdbEdgeForKeyValueIterable.this.thunderGraph, edgeIdArray[0], labelArray[0], outVertexIdArray[0], inVertexIdArray[0]);
                     } else {
                         return null;
                     }
                 } else {
-                    if (GlmdbEdgeForKeyValueIterable.this.glmdbGraph.getGlmdb().getNextEdgeForKeyValue(tc.getEdgeCursor(), edgeIdArray, labelArray, outVertexIdArray, inVertexIdArray, GlmdbEdgeForKeyValueIterable.this.key, GlmdbEdgeForKeyValueIterable.this.value)) {
-                        return new GlmdbEdge(GlmdbEdgeForKeyValueIterable.this.glmdbGraph, edgeIdArray[0], labelArray[0], outVertexIdArray[0], inVertexIdArray[0]);
+                    if (GlmdbEdgeForKeyValueIterable.this.thunderGraph.getGlmdb().getNextEdgeForKeyValue(tc.getEdgeCursor(), edgeIdArray, labelArray, outVertexIdArray, inVertexIdArray, GlmdbEdgeForKeyValueIterable.this.key, GlmdbEdgeForKeyValueIterable.this.value)) {
+                        return new GlmdbEdge(GlmdbEdgeForKeyValueIterable.this.thunderGraph, edgeIdArray[0], labelArray[0], outVertexIdArray[0], inVertexIdArray[0]);
                     } else {
                         return null;
                     }

@@ -130,6 +130,10 @@ public class GlmdbJni {
 
     public static final native int printEdgeDb(long glmdb_env);
 
+    public static final native int printVertexPropertyKeyDb(long glmdb_env);
+
+    public static final native int printEdgePropertyKeyDb(long glmdb_env);
+
     public static final native int glmdb_env_create(String path, long[] env);
 
     public static final native void glmdb_env_close(long glmdb_env);
@@ -177,7 +181,7 @@ public class GlmdbJni {
 
     public static final native int mdb_set_property_char(long cursor, long elementId, int propertykeyId, char value, boolean vertexProperty);
 
-    public static final native int mdb_set_property_string(long cursor, long elementId, int propertykeyId, String value, boolean vertexProperty);
+    public static final native int mdb_set_property_string(long glmdb_env, long txn, long cursor, long elementId, int propertykeyId, String value, boolean vertexProperty, boolean indexed);
 
     public static final native int mdb_get_property_array(long cursor, long elementId, int propertyKeyId, byte[][] value, boolean vertexProperty);
 
@@ -185,7 +189,7 @@ public class GlmdbJni {
 
     public static final native int mdb_get_property_keys(long cursor, long elementId, int[][] propertyKeyIds, boolean vertexProperty);
 
-    public static final native int mdb_set_propertykey(long glmdb_env, long txn, String propertyKey, int propertyTypeEnum, int[] propertyKeyId, boolean vertex);
+    public static final native int mdb_set_propertykey(long glmdb_env, long txn, String propertyKey, int propertyTypeEnum, int[] propertyKeyId, boolean vertex, boolean indexed, boolean overwrite);
 
     public static final native int mdb_get_first_property_key(long cursor, int propertyKeyIdArray[], int propertyTypeEnumArray[], boolean propertyIndexedArray[], byte[][] propertyKeyArray);
 

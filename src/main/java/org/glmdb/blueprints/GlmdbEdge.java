@@ -17,8 +17,8 @@ public class GlmdbEdge extends GlmdbElement implements Edge {
     private long outVertexId;
     private long inVertexId;
 
-    public GlmdbEdge(GlmdbGraph glmdbGraph, long id, String label, long outVertexId, long inVertexId) {
-        super(glmdbGraph, id);
+    public GlmdbEdge(ThunderGraph thunderGraph, long id, String label, long outVertexId, long inVertexId) {
+        super(thunderGraph, id);
         this.label = label;
         this.outVertexId = outVertexId;
         this.inVertexId = inVertexId;
@@ -26,35 +26,35 @@ public class GlmdbEdge extends GlmdbElement implements Edge {
 
     @Override
     public void setProperty(String key, Object value) {
-        TransactionAndCursor tc = this.glmdbGraph.getWriteTx();
-        this.glmdbGraph.getGlmdb().setProperty(tc.getTxn(), tc.getEdgeCursor(), this.id, key, value, false);
+        TransactionAndCursor tc = this.thunderGraph.getWriteTx();
+        this.thunderGraph.getGlmdb().setProperty(tc.getTxn(), tc.getEdgeCursor(), this.id, key, value, false);
     }
 
     @Override
     public <T> T getProperty(String key) {
-        TransactionAndCursor tc = this.glmdbGraph.getReadOnlyTx();
-        return (T) this.glmdbGraph.getGlmdb().getProperty(tc.getEdgeCursor(), this.id, key, false);
+        TransactionAndCursor tc = this.thunderGraph.getReadOnlyTx();
+        return (T) this.thunderGraph.getGlmdb().getProperty(tc.getEdgeCursor(), this.id, key, false);
     }
 
     @Override
     public <T> T removeProperty(String key) {
-        TransactionAndCursor tc = this.glmdbGraph.getWriteTx();
-        return (T) this.glmdbGraph.getGlmdb().removeProperty(tc.getVertexCursor(), this.id, key, false);
+        TransactionAndCursor tc = this.thunderGraph.getWriteTx();
+        return (T) this.thunderGraph.getGlmdb().removeProperty(tc.getVertexCursor(), this.id, key, false);
     }
 
     @Override
     public Set<String> getPropertyKeys() {
-        TransactionAndCursor tc = this.glmdbGraph.getReadOnlyTx();
-        return this.glmdbGraph.getGlmdb().getPropertyKeys(tc.getEdgeCursor(), this.id, false);
+        TransactionAndCursor tc = this.thunderGraph.getReadOnlyTx();
+        return this.thunderGraph.getGlmdb().getPropertyKeys(tc.getEdgeCursor(), this.id, false);
     }
 
 
     @Override
     public Vertex getVertex(Direction direction) throws IllegalArgumentException {
         if (direction.equals(Direction.OUT)) {
-            return new GlmdbVertex(this.glmdbGraph, this.outVertexId);
+            return new ThunderVertex(this.thunderGraph, this.outVertexId);
         } else if (direction.equals(Direction.IN)) {
-            return new GlmdbVertex(this.glmdbGraph, this.inVertexId);
+            return new ThunderVertex(this.thunderGraph, this.inVertexId);
         } else {
             throw ExceptionFactory.bothIsNotSupported();
         }
@@ -62,8 +62,8 @@ public class GlmdbEdge extends GlmdbElement implements Edge {
 
     @Override
     public void remove() {
-        TransactionAndCursor tc = this.glmdbGraph.getWriteTx();
-        this.glmdbGraph.getGlmdb().removeEdge(tc.getTxn(), this.id);
+        TransactionAndCursor tc = this.thunderGraph.getWriteTx();
+        this.thunderGraph.getGlmdb().removeEdge(tc.getTxn(), this.id);
     }
 
     @Override

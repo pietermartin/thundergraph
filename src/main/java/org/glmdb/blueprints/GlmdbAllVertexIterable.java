@@ -8,21 +8,21 @@ import java.util.Iterator;
  * Date: 2013/11/24
  * Time: 10:22 AM
  */
-public class GlmdbAllVertexIterable<T extends Vertex> implements Iterable<GlmdbVertex> {
+public class GlmdbAllVertexIterable<T extends Vertex> implements Iterable<ThunderVertex> {
 
-    private final GlmdbGraph glmdbGraph;
+    private final ThunderGraph thunderGraph;
     private final TransactionAndCursor tc;
 
-    public GlmdbAllVertexIterable(GlmdbGraph glmdbGraph) {
-        this.glmdbGraph = glmdbGraph;
-        this.tc = this.glmdbGraph.getReadOnlyTx();
+    public GlmdbAllVertexIterable(ThunderGraph thunderGraph) {
+        this.thunderGraph = thunderGraph;
+        this.tc = this.thunderGraph.getReadOnlyTx();
     }
 
     @Override
-    public Iterator<GlmdbVertex> iterator() {
-        return new Iterator<GlmdbVertex>() {
+    public Iterator<ThunderVertex> iterator() {
+        return new Iterator<ThunderVertex>() {
 
-            private GlmdbVertex next;
+            private ThunderVertex next;
             private boolean goToFirst = true;
 
             @Override
@@ -32,7 +32,7 @@ public class GlmdbAllVertexIterable<T extends Vertex> implements Iterable<GlmdbV
             }
 
             @Override
-            public GlmdbVertex next() {
+            public ThunderVertex next() {
                 return this.next;
             }
 
@@ -41,18 +41,18 @@ public class GlmdbAllVertexIterable<T extends Vertex> implements Iterable<GlmdbV
                 //To change body of implemented methods use File | Settings | File Templates.
             }
 
-            private GlmdbVertex internalNext() {
+            private ThunderVertex internalNext() {
                 long vertexIdArray[] = new long[1];
                 if (this.goToFirst) {
                     this.goToFirst = false;
-                    if (GlmdbAllVertexIterable.this.glmdbGraph.getGlmdb().getFirstVertex(tc.getVertexCursor(), vertexIdArray)) {
-                        return new GlmdbVertex(GlmdbAllVertexIterable.this.glmdbGraph, vertexIdArray[0]);
+                    if (GlmdbAllVertexIterable.this.thunderGraph.getGlmdb().getFirstVertex(tc.getVertexCursor(), vertexIdArray)) {
+                        return new ThunderVertex(GlmdbAllVertexIterable.this.thunderGraph, vertexIdArray[0]);
                     } else {
                         return null;
                     }
                 } else {
-                    if (GlmdbAllVertexIterable.this.glmdbGraph.getGlmdb().getNextVertex(tc.getVertexCursor(), vertexIdArray)) {
-                        return new GlmdbVertex(GlmdbAllVertexIterable.this.glmdbGraph, vertexIdArray[0]);
+                    if (GlmdbAllVertexIterable.this.thunderGraph.getGlmdb().getNextVertex(tc.getVertexCursor(), vertexIdArray)) {
+                        return new ThunderVertex(GlmdbAllVertexIterable.this.thunderGraph, vertexIdArray[0]);
                     } else {
                         return null;
                     }
