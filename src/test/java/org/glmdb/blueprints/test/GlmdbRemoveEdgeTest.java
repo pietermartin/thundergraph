@@ -89,21 +89,20 @@ public class GlmdbRemoveEdgeTest extends BaseGlmdbGraphTest {
         Random random = new Random();
         int counter = 0;
         for (Vertex v : vertices) {
-            System.out.println(v.getId());
             counter = counter + 1;
-//            if (random.nextBoolean())
-//                graph.removeVertex(v);
-//            else
-            v.remove();
-//            if ((counter + 1) % 2 == 0) {
-//                if (graph.getFeatures().supportsEdgeIteration) {
-//                    Assert.assertEquals(edges.size() - ((counter + 1) / 2), count(graph.getEdges()));
-//                }
-//            }
-//
-//            if (graph.getFeatures().supportsVertexIteration) {
-//                Assert.assertEquals(vertices.size() - counter, count(graph.getVertices()));
-//            }
+            if (random.nextBoolean())
+                graph.removeVertex(v);
+            else
+                v.remove();
+            if ((counter + 1) % 2 == 0) {
+                if (graph.getFeatures().supportsEdgeIteration) {
+                    Assert.assertEquals(edges.size() - ((counter + 1) / 2), count(graph.getEdges()));
+                }
+            }
+
+            if (graph.getFeatures().supportsVertexIteration) {
+                Assert.assertEquals(vertices.size() - counter, count(graph.getVertices()));
+            }
         }
         graph.shutdown();
     }

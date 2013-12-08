@@ -124,8 +124,8 @@ public class Glmdb extends NativeObject implements Closeable {
         }
     }
 
-    public boolean getNextVertex(Cursor cursor, long vertexIdArray[]) {
-        int rc = mdb_get_next_vertex(cursor.pointer(), vertexIdArray);
+    public boolean getNextVertex(Cursor cursor, long previousId, long vertexIdArray[]) {
+        int rc = mdb_get_next_vertex(cursor.pointer(), previousId, vertexIdArray);
         if (rc != MDB_NOTFOUND) {
             checkErrorCode(rc);
             return true;
@@ -190,9 +190,9 @@ public class Glmdb extends NativeObject implements Closeable {
         }
     }
 
-    public boolean getNextEdge(Cursor cursor, long edgeIdArray[], String labelArray[], long outVertexIdArray[], long inVertexIdArray[]) {
+    public boolean getNextEdge(Cursor cursor, long previousEdgeId, long edgeIdArray[], String labelArray[], long outVertexIdArray[], long inVertexIdArray[]) {
         int labelIdArray[] = new int[1];
-        int rc = mdb_get_next_edge(cursor.pointer(), edgeIdArray, labelIdArray, outVertexIdArray, inVertexIdArray);
+        int rc = mdb_get_next_edge(cursor.pointer(), previousEdgeId, edgeIdArray, labelIdArray, outVertexIdArray, inVertexIdArray);
         if (rc != MDB_NOTFOUND) {
             checkErrorCode(rc);
             labelArray[0] = this.idToLabelMap.get(labelIdArray[0]);
@@ -410,7 +410,13 @@ public class Glmdb extends NativeObject implements Closeable {
                 String key = (String) bytesToObject(PropertyTypeEnum.STRING, propertyKeyArray[0]);
                 this.vertexPropertyKeyToIdMap.put(key, new PropertyKeyEnumAndId(propertyTypeEnum, propertyKeyIdArray[0], propertyIndexedArray[0]));
                 this.vertexPropertyKeyIdToNameMap.put(propertyKeyIdArray[0], key);
-                rc = mdb_get_next_property_key(vertexCursor.pointer(), propertyKeyIdArray, propertyTypeEnumArray, propertyIndexedArray, propertyKeyArray);
+
+                rc = mdb_get_next_property_key(
+                        vertexCursor.pointer(),
+                        propertyKeyIdArray,
+                        propertyTypeEnumArray,
+                        propertyIndexedArray,
+                        propertyKeyArray);
             }
             if (rc != 0 && rc != MDB_NOTFOUND) {
                 checkErrorCode(rc);
@@ -431,7 +437,7 @@ public class Glmdb extends NativeObject implements Closeable {
         } finally {
             mdb_cursor_close(edgeCursor.pointer());
             mdb_cursor_close(vertexCursor.pointer());
-            mdb_txn_commit(txn.pointer());
+            mdb_txn_commit(this.pointer(), txn.pointer());
         }
     }
 

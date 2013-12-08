@@ -94,7 +94,11 @@ public class ThunderGraph implements TransactionalGraph, KeyIndexableGraph {
             throw new IllegalArgumentException("The vertex ID passed to getVertex() is null");
         }
         if (!(id instanceof Long)) {
-            id = Long.valueOf(id.toString());
+            try {
+                id = Long.valueOf(id.toString());
+            } catch (NumberFormatException e) {
+                return null;
+            }
         }
 
         Long vertexId = (Long) id;
@@ -146,7 +150,11 @@ public class ThunderGraph implements TransactionalGraph, KeyIndexableGraph {
             throw new IllegalArgumentException("The edge ID passed to getEdge() is null");
         }
         if (!(id instanceof Long)) {
-            id = Long.valueOf(id.toString());
+            try {
+                id = Long.valueOf(id.toString());
+            } catch (NumberFormatException e) {
+                return null;
+            }
         }
         Long edgeId = (Long) id;
         TransactionAndCursor tc = this.getReadOnlyTx();
@@ -175,9 +183,8 @@ public class ThunderGraph implements TransactionalGraph, KeyIndexableGraph {
 
     @Override
     public void shutdown() {
-        if (this.isTxActive()) {
-            this.rollback();
-        }
+        // As per Blueprints tests, shutdown() implies automatic commit
+        commit();
         this.glmdb.close();
     }
 
@@ -250,10 +257,21 @@ public class ThunderGraph implements TransactionalGraph, KeyIndexableGraph {
         }
         //If a write txn is needed and a read only is current then commit the read only txn and open a write txn
         if (!readOnly && tc.isReadOnly()) {
-            this.commit();
+            this.rollback();
             //Only one thread is allowed to write at a time
             synchronized (this.glmdb) {
                 Transaction t = this.glmdb.createWriteTransaction();
+
+                //All current iterator cursors need to be upgraded
+//                this.cursor = GlmdbEdgesFromVertexIterable.this.thunderGraph.getGlmdb().openAndPositionCursorOnEdgeInVertexDb(
+//                        GlmdbEdgesFromVertexIterable.this.tc.getTxn(),
+//                        GlmdbEdgesFromVertexIterable.this.vertexId,
+//                        (this.internalNext.getOutVertexId() == GlmdbEdgesFromVertexIterable.this.vertexId ? Direction.OUT : Direction.IN),
+//                        this.internalNext.getLabel(),
+//                        this.internalNext.id
+//                );
+
+
                 Cursor vertexCursor = this.glmdb.openCursorToVertexDb(t);
                 Cursor edgeCursor = this.glmdb.openCursorToEdgeDb(t);
                 tc = new TransactionAndCursor(t, vertexCursor, edgeCursor, readOnly);

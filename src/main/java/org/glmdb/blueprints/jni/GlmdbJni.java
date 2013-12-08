@@ -191,11 +191,11 @@ public class GlmdbJni {
 
     public static final native int mdb_txn_renew(long txn);
 
-    public static final native int mdb_txn_commit(long txn);
+    public static final native int mdb_txn_commit(long glmdb_env, long txn);
 
     public static final native void mdb_txn_reset(long txn);
 
-    public static final native void mdb_txn_abort(long txn);
+    public static final native void mdb_txn_abort(long glmdb_env, long txn);
 
     public static final native void mdb_cursor_close(long cursor);
 
@@ -252,7 +252,7 @@ public class GlmdbJni {
 
     public static final native int mdb_get_first_vertex(long cursor, long vertexIdResult[]);
 
-    public static final native int mdb_get_next_vertex(long cursor, long vertexIdResult[]);
+    public static final native int mdb_get_next_vertex(long cursor, long previousId, long vertexIdResult[]);
 
     public static final native int mdb_get_first_vertex_for_key_value(long cursor, long vertexIdResult[], int key, byte[] value);
 
@@ -264,7 +264,7 @@ public class GlmdbJni {
 
     public static final native int mdb_get_first_edge(long cursor, long edgeIdResult[], int[] label, long[] outVertexId, long[] inVertexId);
 
-    public static final native int mdb_get_next_edge(long cursor, long edgeIdResult[], int[] label, long[] outVertexId, long[] inVertexId);
+    public static final native int mdb_get_next_edge(long cursor, long previousEdgeId, long edgeIdResult[], int[] label, long[] outVertexId, long[] inVertexId);
 
     public static final native int mdb_get_first_edge_for_key_value(long cursor, long edgeIdResult[], int[] label, long[] outVertexId, long[] inVertexId, int key, byte[] value);
 

@@ -9,6 +9,9 @@ import org.glmdb.blueprints.ThunderGraph;
 import java.io.File;
 import java.io.IOException;
 import java.lang.reflect.Method;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 
 /**
  * Date: 2013/12/07
@@ -73,37 +76,27 @@ public class BlueprintsTest
 //    }
 
     public Graph generateGraph() {
-        File dbPath = new File("/tmp/thundergraph");
-        try {
-            FileUtils.deleteDirectory(dbPath);
-        } catch (IOException e) {
-            Assert.fail(e.getMessage());
-        }
-        dbPath.mkdir();
-        return new ThunderGraph(dbPath);
+        return generateGraph("thundergraph");
     }
 
     @Override
     public Graph generateGraph(String graphDirectoryName) {
-        File dbPath = new File(graphDirectoryName);
-        try {
-            FileUtils.deleteDirectory(dbPath);
-        } catch (IOException e) {
-            Assert.fail(e.getMessage());
+        File dbPath = new File(computeTestDataRoot() + "/" + graphDirectoryName + "/");
+        if (!dbPath.exists()) {
+            dbPath.mkdirs();
         }
-        dbPath.mkdir();
         return new ThunderGraph(dbPath);
     }
 
     public void doTestSuite(final TestSuite testSuite) throws Exception {
-        String doTest = System.getProperty("testTinkerGraph");
-        if (doTest == null || doTest.equals("true")) {
-            for (Method method : testSuite.getClass().getDeclaredMethods()) {
-                if (method.getName().startsWith("test")) {
-                    System.out.println("Testing " + method.getName() + "...");
-                    method.invoke(testSuite);
-                }
+        deleteDirectory(this.computeTestDataRoot());
+        for (Method method : testSuite.getClass().getDeclaredMethods()) {
+            if (method.getName().startsWith("test")) {
+                System.out.println("Testing " + method.getName() + "...");
+                method.invoke(testSuite);
+                deleteDirectory(this.computeTestDataRoot());
             }
         }
     }
+
 }

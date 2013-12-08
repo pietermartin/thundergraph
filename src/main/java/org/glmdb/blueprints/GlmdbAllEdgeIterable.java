@@ -28,6 +28,7 @@ public class GlmdbAllEdgeIterable<T extends Edge> implements Iterable<ThunderEdg
 
         private ThunderEdge next;
         private boolean goToFirst = true;
+        private long previousEdgeId;
 
         @Override
         public boolean hasNext() {
@@ -52,7 +53,7 @@ public class GlmdbAllEdgeIterable<T extends Edge> implements Iterable<ThunderEdg
 
         @Override
         public void remove() {
-            //To change body of implemented methods use File | Settings | File Templates.
+            throw new RuntimeException("Not yet implemented!");
         }
 
         private ThunderEdge internalNext() {
@@ -63,12 +64,14 @@ public class GlmdbAllEdgeIterable<T extends Edge> implements Iterable<ThunderEdg
             if (this.goToFirst) {
                 this.goToFirst = false;
                 if (GlmdbAllEdgeIterable.this.thunderGraph.getGlmdb().getFirstEdge(tc.getEdgeCursor(), edgeIdArray, labelArray, outVertexIdArray, inVertexIdArray)) {
+                    this.previousEdgeId = edgeIdArray[0];
                     return new ThunderEdge(GlmdbAllEdgeIterable.this.thunderGraph, edgeIdArray[0], labelArray[0], outVertexIdArray[0], inVertexIdArray[0]);
                 } else {
                     return null;
                 }
             } else {
-                if (GlmdbAllEdgeIterable.this.thunderGraph.getGlmdb().getNextEdge(tc.getEdgeCursor(), edgeIdArray, labelArray, outVertexIdArray, inVertexIdArray)) {
+                if (GlmdbAllEdgeIterable.this.thunderGraph.getGlmdb().getNextEdge(tc.getEdgeCursor(), this.previousEdgeId, edgeIdArray, labelArray, outVertexIdArray, inVertexIdArray)) {
+                    this.previousEdgeId = edgeIdArray[0];
                     return new ThunderEdge(GlmdbAllEdgeIterable.this.thunderGraph, edgeIdArray[0], labelArray[0], outVertexIdArray[0], inVertexIdArray[0]);
                 } else {
                     return null;

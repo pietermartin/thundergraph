@@ -56,7 +56,7 @@ public class GlmdbEdgeForKeyValueIterable<T extends Edge> implements Iterable<Th
 
         @Override
         public void remove() {
-            //To change body of implemented methods use File | Settings | File Templates.
+            throw new RuntimeException("Not yet implemented!");
         }
 
         private ThunderEdge internalNext() {

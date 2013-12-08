@@ -1,6 +1,7 @@
 package org.glmdb.blueprints;
 
 import com.tinkerpop.blueprints.Vertex;
+import org.glmdb.blueprints.jni.Cursor;
 
 import java.util.Iterator;
 import java.util.NoSuchElementException;
@@ -28,6 +29,15 @@ public class GlmdbAllVertexIterable<T extends Vertex> implements Iterable<Thunde
 
         private ThunderVertex next;
         private boolean goToFirst = true;
+        private Cursor cursor;
+        private boolean cursorIsReadOnly;
+        private long previousId;
+
+        private AllVertexIterator() {
+            this.cursorIsReadOnly = GlmdbAllVertexIterable.this.tc.isReadOnly();
+            this.cursor = GlmdbAllVertexIterable.this.thunderGraph.getGlmdb().openCursorToVertexDb(GlmdbAllVertexIterable.this.tc.getTxn());
+            GlmdbAllVertexIterable.this.tc.addIteratorCursor(this.cursor);
+        }
 
         @Override
         public boolean hasNext() {
@@ -52,20 +62,22 @@ public class GlmdbAllVertexIterable<T extends Vertex> implements Iterable<Thunde
 
         @Override
         public void remove() {
-            //To change body of implemented methods use File | Settings | File Templates.
+            throw new RuntimeException("Not yet implemented!");
         }
 
         private ThunderVertex internalNext() {
             long vertexIdArray[] = new long[1];
             if (this.goToFirst) {
                 this.goToFirst = false;
-                if (GlmdbAllVertexIterable.this.thunderGraph.getGlmdb().getFirstVertex(tc.getVertexCursor(), vertexIdArray)) {
+                if (GlmdbAllVertexIterable.this.thunderGraph.getGlmdb().getFirstVertex(this.cursor, vertexIdArray)) {
+                    this.previousId = vertexIdArray[0];
                     return new ThunderVertex(GlmdbAllVertexIterable.this.thunderGraph, vertexIdArray[0]);
                 } else {
                     return null;
                 }
             } else {
-                if (GlmdbAllVertexIterable.this.thunderGraph.getGlmdb().getNextVertex(tc.getVertexCursor(), vertexIdArray)) {
+                if (GlmdbAllVertexIterable.this.thunderGraph.getGlmdb().getNextVertex(this.cursor, this.previousId, vertexIdArray)) {
+                    this.previousId = vertexIdArray[0];
                     return new ThunderVertex(GlmdbAllVertexIterable.this.thunderGraph, vertexIdArray[0]);
                 } else {
                     return null;

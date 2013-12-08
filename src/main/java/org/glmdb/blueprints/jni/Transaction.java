@@ -21,7 +21,7 @@ public class Transaction extends NativeObject {
 
     public void commit() {
         if( self != 0  ) {
-            Util.checkErrorCode(mdb_txn_commit(self));
+            Util.checkErrorCode(mdb_txn_commit(this.env.pointer(), self));
             self = 0;
         }
     }
@@ -33,7 +33,7 @@ public class Transaction extends NativeObject {
 
     public void abort() {
         if( self != 0  ) {
-            mdb_txn_abort(self);
+            mdb_txn_abort(this.env.pointer(), self);
             self = 0;
         }
     }

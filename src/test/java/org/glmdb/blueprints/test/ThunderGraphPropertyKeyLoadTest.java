@@ -17,15 +17,15 @@ public class ThunderGraphPropertyKeyLoadTest extends BaseGlmdbGraphTest {
     public void testLoadPropertyKeyDb() {
         ThunderGraph g = new ThunderGraph(this.dbPath);
         Vertex one = g.addVertex(null);
-        one.setProperty("one", "1");
+//        one.setProperty("one", "1");
         for (int i = 0; i < 10; i++) {
             Vertex many = g.addVertex(null);
             many.setProperty("many" + i, i);
-            Edge edge = g.addEdge(null, one, many, "toMany");
-            edge.setProperty("edgeName" + i, "name");
+//            Edge edge = g.addEdge(null, one, many, "toMany");
+//            edge.setProperty("edgeName" + i, "name");
         }
         g.commit();
-
+        g.printVertexPropertyKeyDb();
         g.shutdown();
 
         g = new ThunderGraph(this.dbPath);

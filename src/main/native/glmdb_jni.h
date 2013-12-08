@@ -19,6 +19,7 @@ extern "C" {
 #define GLMDB_DB_CORRUPT	(-30596)
 #define GLMDB_DB_INVALID_DIRECTION	(-30595)
 #define GLMDB_DB_INVALID_EDGE	(-30594)
+#define GLMDB_INVALID_SEQUENCE	(-30593)
 
 typedef struct GLMDB_env {
 	MDB_env *env;
@@ -48,6 +49,7 @@ typedef struct GLMDB_env {
 	MDB_dbi edgeStringIndexDb;
 
 	MDB_dbi labelDb;
+
 	jlong vertexIdSequence;
 	jlong edgeIdSequence;
 	jint vertexPropertyKeyIdSequence;
@@ -55,6 +57,10 @@ typedef struct GLMDB_env {
 	jint labelIdSequence;
 	char *path;
 } GLMDB_env;
+
+enum SequenceEnum {
+	VERTEX_ID_SEQUENCE, EDGE_ID_SEQUENCE, VERTEX_PROPERTY_KEY_ID_SEQUENCE, EDGE_PROPERTY_KEY_ID_SEQUENCE, LABEL_ID_SEQUENCE
+};
 
 enum VertexCoreOrPropertyEnum {
 	VCORE, VPROPERTY_KEY, OUTLABEL, INLABEL
@@ -126,8 +132,8 @@ typedef struct StringIndexKeyStruct {
  * Method:    mdb_env_get_path
  * Signature: (J[[B)I
  */
-JNIEXPORT jint JNICALL Java_org_glmdb_blueprints_jni_GlmdbJni_mdb_1env_1get_1path
-  (JNIEnv *env, jclass that, jlong glmdbEnv, jobjectArray path);
+JNIEXPORT jint JNICALL Java_org_glmdb_blueprints_jni_GlmdbJni_mdb_1env_1get_1path(JNIEnv *env, jclass that, jlong glmdbEnv,
+		jobjectArray path);
 
 /*
  * Class:     org_glmdb_blueprints_jni_GlmdbJni
@@ -206,9 +212,9 @@ JNIEXPORT jint JNICALL Java_org_glmdb_blueprints_jni_GlmdbJni_mdb_1txn_1renew(JN
 /*
  * Class:     org_glmdb_blueprints_jni_GlmdbJni
  * Method:    mdb_txn_commit
- * Signature: (J)I
+ * Signature: (JJ)I
  */
-JNIEXPORT jint JNICALL Java_org_glmdb_blueprints_jni_GlmdbJni_mdb_1txn_1commit(JNIEnv *env, jclass that, jlong txn);
+JNIEXPORT jint JNICALL Java_org_glmdb_blueprints_jni_GlmdbJni_mdb_1txn_1commit(JNIEnv *env, jclass that, jlong glmdb_env, jlong txn);
 
 /*
  * Class:     org_glmdb_blueprints_jni_GlmdbJni
@@ -221,10 +227,10 @@ JNIEXPORT void JNICALL Java_org_glmdb_blueprints_jni_GlmdbJni_mdb_1txn_1reset
 /*
  * Class:     org_glmdb_blueprints_jni_GlmdbJni
  * Method:    mdb_txn_abort
- * Signature: (J)V
+ * Signature: (JJ)V
  */
 JNIEXPORT void JNICALL Java_org_glmdb_blueprints_jni_GlmdbJni_mdb_1txn_1abort
-(JNIEnv *env, jclass that, jlong txn);
+(JNIEnv *env, jclass that, jlong glmdb_env, jlong txn);
 
 /*
  * Class:     org_glmdb_blueprints_jni_GlmdbJni
@@ -452,10 +458,10 @@ JNIEXPORT jint JNICALL Java_org_glmdb_blueprints_jni_GlmdbJni_mdb_1get_1first_1v
 /*
  * Class:     org_glmdb_blueprints_jni_GlmdbJni
  * Method:    mdb_get_next_vertex
- * Signature: (J[J)I
+ * Signature: (JJ[J)I
  */
 JNIEXPORT jint JNICALL Java_org_glmdb_blueprints_jni_GlmdbJni_mdb_1get_1next_1vertex(JNIEnv *env, jclass that, jlong cursor,
-		jlongArray vertexIdResult);
+		jlong previousVertexId, jlongArray vertexIdResult);
 
 /*
  * Class:     org_glmdb_blueprints_jni_GlmdbJni
@@ -508,10 +514,10 @@ JNIEXPORT jint JNICALL Java_org_glmdb_blueprints_jni_GlmdbJni_mdb_1get_1first_1e
 /*
  * Class:     org_glmdb_blueprints_jni_GlmdbJni
  * Method:    mdb_get_next_edge
- * Signature: (J[J[I[J[J)I
+ * Signature: (JJ[J[I[J[J)I
  */
 JNIEXPORT jint JNICALL Java_org_glmdb_blueprints_jni_GlmdbJni_mdb_1get_1next_1edge(JNIEnv *env, jclass that, jlong cursor,
-		jlongArray edgeIdResult, jintArray label, jlongArray outVertexId, jlongArray inVertexId);
+		jlong previousEdgeId, jlongArray edgeIdResult, jintArray label, jlongArray outVertexId, jlongArray inVertexId);
 
 /*
  * Class:     org_glmdb_blueprints_jni_GlmdbJni
@@ -573,10 +579,15 @@ void initEdgeDbId(EdgeDbId *edgeDbId);
 void initEdgeData(EdgeData *edgeData);
 
 int openGraph(GLMDB_env **genv, const char *path);
+int thundergraph_commit(GLMDB_env * glmdb_env, MDB_txn *txn);
+int saveSequenceHigh(GLMDB_env * glmdb_env, MDB_txn *txn, enum SequenceEnum sequenceEnum);
+int loadSequences(GLMDB_env *glmdbEnv, enum SequenceEnum sequenceEnum);
 int createDb(MDB_env *env, char *name, unsigned int flags, MDB_dbi *db, MDB_cmp_func *cmp);
 void closeGraph(GLMDB_env *genv);
 int addVertex(MDB_cursor *cursor, MDB_dbi vertexDb, jlong vertexId, MDB_val *vertexKey);
 int removeVertex(MDB_txn *txn, GLMDB_env *genv, jlong vertexId);
+int internalDeleteVertex(MDB_cursor *vertexCursor, MDB_cursor *inverseCursor, MDB_cursor *edgeCursor, VertexDbId vertexDbId,
+		VertexDbId inverseId, MDB_val inverseKey, MDB_val data, MDB_val inverseData);
 int getVertex(MDB_cursor *cursor, jlong vertexId, MDB_val *vertexKey);
 int getFirstEdgefromVertex(MDB_cursor *cursor, jint direction, jint labelId, jlong fromVertexId, jlong *edgeIdResultC, jlong *outVertexIdC,
 		jlong *inVertexIdC);

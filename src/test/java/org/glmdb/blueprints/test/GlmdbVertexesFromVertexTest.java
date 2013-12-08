@@ -54,6 +54,8 @@ public class GlmdbVertexesFromVertexTest extends BaseGlmdbGraphTest {
         Assert.assertEquals("vertexIn9", vertexName.get(9));
         thunderGraph.commit();
 
+        thunderGraph.printVertexDb();
+
         vertexName.clear();
         count = 0;
         vertex1_1 = thunderGraph.getVertex(0L);
