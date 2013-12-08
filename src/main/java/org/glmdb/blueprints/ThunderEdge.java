@@ -11,13 +11,13 @@ import java.util.Set;
  * Date: 2013/11/23
  * Time: 8:54 PM
  */
-public class GlmdbEdge extends GlmdbElement implements Edge {
+public class ThunderEdge extends GlmdbElement implements Edge {
 
     private String label;
     private long outVertexId;
     private long inVertexId;
 
-    public GlmdbEdge(ThunderGraph thunderGraph, long id, String label, long outVertexId, long inVertexId) {
+    public ThunderEdge(ThunderGraph thunderGraph, long id, String label, long outVertexId, long inVertexId) {
         super(thunderGraph, id);
         this.label = label;
         this.outVertexId = outVertexId;
@@ -26,6 +26,18 @@ public class GlmdbEdge extends GlmdbElement implements Edge {
 
     @Override
     public void setProperty(String key, Object value) {
+        if (value == null) {
+            throw new IllegalArgumentException("A null property can not be stored. You can call removeProperty() instead");
+        }
+        if (key == null) {
+            throw new IllegalArgumentException("Expecting non-null key in setProperty");
+        } else if (key.length() == 0) {
+            throw new IllegalArgumentException("Expecting non-empty key in setProperty");
+        } else if (key.equals("id")) {
+            throw new IllegalArgumentException("Can not set the 'id' property on an element");
+        } else if (key.equals("label")) {
+            throw new IllegalArgumentException("Can not set the 'label' property on an element");
+        }
         TransactionAndCursor tc = this.thunderGraph.getWriteTx();
         this.thunderGraph.getGlmdb().setProperty(tc.getTxn(), tc.getEdgeCursor(), this.id, key, value, false);
     }
@@ -39,7 +51,7 @@ public class GlmdbEdge extends GlmdbElement implements Edge {
     @Override
     public <T> T removeProperty(String key) {
         TransactionAndCursor tc = this.thunderGraph.getWriteTx();
-        return (T) this.thunderGraph.getGlmdb().removeProperty(tc.getVertexCursor(), this.id, key, false);
+        return (T) this.thunderGraph.getGlmdb().removeProperty(tc.getEdgeCursor(), this.id, key, false);
     }
 
     @Override

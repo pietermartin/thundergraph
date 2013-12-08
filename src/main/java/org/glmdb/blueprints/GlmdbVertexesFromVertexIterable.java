@@ -48,7 +48,7 @@ public class GlmdbVertexesFromVertexIterable<T extends Vertex> implements Iterab
 
         private VertexesIteratorForLabel() {
             this.labelIterator = GlmdbVertexesFromVertexIterable.this.labels.iterator();
-            //No need to check hasNext as Iterator<GlmdbEdge> iterator() ensures there is at least one label.
+            //No need to check hasNext as Iterator<ThunderEdge> iterator() ensures there is at least one label.
             this.currentLabel = this.labelIterator.next();
             this.cursorIsReadOnly = GlmdbVertexesFromVertexIterable.this.tc.isReadOnly();
             this.cursor = GlmdbVertexesFromVertexIterable.this.thunderGraph.getGlmdb().openCursorToVertexDb(GlmdbVertexesFromVertexIterable.this.tc.getTxn());
@@ -108,7 +108,12 @@ public class GlmdbVertexesFromVertexIterable<T extends Vertex> implements Iterab
                     if (GlmdbVertexesFromVertexIterable.this.thunderGraph.getGlmdb().getFirstEdgeFromVertex(
                             this.cursor, GlmdbVertexesFromVertexIterable.this.direction, currentLabel, GlmdbVertexesFromVertexIterable.this.vertexId, edgeIdArray, outVertexIdArray, inVertexIdArray)) {
                         this.currentEdgeOutVertexId = outVertexIdArray[0];
-                        return new ThunderVertex(GlmdbVertexesFromVertexIterable.this.thunderGraph, inVertexIdArray[0]);
+                        //Return the vertex that is not the from vertex.
+                        if (outVertexIdArray[0] == GlmdbVertexesFromVertexIterable.this.vertexId) {
+                            return new ThunderVertex(GlmdbVertexesFromVertexIterable.this.thunderGraph, inVertexIdArray[0]);
+                        } else {
+                            return new ThunderVertex(GlmdbVertexesFromVertexIterable.this.thunderGraph, outVertexIdArray[0]);
+                        }
                     } else {
                          if (this.labelIterator.hasNext()) {
                              this.currentLabel = this.labelIterator.next();
@@ -121,7 +126,12 @@ public class GlmdbVertexesFromVertexIterable<T extends Vertex> implements Iterab
                     if (GlmdbVertexesFromVertexIterable.this.thunderGraph.getGlmdb().getNextEdgeFromVertex(
                             this.cursor, GlmdbVertexesFromVertexIterable.this.direction, currentLabel, GlmdbVertexesFromVertexIterable.this.vertexId, edgeIdArray, outVertexIdArray, inVertexIdArray)) {
                         this.currentEdgeOutVertexId = outVertexIdArray[0];
-                        return new ThunderVertex(GlmdbVertexesFromVertexIterable.this.thunderGraph, inVertexIdArray[0]);
+                        //Return the vertex that is not the from vertex.
+                        if (outVertexIdArray[0] == GlmdbVertexesFromVertexIterable.this.vertexId) {
+                            return new ThunderVertex(GlmdbVertexesFromVertexIterable.this.thunderGraph, inVertexIdArray[0]);
+                        } else {
+                            return new ThunderVertex(GlmdbVertexesFromVertexIterable.this.thunderGraph, outVertexIdArray[0]);
+                        }
                     } else {
                         if (this.labelIterator.hasNext()) {
                             this.currentLabel = this.labelIterator.next();

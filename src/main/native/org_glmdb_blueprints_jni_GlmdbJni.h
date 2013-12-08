@@ -17,6 +17,14 @@ JNIEXPORT void JNICALL Java_org_glmdb_blueprints_jni_GlmdbJni_init
 
 /*
  * Class:     org_glmdb_blueprints_jni_GlmdbJni
+ * Method:    mdb_env_get_path
+ * Signature: (J[[B)I
+ */
+JNIEXPORT jint JNICALL Java_org_glmdb_blueprints_jni_GlmdbJni_mdb_1env_1get_1path
+  (JNIEnv *, jclass, jlong, jobjectArray);
+
+/*
+ * Class:     org_glmdb_blueprints_jni_GlmdbJni
  * Method:    mdb_strerror
  * Signature: (I)Ljava/lang/String;
  */

@@ -22,44 +22,38 @@ public class GlmdbRemoveVertexTest  extends BaseGlmdbGraphTest {
         }
         thunderGraph.commit();
 
-        thunderGraph.printVertexDb();
+//        thunderGraph.printVertexDb();
 
-        Assert.assertEquals(6, countVertices(thunderGraph));
+        Assert.assertEquals(6, countIter(thunderGraph.getVertices().iterator()));
 
         thunderGraph.getVertex(5L).remove();
         thunderGraph.commit();
-        Assert.assertEquals(5, countVertices(thunderGraph));
+        Assert.assertEquals(5, countIter(thunderGraph.getVertices().iterator()));
 
         thunderGraph.getVertex(4L).remove();
         thunderGraph.commit();
-        Assert.assertEquals(4, countVertices(thunderGraph));
+        Assert.assertEquals(4, countIter(thunderGraph.getVertices().iterator()));
 
         thunderGraph.getVertex(3L).remove();
         thunderGraph.commit();
-        Assert.assertEquals(3, countVertices(thunderGraph));
+        Assert.assertEquals(3, countIter(thunderGraph.getVertices().iterator()));
 
         thunderGraph.getVertex(2L).remove();
         thunderGraph.commit();
-        Assert.assertEquals(2, countVertices(thunderGraph));
+        Assert.assertEquals(2, countIter(thunderGraph.getVertices().iterator()));
 
         thunderGraph.getVertex(1L).remove();
         thunderGraph.commit();
-        Assert.assertEquals(1, countVertices(thunderGraph));
+        Assert.assertEquals(1, countIter(thunderGraph.getVertices().iterator()));
 
         thunderGraph.getVertex(0L).remove();
         thunderGraph.commit();
 
+        System.out.println("aaaaaaaaaaaaa");
         thunderGraph.printVertexDb();
-        Assert.assertEquals(0, countVertices(thunderGraph));
+        Assert.assertEquals(0, countIter(thunderGraph.getVertices().iterator()));
 
         thunderGraph.shutdown();
     }
 
-    private int countVertices(ThunderGraph thunderGraph) {
-        int result = 0;
-        for (Vertex v : thunderGraph.getVertices()) {
-            result++;
-        }
-        return result;
-    }
 }

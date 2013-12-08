@@ -1,10 +1,16 @@
 package org.glmdb.blueprints.test;
 
 import com.tinkerpop.blueprints.Edge;
+import com.tinkerpop.blueprints.Graph;
 import com.tinkerpop.blueprints.Vertex;
 import junit.framework.Assert;
 import org.glmdb.blueprints.ThunderGraph;
 import org.junit.Test;
+
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Random;
+import java.util.UUID;
 
 /**
  * Date: 2013/11/30
@@ -57,6 +63,49 @@ public class GlmdbRemoveEdgeTest extends BaseGlmdbGraphTest {
         thunderGraph.printEdgeDb();
 
         thunderGraph.shutdown();
+    }
+
+    @Test
+    public void testRemovingVertices() {
+        ThunderGraph graph = new ThunderGraph(this.dbPath);
+        int vertexCount = 50;
+        List<Vertex> vertices = new ArrayList<Vertex>();
+        List<Edge> edges = new ArrayList<Edge>();
+
+        for (int i = 0; i < vertexCount; i++) {
+            vertices.add(graph.addVertex(null));
+        }
+
+        for (int i = 0; i < vertexCount; i = i + 2) {
+            Vertex a = vertices.get(i);
+            Vertex b = vertices.get(i + 1);
+            edges.add(graph.addEdge(null, a, b, "a" + UUID.randomUUID()));
+
+        }
+
+        graph.commit();
+//        graph.printVertexDb();
+
+        Random random = new Random();
+        int counter = 0;
+        for (Vertex v : vertices) {
+            System.out.println(v.getId());
+            counter = counter + 1;
+//            if (random.nextBoolean())
+//                graph.removeVertex(v);
+//            else
+            v.remove();
+//            if ((counter + 1) % 2 == 0) {
+//                if (graph.getFeatures().supportsEdgeIteration) {
+//                    Assert.assertEquals(edges.size() - ((counter + 1) / 2), count(graph.getEdges()));
+//                }
+//            }
+//
+//            if (graph.getFeatures().supportsVertexIteration) {
+//                Assert.assertEquals(vertices.size() - counter, count(graph.getVertices()));
+//            }
+        }
+        graph.shutdown();
     }
 
     private int countVertices(ThunderGraph thunderGraph) {

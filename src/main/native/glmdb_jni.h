@@ -123,6 +123,14 @@ typedef struct StringIndexKeyStruct {
 
 /*
  * Class:     org_glmdb_blueprints_jni_GlmdbJni
+ * Method:    mdb_env_get_path
+ * Signature: (J[[B)I
+ */
+JNIEXPORT jint JNICALL Java_org_glmdb_blueprints_jni_GlmdbJni_mdb_1env_1get_1path
+  (JNIEnv *env, jclass that, jlong glmdbEnv, jobjectArray path);
+
+/*
+ * Class:     org_glmdb_blueprints_jni_GlmdbJni
  * Method:    printVertexDb
  * Signature: (J)I
  */
@@ -617,8 +625,8 @@ int getVertexProperty(MDB_cursor *cursor, jlong vertexId, jint propertyKeyId, MD
 int removeVertexProperty(MDB_cursor *cursor, jlong vertexId, jint propertyKeyId);
 int getEdgeProperty(MDB_cursor *cursor, jlong edgeId, jint propertyKeyId, MDB_val *data);
 int removeEdgeProperty(MDB_cursor *cursor, jlong edgeId, jint propertyKeyId);
-int getVertexPropertyKeys(MDB_cursor *cursor, jlong vertexId, jint *propertyKeyArraySizeC, jint *propertyKeyArrayC);
-int getEdgePropertyKeys(MDB_cursor *cursor, jlong edgeId, jint *propertyKeyArraySizeC, jint *propertyKeyArrayC);
+int getVertexPropertyKeys(MDB_cursor *cursor, jlong vertexId, jint *propertyKeyArraySizeC, jint **propertyKeyArrayC);
+int getEdgePropertyKeys(MDB_cursor *cursor, jlong edgeId, jint *propertyKeyArraySizeC, jint **propertyKeyArrayC);
 
 int setPropertyKey(GLMDB_env *glmdb_env, MDB_txn * txn, int propertyKeyEnum, int *propertyKeyId, char *propertyKeyC, unsigned char vertex,
 		unsigned char indexed, unsigned char overwrite);

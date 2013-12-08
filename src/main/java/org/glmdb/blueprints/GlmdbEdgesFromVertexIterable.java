@@ -10,7 +10,7 @@ import java.util.*;
  * Date: 2013/11/24
  * Time: 10:22 AM
  */
-public class GlmdbEdgesFromVertexIterable<T extends Edge> implements Iterable<GlmdbEdge> {
+public class GlmdbEdgesFromVertexIterable<T extends Edge> implements Iterable<ThunderEdge> {
 
     private final ThunderGraph thunderGraph;
     private TransactionAndCursor tc;
@@ -27,7 +27,7 @@ public class GlmdbEdgesFromVertexIterable<T extends Edge> implements Iterable<Gl
     }
 
     @Override
-    public Iterator<GlmdbEdge> iterator() {
+    public Iterator<ThunderEdge> iterator() {
         if (this.labels.isEmpty()) {
             return new EdgesIterator();
         } else {
@@ -35,19 +35,19 @@ public class GlmdbEdgesFromVertexIterable<T extends Edge> implements Iterable<Gl
         }
     }
 
-    private class EdgesIteratorForLabel implements Iterator<GlmdbEdge> {
+    private class EdgesIteratorForLabel implements Iterator<ThunderEdge> {
 
         private Cursor cursor;
         private boolean cursorIsReadOnly;
-        private GlmdbEdge internalNext;
-        private GlmdbEdge next;
+        private ThunderEdge internalNext;
+        private ThunderEdge next;
         private boolean goToFirst = true;
         private String currentLabel;
         private Iterator<String> labelIterator;
 
         private EdgesIteratorForLabel() {
             this.labelIterator = GlmdbEdgesFromVertexIterable.this.labels.iterator();
-            //No need to check hasNext as Iterator<GlmdbEdge> iterator() ensures there is at least one label.
+            //No need to check hasNext as Iterator<ThunderEdge> iterator() ensures there is at least one label.
             this.currentLabel = this.labelIterator.next();
             this.cursorIsReadOnly = GlmdbEdgesFromVertexIterable.this.tc.isReadOnly();
             this.cursor = GlmdbEdgesFromVertexIterable.this.thunderGraph.getGlmdb().openCursorToVertexDb(GlmdbEdgesFromVertexIterable.this.tc.getTxn());
@@ -64,7 +64,7 @@ public class GlmdbEdgesFromVertexIterable<T extends Edge> implements Iterable<Gl
         }
 
         @Override
-        public GlmdbEdge next() {
+        public ThunderEdge next() {
             if (this.next == null) {
                 this.next = internalNext();
                 if (this.next == null) {
@@ -72,7 +72,7 @@ public class GlmdbEdgesFromVertexIterable<T extends Edge> implements Iterable<Gl
                 }
                 this.internalNext = this.next;
             }
-            GlmdbEdge result = this.next;
+            ThunderEdge result = this.next;
             this.next = null;
             return result;
         }
@@ -95,7 +95,7 @@ public class GlmdbEdgesFromVertexIterable<T extends Edge> implements Iterable<Gl
             GlmdbEdgesFromVertexIterable.this.thunderGraph.getGlmdb().removeEdge(GlmdbEdgesFromVertexIterable.this.tc.getTxn(), this.internalNext.id);
         }
 
-        private GlmdbEdge internalNext() {
+        private ThunderEdge internalNext() {
 
             long edgeIdArray[] = new long[1];
             long outVertexIdArray[] = new long[1];
@@ -106,7 +106,7 @@ public class GlmdbEdgesFromVertexIterable<T extends Edge> implements Iterable<Gl
                     this.goToFirst = false;
                     if (GlmdbEdgesFromVertexIterable.this.thunderGraph.getGlmdb().getFirstEdgeFromVertex(
                             this.cursor, GlmdbEdgesFromVertexIterable.this.direction, currentLabel, GlmdbEdgesFromVertexIterable.this.vertexId, edgeIdArray, outVertexIdArray, inVertexIdArray)) {
-                        return new GlmdbEdge(GlmdbEdgesFromVertexIterable.this.thunderGraph, edgeIdArray[0], currentLabel, outVertexIdArray[0], inVertexIdArray[0]);
+                        return new ThunderEdge(GlmdbEdgesFromVertexIterable.this.thunderGraph, edgeIdArray[0], currentLabel, outVertexIdArray[0], inVertexIdArray[0]);
                     } else {
                         if (this.labelIterator.hasNext()) {
                             this.currentLabel = this.labelIterator.next();
@@ -118,7 +118,7 @@ public class GlmdbEdgesFromVertexIterable<T extends Edge> implements Iterable<Gl
                 } else {
                     if (GlmdbEdgesFromVertexIterable.this.thunderGraph.getGlmdb().getNextEdgeFromVertex(
                             this.cursor, GlmdbEdgesFromVertexIterable.this.direction, currentLabel, GlmdbEdgesFromVertexIterable.this.vertexId, edgeIdArray, outVertexIdArray, inVertexIdArray)) {
-                        return new GlmdbEdge(GlmdbEdgesFromVertexIterable.this.thunderGraph, edgeIdArray[0], currentLabel, outVertexIdArray[0], inVertexIdArray[0]);
+                        return new ThunderEdge(GlmdbEdgesFromVertexIterable.this.thunderGraph, edgeIdArray[0], currentLabel, outVertexIdArray[0], inVertexIdArray[0]);
                     } else {
                         if (this.labelIterator.hasNext()) {
                             this.currentLabel = this.labelIterator.next();
@@ -133,12 +133,12 @@ public class GlmdbEdgesFromVertexIterable<T extends Edge> implements Iterable<Gl
         }
     }
 
-    private class EdgesIterator implements Iterator<GlmdbEdge> {
+    private class EdgesIterator implements Iterator<ThunderEdge> {
 
         private Cursor cursor;
         private boolean cursorIsReadOnly;
-        private GlmdbEdge next;
-        private GlmdbEdge internalNext;
+        private ThunderEdge next;
+        private ThunderEdge internalNext;
         private boolean goToFirst = true;
 
         private EdgesIterator() {
@@ -157,7 +157,7 @@ public class GlmdbEdgesFromVertexIterable<T extends Edge> implements Iterable<Gl
         }
 
         @Override
-        public GlmdbEdge next() {
+        public ThunderEdge next() {
             if (this.next == null) {
                 this.next = internalNext();
                 if (this.next == null) {
@@ -165,7 +165,7 @@ public class GlmdbEdgesFromVertexIterable<T extends Edge> implements Iterable<Gl
                 }
                 this.internalNext = this.next;
             }
-            GlmdbEdge result = this.next;
+            ThunderEdge result = this.next;
             this.next = null;
             return result;
         }
@@ -188,7 +188,7 @@ public class GlmdbEdgesFromVertexIterable<T extends Edge> implements Iterable<Gl
             GlmdbEdgesFromVertexIterable.this.thunderGraph.getGlmdb().removeEdge(GlmdbEdgesFromVertexIterable.this.tc.getTxn(), this.internalNext.id);
         }
 
-        private GlmdbEdge internalNext() {
+        private ThunderEdge internalNext() {
 
             String labelArray[] = new String[1];
             long edgeIdArray[] = new long[1];
@@ -199,14 +199,14 @@ public class GlmdbEdgesFromVertexIterable<T extends Edge> implements Iterable<Gl
                 this.goToFirst = false;
                 if (GlmdbEdgesFromVertexIterable.this.thunderGraph.getGlmdb().getFirstEdgeFromVertex(
                         this.cursor, GlmdbEdgesFromVertexIterable.this.direction, GlmdbEdgesFromVertexIterable.this.vertexId, labelArray, edgeIdArray, outVertexIdArray, inVertexIdArray)) {
-                    return new GlmdbEdge(GlmdbEdgesFromVertexIterable.this.thunderGraph, edgeIdArray[0], labelArray[0], outVertexIdArray[0], inVertexIdArray[0]);
+                    return new ThunderEdge(GlmdbEdgesFromVertexIterable.this.thunderGraph, edgeIdArray[0], labelArray[0], outVertexIdArray[0], inVertexIdArray[0]);
                 } else {
                     return null;
                 }
             } else {
                 if (GlmdbEdgesFromVertexIterable.this.thunderGraph.getGlmdb().getNextEdgeFromVertex(
                         this.cursor, GlmdbEdgesFromVertexIterable.this.direction, GlmdbEdgesFromVertexIterable.this.vertexId, labelArray, edgeIdArray, outVertexIdArray, inVertexIdArray)) {
-                    return new GlmdbEdge(GlmdbEdgesFromVertexIterable.this.thunderGraph, edgeIdArray[0], labelArray[0], outVertexIdArray[0], inVertexIdArray[0]);
+                    return new ThunderEdge(GlmdbEdgesFromVertexIterable.this.thunderGraph, edgeIdArray[0], labelArray[0], outVertexIdArray[0], inVertexIdArray[0]);
                 } else {
                     return null;
                 }

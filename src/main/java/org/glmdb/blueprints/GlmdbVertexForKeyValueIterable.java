@@ -3,6 +3,7 @@ package org.glmdb.blueprints;
 import com.tinkerpop.blueprints.Vertex;
 
 import java.util.Iterator;
+import java.util.NoSuchElementException;
 
 /**
  * Date: 2013/11/24
@@ -24,45 +25,57 @@ public class GlmdbVertexForKeyValueIterable<T extends Vertex> implements Iterabl
 
     @Override
     public Iterator<ThunderVertex> iterator() {
-        return new Iterator<ThunderVertex>() {
+        return new VertexForKeyValueIterable();
+    }
 
-            private ThunderVertex next;
-            private boolean goToFirst = true;
+    private final class VertexForKeyValueIterable implements Iterator<ThunderVertex> {
 
-            @Override
-            public boolean hasNext() {
+        private ThunderVertex next;
+        private boolean goToFirst = true;
+
+        @Override
+        public boolean hasNext() {
+            if (this.next == null) {
                 this.next = internalNext();
-                return this.next != null;
             }
+            return this.next != null;
+        }
 
-            @Override
-            public ThunderVertex next() {
-                return this.next;
-            }
-
-            @Override
-            public void remove() {
-                //To change body of implemented methods use File | Settings | File Templates.
-            }
-
-            private ThunderVertex internalNext() {
-                long vertexIdArray[] = new long[1];
-                if (this.goToFirst) {
-                    this.goToFirst = false;
-                    if (GlmdbVertexForKeyValueIterable.this.thunderGraph.getGlmdb().getFirstVertexForKeyValue(tc.getVertexCursor(), vertexIdArray, GlmdbVertexForKeyValueIterable.this.key, GlmdbVertexForKeyValueIterable.this.value)) {
-                        return new ThunderVertex(GlmdbVertexForKeyValueIterable.this.thunderGraph, vertexIdArray[0]);
-                    } else {
-                        return null;
-                    }
-                } else {
-                    if (GlmdbVertexForKeyValueIterable.this.thunderGraph.getGlmdb().getNextVertexForKeyValue(tc.getVertexCursor(), vertexIdArray, GlmdbVertexForKeyValueIterable.this.key, GlmdbVertexForKeyValueIterable.this.value)) {
-                        return new ThunderVertex(GlmdbVertexForKeyValueIterable.this.thunderGraph, vertexIdArray[0]);
-                    } else {
-                        return null;
-                    }
+        @Override
+        public ThunderVertex next() {
+            if (this.next == null) {
+                this.next = internalNext();
+                if (this.next == null) {
+                    throw new NoSuchElementException();
                 }
             }
+            ThunderVertex result = this.next;
+            this.next = null;
+            return result;
+        }
 
-        };
+        @Override
+        public void remove() {
+            //To change body of implemented methods use File | Settings | File Templates.
+        }
+
+        private ThunderVertex internalNext() {
+            long vertexIdArray[] = new long[1];
+            if (this.goToFirst) {
+                this.goToFirst = false;
+                if (GlmdbVertexForKeyValueIterable.this.thunderGraph.getGlmdb().getFirstVertexForKeyValue(tc.getVertexCursor(), vertexIdArray, GlmdbVertexForKeyValueIterable.this.key, GlmdbVertexForKeyValueIterable.this.value)) {
+                    return new ThunderVertex(GlmdbVertexForKeyValueIterable.this.thunderGraph, vertexIdArray[0]);
+                } else {
+                    return null;
+                }
+            } else {
+                if (GlmdbVertexForKeyValueIterable.this.thunderGraph.getGlmdb().getNextVertexForKeyValue(tc.getVertexCursor(), vertexIdArray, GlmdbVertexForKeyValueIterable.this.key, GlmdbVertexForKeyValueIterable.this.value)) {
+                    return new ThunderVertex(GlmdbVertexForKeyValueIterable.this.thunderGraph, vertexIdArray[0]);
+                } else {
+                    return null;
+                }
+            }
+        }
+
     }
 }

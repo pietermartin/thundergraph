@@ -17,7 +17,7 @@ public class ThunderGraph implements TransactionalGraph, KeyIndexableGraph {
     private Glmdb glmdb;
     private ThreadLocal<TransactionAndCursor> currentTransaction;
     private Features thunderGraphFeatures;
-    
+
     public ThunderGraph(String dbPath) {
         this(new File(dbPath));
     }
@@ -60,13 +60,13 @@ public class ThunderGraph implements TransactionalGraph, KeyIndexableGraph {
         thunderGraphFeatures.supportsFloatProperty = true;
         thunderGraphFeatures.supportsIntegerProperty = true;
         thunderGraphFeatures.supportsLongProperty = true;
-        thunderGraphFeatures.supportsMapProperty = true;
-        thunderGraphFeatures.supportsMixedListProperty = true;
-        thunderGraphFeatures.supportsPrimitiveArrayProperty = true;
-        thunderGraphFeatures.supportsSerializableObjectProperty = true;
         thunderGraphFeatures.supportsStringProperty = true;
-        thunderGraphFeatures.supportsUniformListProperty = true;
-        
+        thunderGraphFeatures.supportsMapProperty = false;
+        thunderGraphFeatures.supportsMixedListProperty = false;
+        thunderGraphFeatures.supportsUniformListProperty = false;
+        thunderGraphFeatures.supportsPrimitiveArrayProperty = false;
+        thunderGraphFeatures.supportsSerializableObjectProperty = false;
+
         glmdb = new Glmdb(dbPath.getAbsolutePath());
         this.currentTransaction = new ThreadLocal<TransactionAndCursor>();
     }
@@ -94,11 +94,12 @@ public class ThunderGraph implements TransactionalGraph, KeyIndexableGraph {
             throw new IllegalArgumentException("The vertex ID passed to getVertex() is null");
         }
         if (!(id instanceof Long)) {
-            throw new IllegalStateException("Vertex id must be a java.lang.Long");
+            id = Long.valueOf(id.toString());
         }
-        Long vertexId = (Long)id;
+
+        Long vertexId = (Long) id;
         TransactionAndCursor tc = this.getReadOnlyTx();
-        long vertexIdResult =  this.glmdb.getVertex(tc.getVertexCursor(), vertexId.longValue());
+        long vertexIdResult = this.glmdb.getVertex(tc.getVertexCursor(), vertexId.longValue());
         if (vertexIdResult != -1 && vertexIdResult != vertexId) {
             throw new IllegalStateException("db returned a vertex with a different id! This is a bug, should never happen");
         }
@@ -131,23 +132,29 @@ public class ThunderGraph implements TransactionalGraph, KeyIndexableGraph {
 
     @Override
     public Edge addEdge(Object id, Vertex outVertex, Vertex inVertex, String label) {
+        if (label == null) {
+            throw new IllegalArgumentException("Edge label can not be null"); // Enforced by 2.3.0 test case
+        }
         TransactionAndCursor tc = this.getWriteTx();
-        long edgeId = this.glmdb.addEdge(tc.getTxn(), (Long)outVertex.getId(), (Long)inVertex.getId(), label);
-        return new GlmdbEdge(this, edgeId, label, (Long)outVertex.getId(), (Long)inVertex.getId());
+        long edgeId = this.glmdb.addEdge(tc.getTxn(), (Long) outVertex.getId(), (Long) inVertex.getId(), label);
+        return new ThunderEdge(this, edgeId, label, (Long) outVertex.getId(), (Long) inVertex.getId());
     }
 
     @Override
     public Edge getEdge(Object id) {
-        if (!(id instanceof Long)) {
-            throw new IllegalStateException("Edge id must be a java.lang.Long");
+        if (id == null) {
+            throw new IllegalArgumentException("The edge ID passed to getEdge() is null");
         }
-        Long edgeId = (Long)id;
+        if (!(id instanceof Long)) {
+            id = Long.valueOf(id.toString());
+        }
+        Long edgeId = (Long) id;
         TransactionAndCursor tc = this.getReadOnlyTx();
         String labelArray[] = new String[1];
         long outVertexIdArray[] = new long[1];
         long inVertexIdArray[] = new long[1];
         this.glmdb.getEdge(tc.getEdgeCursor(), edgeId.longValue(), labelArray, outVertexIdArray, inVertexIdArray);
-        return new GlmdbEdge(this, edgeId, labelArray[0], outVertexIdArray[0], inVertexIdArray[0]);
+        return new ThunderEdge(this, edgeId, labelArray[0], outVertexIdArray[0], inVertexIdArray[0]);
     }
 
     @Override
@@ -177,34 +184,42 @@ public class ThunderGraph implements TransactionalGraph, KeyIndexableGraph {
     @Override
     public void commit() {
         TransactionAndCursor tc = this.currentTransaction.get();
-        if (!tc.isReadOnly()) {
-            synchronized (this.glmdb) {
+        if (tc != null) {
+            if (!tc.isReadOnly()) {
+                synchronized (this.glmdb) {
+                    tc.closeCursors();
+                    tc.getTxn().commit();
+                    this.glmdb.synchronizeMaps();
+                }
+            } else {
                 tc.closeCursors();
                 tc.getTxn().commit();
-                this.glmdb.synchronizeMaps();
             }
+            this.currentTransaction.remove();
+            this.currentTransaction.set(null);
         } else {
-            tc.closeCursors();
-            tc.getTxn().commit();
+            //nada
         }
-        this.currentTransaction.remove();
-        this.currentTransaction.set(null);
     }
 
     @Override
     public void rollback() {
         TransactionAndCursor tc = this.currentTransaction.get();
-        if (!tc.isReadOnly()) {
-            synchronized (this.glmdb) {
+        if (tc != null) {
+            if (!tc.isReadOnly()) {
+                synchronized (this.glmdb) {
+                    tc.closeCursors();
+                    tc.getTxn().abort();
+                    this.glmdb.unsynchronizePropertyKeyMap();
+                }
+            } else {
                 tc.closeCursors();
                 tc.getTxn().abort();
-                this.glmdb.unsynchronizePropertyKeyMap();
             }
+            this.currentTransaction.remove();
         } else {
-            tc.closeCursors();
-            tc.getTxn().abort();
+            //nada
         }
-        this.currentTransaction.remove();
     }
 
     public boolean isTxActive() {
@@ -296,6 +311,15 @@ public class ThunderGraph implements TransactionalGraph, KeyIndexableGraph {
 
     public void printEdgePropertyKeyDb() {
         this.glmdb.printEdgepropertyKeyDbX();
+    }
+
+    public String getDbPath() {
+        return this.glmdb.getDbPath();
+    }
+
+    @Override
+    public String toString() {
+        return "thundergraph[" + this.getDbPath() + "]";
     }
 
 }

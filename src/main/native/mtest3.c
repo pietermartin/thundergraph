@@ -108,6 +108,74 @@ int main(int argc,char * argv[])
 			printf("setEdgePropertyChar failure  = %i!\n", rc);
 			goto fail;
 		}
+
+
+		rc = addVertex(cursor, genv->vertexDb, genv->vertexIdSequence++, &vertexKey);
+		if (rc != 0) {
+			printf("add in vertex failure  = %i!\n", rc);
+			goto fail;
+		}
+		inVertexDbId = (*((VertexDbId *) (vertexKey.mv_data)));
+		inVertexId = inVertexDbId.vertexId;
+		rc = addEdge(txn, genv->vertexDb, genv->edgeDb, genv->edgeIdSequence++, 1, outVertexId, inVertexId);
+		if (rc != 0) {
+			printf("add edge failure  = %i!\n", rc);
+			goto fail;
+		}
+		rc = mdb_cursor_open(txn, genv->edgeDb, &edgeCursor);
+		if (rc != 0) {
+			printf("open cursor failure  = %i!\n", rc);
+			goto fail;
+		}
+
+		char *edgePropertyValue3 = malloc(5);
+		char v3[] = "54321";
+		memcpy(edgePropertyValue3, v3, 5);
+
+		rc = setEdgePropertyString(edgeCursor, genv->edgeIdSequence - 1, 0, edgePropertyValue3);
+
+		mdb_cursor_close(edgeCursor);
+
+		if (rc != 0) {
+			printf("setEdgePropertyChar failure  = %i!\n", rc);
+			goto fail;
+		}
+
+
+
+		rc = addVertex(cursor, genv->vertexDb, genv->vertexIdSequence++, &vertexKey);
+		if (rc != 0) {
+			printf("add in vertex failure  = %i!\n", rc);
+			goto fail;
+		}
+		inVertexDbId = (*((VertexDbId *) (vertexKey.mv_data)));
+		inVertexId = inVertexDbId.vertexId;
+		rc = addEdge(txn, genv->vertexDb, genv->edgeDb, genv->edgeIdSequence++, 1, outVertexId, outVertexId);
+		if (rc != 0) {
+			printf("add edge failure  = %i!\n", rc);
+			goto fail;
+		}
+		rc = mdb_cursor_open(txn, genv->edgeDb, &edgeCursor);
+		if (rc != 0) {
+			printf("open cursor failure  = %i!\n", rc);
+			goto fail;
+		}
+
+		char *edgePropertyValue4 = malloc(5);
+		char v4[] = "44444";
+		memcpy(edgePropertyValue4, v4, 5);
+
+		rc = setEdgePropertyString(edgeCursor, genv->edgeIdSequence - 1, 0, edgePropertyValue4);
+
+		mdb_cursor_close(edgeCursor);
+
+		if (rc != 0) {
+			printf("setEdgePropertyChar failure  = %i!\n", rc);
+			goto fail;
+		}
+
+
+
 	}
 	mdb_cursor_close(cursor);
 	mdb_txn_commit(txn);

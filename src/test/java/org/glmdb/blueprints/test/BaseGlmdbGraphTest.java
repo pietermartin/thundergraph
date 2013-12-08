@@ -14,10 +14,11 @@ import java.util.Iterator;
 public abstract class BaseGlmdbGraphTest {
 
     protected File dbPath = null;
+    protected static final String PATH = "/tmp/testdb";
 
     @Before
     public void beforeTests() throws IOException {
-        this.dbPath = new File("/tmp/testdb");
+        this.dbPath = new File(PATH);
         FileUtils.deleteDirectory(this.dbPath);
         this.dbPath.mkdir();
     }
@@ -31,4 +32,16 @@ public abstract class BaseGlmdbGraphTest {
         return count;
     }
 
+    public static int count(final Iterable iterable) {
+        return count(iterable.iterator());
+    }
+
+    public static int count(final Iterator iterator) {
+        int counter = 0;
+        while (iterator.hasNext()) {
+            iterator.next();
+            counter++;
+        }
+        return counter;
+    }
 }

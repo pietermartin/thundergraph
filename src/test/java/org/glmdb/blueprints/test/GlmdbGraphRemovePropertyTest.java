@@ -1,5 +1,6 @@
 package org.glmdb.blueprints.test;
 
+import com.tinkerpop.blueprints.Edge;
 import com.tinkerpop.blueprints.Vertex;
 import org.glmdb.blueprints.ThunderGraph;
 import org.junit.Assert;
@@ -97,6 +98,29 @@ public class GlmdbGraphRemovePropertyTest extends BaseGlmdbGraphTest  {
         thunderGraph.commit();
 
         thunderGraph.printVertexDb();
+
+        thunderGraph.shutdown();
+    }
+
+    @Test
+    public void testEmptyPropertyReturnsNull() {
+        ThunderGraph thunderGraph = new ThunderGraph(this.dbPath);
+        Vertex vertex = thunderGraph.addVertex(null);
+        vertex.setProperty("name0", "pieter0");
+        Vertex vertex1 = thunderGraph.addVertex(null);
+        vertex1.setProperty("name0", "pieter0");
+        Edge edge = thunderGraph.addEdge(null, vertex, vertex1, "test");
+        edge.setProperty("name0", "pieter1");
+        thunderGraph.commit();
+        Vertex testV = thunderGraph.getVertex(0L);
+        Assert.assertEquals("pieter0", testV.getProperty("name0"));
+        Assert.assertEquals("pieter0", testV.removeProperty("name0"));
+        Assert.assertNull(testV.getProperty("name0"));
+
+        Edge testE = thunderGraph.getEdge(0L);
+        Assert.assertEquals("pieter1", testE.getProperty("name0"));
+        Assert.assertEquals("pieter1", testE.removeProperty("name0"));
+        Assert.assertNull(testV.getProperty("name0"));
 
         thunderGraph.shutdown();
     }

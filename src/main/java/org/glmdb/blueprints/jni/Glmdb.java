@@ -47,6 +47,13 @@ public class Glmdb extends NativeObject implements Closeable {
         }
     }
 
+    public String getDbPath() {
+        byte[][] value = new byte[1][];
+        int rc = mdb_env_get_path(this.pointer(), value);
+        checkErrorCode(rc);
+        return (String)bytesToObject(PropertyTypeEnum.STRING, value[0]);
+    }
+
     public Transaction createReadOnlyTransaction() {
         return createTransaction(null, true);
     }
@@ -319,7 +326,7 @@ public class Glmdb extends NativeObject implements Closeable {
             PropertyKeyEnumAndId propertyKeyEnumAndId = this.getOrPutPropertyKey(txn, key, PropertyTypeEnum.SHORT, vertex, false);
             checkErrorCode(mdb_set_property_short(cursor.pointer(), vertexId, propertyKeyEnumAndId.id, (Short) value, vertex));
         } else {
-            throw new IllegalStateException(String.format("Unsupported value type %s", new String[]{value.getClass().getName()}));
+            throw new IllegalArgumentException(String.format("Unsupported value type %s", new String[]{value.getClass().getName()}));
         }
     }
 
@@ -332,19 +339,34 @@ public class Glmdb extends NativeObject implements Closeable {
         }
         if (propertyKeyEnumAndId != null) {
             byte[][] value = new byte[1][];
-            checkErrorCode(mdb_get_property_array(cursor.pointer(), vertexId, propertyKeyEnumAndId.id, value, vertex));
-            return bytesToObject(propertyKeyEnumAndId.propertyTypeEnum, value[0]);
+            int rc = mdb_get_property_array(cursor.pointer(), vertexId, propertyKeyEnumAndId.id, value, vertex);
+            if (rc != MDB_NOTFOUND) {
+                checkErrorCode(rc);
+                return bytesToObject(propertyKeyEnumAndId.propertyTypeEnum, value[0]);
+            } else {
+                return null;
+            }
         } else {
             return null;
         }
     }
 
-    public Object removeProperty(Cursor cursor, long elementId, String key, boolean vertexProperty) {
-        PropertyKeyEnumAndId propertyKeyEnumAndId = this.vertexPropertyKeyToIdMap.get(key);
+    public Object removeProperty(Cursor cursor, long elementId, String key, boolean vertex) {
+        PropertyKeyEnumAndId propertyKeyEnumAndId;
+        if (vertex) {
+            propertyKeyEnumAndId = this.vertexPropertyKeyToIdMap.get(key);
+        } else {
+            propertyKeyEnumAndId = this.edgePropertyKeyToIdMap.get(key);
+        }
         if (propertyKeyEnumAndId != null) {
             byte[][] value = new byte[1][];
-            checkErrorCode(mdb_del_property(cursor.pointer(), elementId, propertyKeyEnumAndId.id, value, vertexProperty));
-            return bytesToObject(propertyKeyEnumAndId.propertyTypeEnum, value[0]);
+            int rc = mdb_del_property(cursor.pointer(), elementId, propertyKeyEnumAndId.id, value, vertex);
+            if (rc != MDB_NOTFOUND) {
+                checkErrorCode(rc);
+                return bytesToObject(propertyKeyEnumAndId.propertyTypeEnum, value[0]);
+            } else {
+                return null;
+            }
         } else {
             return null;
         }
@@ -447,7 +469,7 @@ public class Glmdb extends NativeObject implements Closeable {
             //Check if the property's indexed property needs updating
             if (indexed != propertyKeyEnumAndId.indexed) {
                 //TODO reindex all properties
-                int propertyKeyIdArray[] = new int[] {propertyKeyEnumAndId.id};
+                int propertyKeyIdArray[] = new int[]{propertyKeyEnumAndId.id};
                 checkErrorCode(mdb_set_propertykey(this.pointer(), txn.pointer(), propertyKey, propertyKeyEnumAndId.propertyTypeEnum.ordinal(), propertyKeyIdArray, vertex, indexed, true));
                 propertyKeyId = propertyKeyIdArray[0];
                 //Do a little sanity check

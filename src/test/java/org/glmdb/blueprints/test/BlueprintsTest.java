@@ -14,7 +14,9 @@ import java.lang.reflect.Method;
  * Date: 2013/12/07
  * Time: 12:01 AM
  */
-public class BlueprintsTest extends GraphTest {
+public class BlueprintsTest
+        extends GraphTest
+{
 
     public void testVertexTestSuite() throws Exception {
         this.stopWatch();
