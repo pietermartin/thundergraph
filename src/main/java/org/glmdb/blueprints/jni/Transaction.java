@@ -9,10 +9,12 @@ import static org.glmdb.blueprints.jni.GlmdbJni.*;
 public class Transaction extends NativeObject {
 
     private final Glmdb env;
+    private final boolean readOnly;
 
-    Transaction(Glmdb env, long self) {
+    Transaction(Glmdb env, long self, boolean readOnly) {
         super(self);
         this.env = env;
+        this.readOnly = readOnly;
     }
 
     public void renew() {
@@ -21,7 +23,7 @@ public class Transaction extends NativeObject {
 
     public void commit() {
         if( self != 0  ) {
-            Util.checkErrorCode(mdb_txn_commit(this.env.pointer(), self));
+            Util.checkErrorCode(mdb_txn_commit(this.env.pointer(), self, this.readOnly));
             self = 0;
         }
     }

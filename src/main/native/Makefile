@@ -30,7 +30,7 @@ IFLAGS  = -I/usr/lib/jvm/java-7-openjdk-amd64/include
 
 IHDRS	= lmdb.h
 ILIBS	= libglmdb_jni.a libglmdb_jni.so
-IPROGS	= mdb_stat mdb_copy mtest mtest2 mtest3 mtest4 mtest_persist_sequence mtest_property_key_db
+IPROGS	= mdb_stat mdb_copy mtest mtest2 mtest3 mtest4 mtest_persist_sequence mtest_property_key_db mtest2_property_key_db
 IDOCS	= mdb_stat.1 mdb_copy.1
 PROGS	= $(IPROGS) 
 all:	$(ILIBS) $(PROGS)
@@ -65,10 +65,9 @@ mtest:    mtest.o    liblmdb.a
 mtest2:	  mtest2.o   liblmdb.a
 mtest3:	  mtest3.o   liblmdb.a
 mtest4:	  mtest4.o liblmdb.a
-mtest_persist_sequence: mtest_persist_sequence.o liblmdb.a 
-mtest_property_key_db:  mtest_property_key_db.o liblmdb.a
-#mtest5:	mtest5.o liblmdb.a
-#mtest6:	mtest6.o liblmdb.a
+mtest_persist_sequence:  mtest_persist_sequence.o liblmdb.a 
+mtest_property_key_db:   mtest_property_key_db.o liblmdb.a
+mtest2_property_key_db:  mtest2_property_key_db.o liblmdb.a
 
 glmdb_jni.o: glmdb_jni.c glmdb_jni.h mdb.c lmdb.h midl.h
 	$(CC) $(CFLAGS) -fPIC $(IFLAGS) $(CPPFLAGS) -c glmdb_jni.c

@@ -65,7 +65,7 @@ public class Glmdb extends NativeObject implements Closeable {
     private Transaction createTransaction(Transaction parent, boolean readOnly) {
         long txpointer[] = new long[1];
         checkErrorCode(mdb_txn_begin(pointer(), parent == null ? 0 : parent.pointer(), readOnly ? GlmdbJni.MDB_RDONLY : 0, txpointer));
-        return new Transaction(this, txpointer[0]);
+        return new Transaction(this, txpointer[0], readOnly);
     }
 
     public Cursor openCursorToVertexDb(Transaction tx) {
@@ -437,7 +437,7 @@ public class Glmdb extends NativeObject implements Closeable {
         } finally {
             mdb_cursor_close(edgeCursor.pointer());
             mdb_cursor_close(vertexCursor.pointer());
-            mdb_txn_commit(this.pointer(), txn.pointer());
+            checkErrorCode(mdb_txn_commit(this.pointer(), txn.pointer(), true));
         }
     }
 

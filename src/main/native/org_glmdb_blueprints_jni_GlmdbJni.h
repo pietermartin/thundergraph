@@ -98,10 +98,10 @@ JNIEXPORT jint JNICALL Java_org_glmdb_blueprints_jni_GlmdbJni_mdb_1txn_1renew
 /*
  * Class:     org_glmdb_blueprints_jni_GlmdbJni
  * Method:    mdb_txn_commit
- * Signature: (JJ)I
+ * Signature: (JJZ)I
  */
 JNIEXPORT jint JNICALL Java_org_glmdb_blueprints_jni_GlmdbJni_mdb_1txn_1commit
-  (JNIEnv *, jclass, jlong, jlong);
+  (JNIEnv *, jclass, jlong, jlong, jboolean);
 
 /*
  * Class:     org_glmdb_blueprints_jni_GlmdbJni

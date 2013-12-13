@@ -245,13 +245,20 @@ JNIEXPORT jint JNICALL Java_org_glmdb_blueprints_jni_GlmdbJni_mdb_1txn_1renew(JN
 /*
  * Class:     org_glmdb_blueprints_jni_GlmdbJni
  * Method:    mdb_txn_commit
- * Signature: (JJ)I
+ * Signature: (JJZ)I
  */
-JNIEXPORT jint JNICALL Java_org_glmdb_blueprints_jni_GlmdbJni_mdb_1txn_1commit(JNIEnv *env, jclass that, jlong glmdbEnv, jlong txn) {
+JNIEXPORT jint JNICALL Java_org_glmdb_blueprints_jni_GlmdbJni_mdb_1txn_1commit
+  (JNIEnv *env, jclass that, jlong glmdbEnv, jlong txn, jboolean readOnly) {
 
+	int rc = 0;
 	GLMDB_env * glmdb_env = (GLMDB_env *) (long) glmdbEnv;
-	return thundergraph_commit(glmdb_env, (MDB_txn *) (long) txn);
-
+	MDB_txn *mdbtxn = (MDB_txn *) (long) txn;
+	if (readOnly == 0) {
+		rc = thundergraph_commit(glmdb_env, mdbtxn);
+	} else {
+		rc = mdb_txn_commit(mdbtxn);
+	}
+	return rc;
 }
 
 int thundergraph_commit(GLMDB_env * glmdb_env, MDB_txn *txn) {
@@ -280,75 +287,60 @@ int thundergraph_commit(GLMDB_env * glmdb_env, MDB_txn *txn) {
 
 int saveSequenceHigh(GLMDB_env * glmdb_env, MDB_txn *txn, enum SequenceEnum sequenceEnum) {
 	int rc = 0;
-	int *sequenceKey = NULL;
-	long long *longSequenceId = NULL;
-	int *intSequenceId = NULL;
+	int sequenceKey;
+	long long longSequenceId;
+	int intSequenceId;
 	MDB_val key, data;
 	switch (sequenceEnum) {
 	case VERTEX_ID_SEQUENCE:
 		key.mv_size = sizeof(VERTEX_ID_SEQUENCE);
-		sequenceKey = malloc(sizeof(VERTEX_ID_SEQUENCE));
-		*sequenceKey = VERTEX_ID_SEQUENCE;
-		key.mv_data = sequenceKey;
+		sequenceKey = VERTEX_ID_SEQUENCE;
+		key.mv_data = &sequenceKey;
 		data.mv_size = sizeof(long long);
-		longSequenceId = malloc(sizeof(long long));
-		*longSequenceId = glmdb_env->vertexIdSequence;
-		data.mv_data = longSequenceId;
+		longSequenceId = glmdb_env->vertexIdSequence;
+		data.mv_data = &longSequenceId;
 		rc = mdb_put(txn, glmdb_env->configDb, &key, &data, 0);
-		free(longSequenceId);
 		break;
 	case EDGE_ID_SEQUENCE:
 		key.mv_size = sizeof(EDGE_ID_SEQUENCE);
-		sequenceKey = malloc(sizeof(EDGE_ID_SEQUENCE));
-		*sequenceKey = EDGE_ID_SEQUENCE;
-		key.mv_data = sequenceKey;
+		sequenceKey = EDGE_ID_SEQUENCE;
+		key.mv_data = &sequenceKey;
 		data.mv_size = sizeof(long long);
-		longSequenceId = malloc(sizeof(long long));
-		*longSequenceId = glmdb_env->edgeIdSequence;
-		data.mv_data = longSequenceId;
+		longSequenceId = glmdb_env->edgeIdSequence;
+		data.mv_data = &longSequenceId;
 		rc = mdb_put(txn, glmdb_env->configDb, &key, &data, 0);
-		free(longSequenceId);
 		break;
 	case VERTEX_PROPERTY_KEY_ID_SEQUENCE:
 		key.mv_size = sizeof(VERTEX_PROPERTY_KEY_ID_SEQUENCE);
-		sequenceKey = malloc(sizeof(VERTEX_PROPERTY_KEY_ID_SEQUENCE));
-		*sequenceKey = VERTEX_PROPERTY_KEY_ID_SEQUENCE;
-		key.mv_data = sequenceKey;
+		sequenceKey = VERTEX_PROPERTY_KEY_ID_SEQUENCE;
+		key.mv_data = &sequenceKey;
 		data.mv_size = sizeof(long long);
-		intSequenceId = malloc(sizeof(int));
-		*intSequenceId = glmdb_env->vertexPropertyKeyIdSequence;
-		data.mv_data = intSequenceId;
-		rc = mdb_put(txn, glmdb_env->vertexPropertyKeyDb, &key, &data, 0);
-		free(intSequenceId);
+		intSequenceId = glmdb_env->vertexPropertyKeyIdSequence;
+		data.mv_data = &intSequenceId;
+		rc = mdb_put(txn, glmdb_env->configDb, &key, &data, 0);
 		break;
 	case EDGE_PROPERTY_KEY_ID_SEQUENCE:
 		key.mv_size = sizeof(EDGE_PROPERTY_KEY_ID_SEQUENCE);
-		sequenceKey = malloc(sizeof(EDGE_PROPERTY_KEY_ID_SEQUENCE));
-		*sequenceKey = EDGE_PROPERTY_KEY_ID_SEQUENCE;
-		key.mv_data = sequenceKey;
+		sequenceKey = EDGE_PROPERTY_KEY_ID_SEQUENCE;
+		key.mv_data = &sequenceKey;
 		data.mv_size = sizeof(long long);
-		intSequenceId = malloc(sizeof(int));
-		*intSequenceId = glmdb_env->edgePropertyKeyIdSequence;
-		data.mv_data = intSequenceId;
-		rc = mdb_put(txn, glmdb_env->edgePropertyKeyDb, &key, &data, 0);
-		free(intSequenceId);
+		intSequenceId = glmdb_env->edgePropertyKeyIdSequence;
+		data.mv_data = &intSequenceId;
+		rc = mdb_put(txn, glmdb_env->configDb, &key, &data, 0);
 		break;
 	case LABEL_ID_SEQUENCE:
 		key.mv_size = sizeof(LABEL_ID_SEQUENCE);
-		sequenceKey = malloc(sizeof(LABEL_ID_SEQUENCE));
-		*sequenceKey = LABEL_ID_SEQUENCE;
-		key.mv_data = sequenceKey;
+		sequenceKey = LABEL_ID_SEQUENCE;
+		key.mv_data = &sequenceKey;
 		data.mv_size = sizeof(long long);
-		intSequenceId = malloc(sizeof(int));
-		*intSequenceId = glmdb_env->labelIdSequence;
-		data.mv_data = intSequenceId;
-		rc = mdb_put(txn, glmdb_env->labelDb, &key, &data, 0);
-		free(intSequenceId);
+		intSequenceId = glmdb_env->labelIdSequence;
+		data.mv_data = &intSequenceId;
+		rc = mdb_put(txn, glmdb_env->configDb, &key, &data, 0);
 		break;
 	default:
+		printf("GLMDB_INVALID_SEQUENCE\n");
 		rc = GLMDB_INVALID_SEQUENCE;
 	}
-	free(sequenceKey);
 	return rc;
 }
 
@@ -405,10 +397,8 @@ JNIEXPORT jint JNICALL Java_org_glmdb_blueprints_jni_GlmdbJni_mdb_1cursor_1open_
 		}
 	}
 	if (vertex == 1) {
-		printf("cursor to vertex\n");
 		rc = (jint) mdb_cursor_open((MDB_txn *) (long) txn, glmdb_env->vertexPropertyKeyDb, (MDB_cursor **) cursor);
 	} else {
-		printf("cursor to edge\n");
 		rc = (jint) mdb_cursor_open((MDB_txn *) (long) txn, glmdb_env->edgePropertyKeyDb, (MDB_cursor **) cursor);
 	}
 	fail: if (cursorArray && cursor) {
@@ -498,6 +488,7 @@ JNIEXPORT jint JNICALL Java_org_glmdb_blueprints_jni_GlmdbJni_mdb_1cursor_1open_
  * Signature: (J)V
  */
 JNIEXPORT void JNICALL Java_org_glmdb_blueprints_jni_GlmdbJni_mdb_1cursor_1close(JNIEnv *env, jclass that, jlong cursor) {
+
 	mdb_cursor_close((MDB_cursor *) (long) cursor);
 }
 
@@ -724,18 +715,18 @@ JNIEXPORT jint JNICALL Java_org_glmdb_blueprints_jni_GlmdbJni_mdb_1set_1property
 		jlong txn, jlong cursor, jlong elementId, jint propertyKeyId, jstring value, jboolean vertex, jboolean indexed) {
 
 	jint rc = 0;
-	jint strlen = (*env)->GetStringUTFLength(env, value);
-	char *propertyValue = malloc(strlen);
+	jint propertyValueLength = (*env)->GetStringUTFLength(env, value);
+	char propertyValue[propertyValueLength];
 	if (value) {
-		(*env)->GetStringUTFRegion(env, value, 0, strlen, propertyValue);
+		(*env)->GetStringUTFRegion(env, value, 0, propertyValueLength, propertyValue);
 		if (propertyValue == NULL) {
 			goto fail;
 		}
 	}
 	if (vertex) {
-		rc = setVertexPropertyString((MDB_cursor *) (long) cursor, (long) elementId, (int) propertyKeyId, propertyValue);
+		rc = setVertexPropertyString((MDB_cursor *) (long) cursor, (long) elementId, (int) propertyKeyId, propertyValueLength, propertyValue);
 	} else {
-		rc = setEdgePropertyString((MDB_cursor *) (long) cursor, (long) elementId, (int) propertyKeyId, propertyValue);
+		rc = setEdgePropertyString((MDB_cursor *) (long) cursor, (long) elementId, (int) propertyKeyId, propertyValueLength, propertyValue);
 	}
 
 	if (rc == 0 && indexed) {
@@ -896,16 +887,10 @@ JNIEXPORT jint JNICALL Java_org_glmdb_blueprints_jni_GlmdbJni_mdb_1set_1property
 	jint rc = 0;
 	jint *propertyKeyId = NULL;
 	GLMDB_env *glmdb_env = (GLMDB_env *) (long) glmdbEnv;
+	jsize strLength = (*env)->GetStringUTFLength(env, propertyKey);
 
-	jint strlen = (*env)->GetStringUTFLength(env, propertyKey);
-
-	char *propertyKeyC = malloc(strlen);
-	if (propertyKey) {
-		(*env)->GetStringUTFRegion(env, propertyKey, 0, strlen, propertyKeyC);
-		if (propertyKeyC == NULL) {
-			goto fail;
-		}
-	}
+	char propertyKeyCC[strLength];
+	(*env)->GetStringUTFRegion(env, propertyKey, 0, strLength, propertyKeyCC);
 
 	if (propertyKeyIdArray) {
 		if ((propertyKeyId = (*env)->GetIntArrayElements(env, propertyKeyIdArray, NULL)) == NULL) {
@@ -913,12 +898,10 @@ JNIEXPORT jint JNICALL Java_org_glmdb_blueprints_jni_GlmdbJni_mdb_1set_1property
 		}
 	}
 
-	rc = setPropertyKey(glmdb_env, (MDB_txn *) (long) txn, propertyKeyEnum, propertyKeyId, propertyKeyC, vertex, indexed, overwrite);
+	rc = setPropertyKey(glmdb_env, (MDB_txn *) (long) txn, propertyKeyEnum, propertyKeyId, strLength, propertyKeyCC, vertex, indexed,
+			overwrite);
 
 	fail:
-//	if (propertyKey && propertyKeyC) {
-//		(*env)->ReleaseStringUTFChars(env, propertyKey, propertyKeyC);
-//	}
 	if (propertyKeyIdArray && propertyKeyId) {
 		(*env)->ReleaseIntArrayElements(env, propertyKeyIdArray, propertyKeyId, 0);
 	}
@@ -933,7 +916,6 @@ JNIEXPORT jint JNICALL Java_org_glmdb_blueprints_jni_GlmdbJni_mdb_1set_1property
 JNIEXPORT jint JNICALL Java_org_glmdb_blueprints_jni_GlmdbJni_mdb_1get_1first_1property_1key(JNIEnv *env, jclass that, jlong cursor,
 		jintArray propertyKeyIdArray, jintArray propertyTypeEnumArray, jbooleanArray propertyIndexedArray, jobjectArray propertyKeyArray) {
 
-	printf("ola 1\n");
 	jint rc = 0;
 	jint *propertyKeyIdArrayC = NULL;
 	jint *propertyTypeEnumArrayC = NULL;
@@ -954,26 +936,22 @@ JNIEXPORT jint JNICALL Java_org_glmdb_blueprints_jni_GlmdbJni_mdb_1get_1first_1p
 			goto fail;
 		}
 	}
-	printf("ola 2\n");
 
 	MDB_val key, data;
 	rc = mdb_cursor_get((MDB_cursor *) (long) cursor, &key, &data, MDB_FIRST);
 	if (rc == 0) {
-		printf("ola 3\n");
-		PropertyKeyIdStruct propertyKeyIdStruct = (*((PropertyKeyIdStruct *) (key.mv_data)));
-		PropertyKeyDataStruct propertyKeyStruct = (*((PropertyKeyDataStruct *) (data.mv_data)));
-		*propertyKeyIdArrayC = propertyKeyStruct.propertyKeyId;
-		*propertyIndexedArrayC = propertyKeyStruct.indexed;
-		*propertyTypeEnumArrayC = propertyKeyIdStruct.type;
+		char * propertyKeyId = (char *) (key.mv_data);
+		PropertyKeyDataStruct propertyKeyDataStruct = (*((PropertyKeyDataStruct *) (data.mv_data)));
+		*propertyKeyIdArrayC = propertyKeyDataStruct.propertyKeyId;
+		*propertyIndexedArrayC = propertyKeyDataStruct.indexed;
+		*propertyTypeEnumArrayC = propertyKeyDataStruct.type;
 
-		jbyteArray byteArray = (*env)->NewByteArray(env,
-				(size_t) key.mv_size - sizeof(PropertyKeyIdStruct) /*subtract the size of type of the key*/);
+		jbyteArray byteArray = (*env)->NewByteArray(env, (size_t) key.mv_size);
 		jbyte *byteArrayC = (*env)->GetByteArrayElements(env, byteArray, NULL);
-		memcpy(byteArrayC, propertyKeyIdStruct.propertyKey, (size_t) key.mv_size - sizeof(PropertyKeyIdStruct));
+		memcpy(byteArrayC, propertyKeyId, (size_t) key.mv_size);
 		(*env)->SetObjectArrayElement(env, propertyKeyArray, 0, byteArray);
 		(*env)->ReleaseByteArrayElements(env, byteArray, byteArrayC, 0);
 	}
-	printf("ola 4 %i\n", rc);
 
 	fail: if (propertyKeyIdArray && propertyKeyIdArrayC) {
 		(*env)->ReleaseIntArrayElements(env, propertyKeyIdArray, propertyKeyIdArrayC, 0);
@@ -984,7 +962,6 @@ JNIEXPORT jint JNICALL Java_org_glmdb_blueprints_jni_GlmdbJni_mdb_1get_1first_1p
 	if (propertyIndexedArray && propertyIndexedArrayC) {
 		(*env)->ReleaseBooleanArrayElements(env, propertyIndexedArray, propertyIndexedArrayC, 0);
 	}
-	printf("ola 5 %i\n", rc);
 	return rc;
 }
 
@@ -1020,21 +997,18 @@ JNIEXPORT jint JNICALL Java_org_glmdb_blueprints_jni_GlmdbJni_mdb_1get_1next_1pr
 	MDB_val key, data;
 	rc = mdb_cursor_get((MDB_cursor *) (long) cursor, &key, &data, MDB_NEXT);
 	if (rc == 0) {
-		printPropertyKeyDbRecord(key, data);
-		PropertyKeyIdStruct propertyKeyIdStruct = (*((PropertyKeyIdStruct *) (key.mv_data)));
-		PropertyKeyDataStruct propertyKeyStruct = (*((PropertyKeyDataStruct *) (data.mv_data)));
-		*propertyKeyIdArrayC = propertyKeyStruct.propertyKeyId;
-		*propertyIndexedArrayC = propertyKeyStruct.indexed;
-		*propertyTypeEnumArrayC = propertyKeyIdStruct.type;
+		char *propertyKeyId = (char *) (key.mv_data);
+		PropertyKeyDataStruct propertyKeyDataStruct = (*((PropertyKeyDataStruct *) (data.mv_data)));
+		*propertyKeyIdArrayC = propertyKeyDataStruct.propertyKeyId;
+		*propertyIndexedArrayC = propertyKeyDataStruct.indexed;
+		*propertyTypeEnumArrayC = propertyKeyDataStruct.type;
 
-		jbyteArray byteArray = (*env)->NewByteArray(env,
-				(size_t) key.mv_size - sizeof(PropertyKeyIdStruct) /*subtract the size of type of the key*/);
+		jbyteArray byteArray = (*env)->NewByteArray(env, (size_t) key.mv_size);
 		jbyte *byteArrayC = (*env)->GetByteArrayElements(env, byteArray, NULL);
-		memcpy(byteArrayC, propertyKeyIdStruct.propertyKey, key.mv_size - sizeof(PropertyKeyIdStruct));
+		memcpy(byteArrayC, propertyKeyId, key.mv_size);
 		(*env)->SetObjectArrayElement(env, propertyKeyArray, 0, byteArray);
 		(*env)->ReleaseByteArrayElements(env, byteArray, byteArrayC, 0);
 	}
-	printf("mdb_get_next_property_key %i\n", rc);
 
 	fail: if (propertyKeyIdArray && propertyKeyIdArrayC) {
 		(*env)->ReleaseIntArrayElements(env, propertyKeyIdArray, propertyKeyIdArrayC, 0);
@@ -1048,8 +1022,8 @@ JNIEXPORT jint JNICALL Java_org_glmdb_blueprints_jni_GlmdbJni_mdb_1get_1next_1pr
 	return rc;
 }
 
-int setPropertyKey(GLMDB_env *glmdb_env, MDB_txn * txn, int propertyKeyEnum, int *propertyKeyId, char *propertyKeyC, unsigned char vertex,
-		unsigned char indexed, unsigned char overwrite) {
+int setPropertyKey(GLMDB_env *glmdb_env, MDB_txn * txn, int propertyKeyEnum, int *propertyKeyId, int propertyKeyLength, char propertyKeyC[],
+		unsigned char vertex, unsigned char indexed, unsigned char overwrite) {
 
 	int rc = 0;
 	MDB_cursor *cursor;
@@ -1060,7 +1034,6 @@ int setPropertyKey(GLMDB_env *glmdb_env, MDB_txn * txn, int propertyKeyEnum, int
 		propertyKeyDb = glmdb_env->vertexPropertyKeyDb;
 	}
 
-	PropertyKeyIdStruct propertyKeyIdStruct;
 	PropertyKeyDataStruct propertyKeyDataStruct;
 	if (!overwrite) {
 		//new entry so give it an new id
@@ -1075,69 +1048,67 @@ int setPropertyKey(GLMDB_env *glmdb_env, MDB_txn * txn, int propertyKeyEnum, int
 	propertyKeyDataStruct.indexed = indexed;
 	switch ((int) propertyKeyEnum) {
 	case BOOLEAN:
-		propertyKeyIdStruct.type = BOOLEAN;
+		propertyKeyDataStruct.type = BOOLEAN;
 		break;
 	case BYTE:
-		propertyKeyIdStruct.type = BYTE;
+		propertyKeyDataStruct.type = BYTE;
 		break;
 	case SHORT:
-		propertyKeyIdStruct.type = SHORT;
+		propertyKeyDataStruct.type = SHORT;
 		break;
 	case INT:
-		propertyKeyIdStruct.type = INT;
+		propertyKeyDataStruct.type = INT;
 		break;
 	case LONG:
-		propertyKeyIdStruct.type = LONG;
+		propertyKeyDataStruct.type = LONG;
 		break;
 	case FLOAT:
-		propertyKeyIdStruct.type = FLOAT;
+		propertyKeyDataStruct.type = FLOAT;
 		break;
 	case DOUBLE:
-		propertyKeyIdStruct.type = DOUBLE;
+		propertyKeyDataStruct.type = DOUBLE;
 		break;
 	case CHAR:
-		propertyKeyIdStruct.type = CHAR;
+		propertyKeyDataStruct.type = CHAR;
 		break;
 	case STRING:
-		propertyKeyIdStruct.type = STRING;
+		propertyKeyDataStruct.type = STRING;
 		break;
 	case ARRAY_BOOLEAN:
-		propertyKeyIdStruct.type = ARRAY_BOOLEAN;
+		propertyKeyDataStruct.type = ARRAY_BOOLEAN;
 		break;
 	case ARRAY_BYTE:
-		propertyKeyIdStruct.type = ARRAY_BYTE;
+		propertyKeyDataStruct.type = ARRAY_BYTE;
 		break;
 	case ARRAY_SHORT:
-		propertyKeyIdStruct.type = ARRAY_SHORT;
+		propertyKeyDataStruct.type = ARRAY_SHORT;
 		break;
 	case ARRAY_INT:
-		propertyKeyIdStruct.type = ARRAY_INT;
+		propertyKeyDataStruct.type = ARRAY_INT;
 		break;
 	case ARRAY_LONG:
-		propertyKeyIdStruct.type = ARRAY_LONG;
+		propertyKeyDataStruct.type = ARRAY_LONG;
 		break;
 	case ARRAY_FLOAT:
-		propertyKeyIdStruct.type = ARRAY_FLOAT;
+		propertyKeyDataStruct.type = ARRAY_FLOAT;
 		break;
 	case ARRAY_DOUBLE:
-		propertyKeyIdStruct.type = ARRAY_DOUBLE;
+		propertyKeyDataStruct.type = ARRAY_DOUBLE;
 		break;
 	case ARRAY_CHAR:
-		propertyKeyIdStruct.type = ARRAY_CHAR;
+		propertyKeyDataStruct.type = ARRAY_CHAR;
 		break;
 	case ARRAY_STRING:
-		propertyKeyIdStruct.type = ARRAY_STRING;
+		propertyKeyDataStruct.type = ARRAY_STRING;
 		break;
 	case UNSET:
-		propertyKeyIdStruct.type = UNSET;
+		propertyKeyDataStruct.type = UNSET;
 		break;
 	}
 
 	MDB_val key, data;
-	int propertyKeyLength = strlen(propertyKeyC);
-	propertyKeyIdStruct.propertyKey = propertyKeyC;
-	key.mv_size = propertyKeyLength + sizeof(PropertyKeyIdStruct);
-	key.mv_data = &propertyKeyIdStruct;
+	key.mv_size = propertyKeyLength;
+	key.mv_data = propertyKeyC;
 	data.mv_size = sizeof(PropertyKeyDataStruct);
 	data.mv_data = &propertyKeyDataStruct;
 	rc = mdb_cursor_open(txn, propertyKeyDb, &cursor);
@@ -1174,10 +1145,10 @@ JNIEXPORT jint JNICALL Java_org_glmdb_blueprints_jni_GlmdbJni_mdb_1set_1label(JN
 	GLMDB_env *glmdb_env = (GLMDB_env *) (long) glmdbEnv;
 	MDB_dbi labelDb = glmdb_env->labelDb;
 
-	jint strlen = (*env)->GetStringUTFLength(env, label);
-	char *labelC = malloc(strlen);
+	jint labelLength = (*env)->GetStringUTFLength(env, label);
+	char labelC[labelLength];
 	if (label) {
-		(*env)->GetStringUTFRegion(env, label, 0, strlen, labelC);
+		(*env)->GetStringUTFRegion(env, label, 0, labelLength, labelC);
 		if (labelC == NULL) {
 			goto fail;
 		}
@@ -1192,7 +1163,7 @@ JNIEXPORT jint JNICALL Java_org_glmdb_blueprints_jni_GlmdbJni_mdb_1set_1label(JN
 	*labelId = glmdb_env->labelIdSequence++;
 
 	MDB_val key, data;
-	key.mv_size = (size_t) strlen;
+	key.mv_size = labelLength;
 	key.mv_data = labelC;
 	data.mv_size = sizeof(jint);
 	data.mv_data = labelId;
@@ -1208,9 +1179,7 @@ JNIEXPORT jint JNICALL Java_org_glmdb_blueprints_jni_GlmdbJni_mdb_1set_1label(JN
 	*labelId = *((jint *) (data.mv_data));
 
 	fail: mdb_cursor_close(cursor);
-//	if (label && labelC) {
-//		(*env)->ReleaseStringUTFChars(env, label, labelC);
-//	}
+
 	if (labelIdArray && labelId) {
 		(*env)->ReleaseIntArrayElements(env, labelIdArray, labelId, 0);
 	}
@@ -1609,7 +1578,6 @@ JNIEXPORT jint JNICALL Java_org_glmdb_blueprints_jni_GlmdbJni_mdb_1get_1first_1e
 		*outVertexIdC = edgeData.vertexOutId;
 		*inVertexIdC = edgeData.vertexInId;
 		*labelIdC = edgeData.labelId;
-		printf("edgeData.labelId = %i\n", edgeData.labelId);
 	}
 
 	fail: if (edgeIdResult && edgeIdResultC) {
@@ -2103,7 +2071,7 @@ int openGraph(GLMDB_env **genv, const char *path) {
 //	MDB_dbi vertexFloatIndexDb;
 //	MDB_dbi vertexDoubleIndexDb;
 //	MDB_dbi vertexCharIndexDb;
-	MDB_dbi vertexStringIndexDb;
+//	MDB_dbi vertexStringIndexDb;
 
 	MDB_dbi edgePropertyKeyDb;
 //	MDB_dbi edgeBooleanIndexDb;
@@ -2147,7 +2115,6 @@ int openGraph(GLMDB_env **genv, const char *path) {
 	if (rc != 0) {
 		return rc;
 	}
-	printf("after vertexDb %i\n", rc);
 	glmdbEnv->vertexDb = vertexDb;
 
 	//Create the edge db
@@ -2155,7 +2122,6 @@ int openGraph(GLMDB_env **genv, const char *path) {
 	if (rc != 0) {
 		return rc;
 	}
-	printf("after edgeDb %i\n", rc);
 	glmdbEnv->edgeDb = edgeDb;
 
 	//Create the vertex property key db
@@ -2163,7 +2129,6 @@ int openGraph(GLMDB_env **genv, const char *path) {
 	if (rc != 0) {
 		return rc;
 	}
-	printf("after vertexPropertyKeyDb %i\n", rc);
 	glmdbEnv->vertexPropertyKeyDb = vertexPropertyKeyDb;
 
 	//Create the edge property key db
@@ -2171,7 +2136,6 @@ int openGraph(GLMDB_env **genv, const char *path) {
 	if (rc != 0) {
 		return rc;
 	}
-	printf("after edgePropertyKeyDb %i\n", rc);
 	glmdbEnv->edgePropertyKeyDb = edgePropertyKeyDb;
 
 	//Create the label db
@@ -2179,23 +2143,19 @@ int openGraph(GLMDB_env **genv, const char *path) {
 	if (rc != 0) {
 		return rc;
 	}
-	printf("after labelDb %i\n", rc);
 	glmdbEnv->labelDb = labelDb;
 
-	//Create the String index db
-	rc = createDb(env, "vertexStringIndexDb", MDB_CREATE, &vertexStringIndexDb, NULL);
-	if (rc != 0) {
-		return rc;
-	}
-	printf("after vertexStringIndexDb %i\n", rc);
-	glmdbEnv->vertexStringIndexDb = vertexStringIndexDb;
+//	//Create the String index db
+//	rc = createDb(env, "vertexStringIndexDb", MDB_CREATE, &vertexStringIndexDb, NULL);
+//	if (rc != 0) {
+//		return rc;
+//	}
+//	glmdbEnv->vertexStringIndexDb = vertexStringIndexDb;
 
 	glmdbEnv->env = env;
 	*genv = glmdbEnv;
 
-	printf("before loadSequences\n");
 	rc = loadSequences(glmdbEnv, VERTEX_ID_SEQUENCE);
-	printf("after loadSequences %i\n", rc);
 	if (rc != 0) {
 		return rc;
 	}
@@ -2295,7 +2255,6 @@ int createDb(MDB_env *env, char *name, unsigned int flags, MDB_dbi *db, MDB_cmp_
 	int rc;
 	MDB_txn *txn;
 
-	//Create the label db
 	rc = mdb_txn_begin(env, NULL, 0, &txn);
 	if (rc != 0) {
 		mdb_txn_abort(txn);
@@ -2331,14 +2290,14 @@ void closeGraph(GLMDB_env *genv) {
 	MDB_dbi vertexPropertyKeyDb = genv->vertexPropertyKeyDb;
 	MDB_dbi edgePropertyKeyDb = genv->edgePropertyKeyDb;
 	MDB_dbi labelDb = genv->labelDb;
-	MDB_dbi vertexStringIndexDb = genv->vertexStringIndexDb;
+//	MDB_dbi vertexStringIndexDb = genv->vertexStringIndexDb;
 
-//	printDbStats(env, configDb, "configDb");
-//	printDbStats(env, vertexDb, "vertexDb");
-//	printDbStats(env, edgeDb, "edgeDb");
-//	printDbStats(env, vertexPropertyKeyDb, "vertexPropertyKeyDb");
-//	printDbStats(env, edgePropertyKeyDb, "edgePropertyKeyDb");
-//	printDbStats(env, labelDb, "labelDb");
+	printDbStats(env, configDb, "configDb");
+	printDbStats(env, vertexDb, "vertexDb");
+	printDbStats(env, edgeDb, "edgeDb");
+	printDbStats(env, vertexPropertyKeyDb, "vertexPropertyKeyDb");
+	printDbStats(env, edgePropertyKeyDb, "edgePropertyKeyDb");
+	printDbStats(env, labelDb, "labelDb");
 //	printDbStats(env, vertexStringIndexDb, "vertexStringIndexDb");
 
 	mdb_close(env, configDb);
@@ -2347,7 +2306,7 @@ void closeGraph(GLMDB_env *genv) {
 	mdb_close(env, vertexPropertyKeyDb);
 	mdb_close(env, edgePropertyKeyDb);
 	mdb_close(env, labelDb);
-	mdb_close(env, vertexStringIndexDb);
+//	mdb_close(env, vertexStringIndexDb);
 
 	mdb_env_close(env);
 }
@@ -2399,7 +2358,6 @@ int removeVertex(MDB_txn *txn, GLMDB_env *genv, jlong vertexId) {
 	if (rc != 0) {
 		goto fail;
 	}
-//	printVertexRecord(key, data);
 	rc = mdb_cursor_del(vertexCursor, 0);
 	if (rc != 0) {
 		goto fail;
@@ -2413,8 +2371,6 @@ int removeVertex(MDB_txn *txn, GLMDB_env *genv, jlong vertexId) {
 
 	//First delete all in edges
 	while ((rc = mdb_cursor_get((MDB_cursor *) (long) vertexCursor, &key, &data, MDB_SET_RANGE)) == 0) {
-
-//		printVertexRecord(key, data);
 
 		VertexDbId vertexDbId = *((VertexDbId *) (key.mv_data));
 		if (vertexId == vertexDbId.vertexId) {
@@ -2802,7 +2758,7 @@ int getNextEdgefromVertexAllLabels(MDB_cursor *cursor, jint direction, jlong fro
 	fail: return rc;
 }
 
-int setVertexPropertyString(MDB_cursor *cursor, jlong vertexId, jint propertyKeyId, char *propertyValue) {
+int setVertexPropertyString(MDB_cursor *cursor, jlong vertexId, jint propertyKeyId, jint propertyValueLength, char *propertyValue) {
 	if (propertyValue != NULL) {
 		MDB_val key, data;
 		VertexDbId id;
@@ -2813,7 +2769,7 @@ int setVertexPropertyString(MDB_cursor *cursor, jlong vertexId, jint propertyKey
 		id.edgeId = -1LL;
 		key.mv_size = sizeof(VertexDbId);
 		key.mv_data = &id;
-		data.mv_size = strlen(propertyValue);
+		data.mv_size = propertyValueLength;
 		data.mv_data = propertyValue;
 		return mdb_cursor_put(cursor, &key, &data, 0);
 	} else {
@@ -2821,7 +2777,7 @@ int setVertexPropertyString(MDB_cursor *cursor, jlong vertexId, jint propertyKey
 	}
 }
 
-int setEdgePropertyString(MDB_cursor *cursor, jlong edgeId, jint propertyKeyId, char *propertyValue) {
+int setEdgePropertyString(MDB_cursor *cursor, jlong edgeId, jint propertyKeyId, jint propertyValueLength, char *propertyValue) {
 	if (propertyValue != NULL) {
 		MDB_val key, data;
 		EdgeDbId id;
@@ -2830,7 +2786,7 @@ int setEdgePropertyString(MDB_cursor *cursor, jlong edgeId, jint propertyKeyId, 
 		id.propertykeyId = propertyKeyId;
 		key.mv_size = sizeof(EdgeDbId);
 		key.mv_data = &id;
-		data.mv_size = strlen(propertyValue);
+		data.mv_size = propertyValueLength;
 		data.mv_data = propertyValue;
 
 		int rc = mdb_cursor_get(cursor, &key, &data, MDB_SET);
@@ -2838,7 +2794,7 @@ int setEdgePropertyString(MDB_cursor *cursor, jlong edgeId, jint propertyKeyId, 
 			id.coreOrPropertyEnum = EPROPERTY_KEY;
 			key.mv_size = sizeof(EdgeDbId);
 			key.mv_data = &id;
-			data.mv_size = strlen(propertyValue);
+			data.mv_size = propertyValueLength;
 			data.mv_data = propertyValue;
 			return mdb_cursor_put(cursor, &key, &data, 0);
 		} else {
@@ -3474,15 +3430,34 @@ int getEdge(MDB_cursor *cursor, jlong edgeId, MDB_val *edgeKey, MDB_val *edgeDat
 }
 
 int comparePropertyKeyDbId(const MDB_val *key1, const MDB_val *key2) {
-	PropertyKeyIdStruct propertyKeyIdStruct1 = *(PropertyKeyIdStruct *) (key1->mv_data);
-	PropertyKeyIdStruct propertyKeyIdStruct2 = *(PropertyKeyIdStruct *) (key2->mv_data);
-	if (propertyKeyIdStruct1.type == propertyKeyIdStruct2.type) {
-		int propertyKey1Size = ((size_t) key1->mv_size) - sizeof(PropertyKeyIdStruct);
-		int compare = strncmp(propertyKeyIdStruct1.propertyKey, propertyKeyIdStruct2.propertyKey, propertyKey1Size);
-		return compare;
-	} else {
-		return (propertyKeyIdStruct1.type > propertyKeyIdStruct2.type) - (propertyKeyIdStruct1.type < propertyKeyIdStruct2.type);
-	}
+	int propertyKey1Size = (size_t) key1->mv_size;
+	char * propertyKeyId1 = (char *) (key1->mv_data);
+	char * propertyKeyId2 = (char *) (key2->mv_data);
+	int compare = strncmp(propertyKeyId1, propertyKeyId2, propertyKey1Size);
+	return compare;
+//	if (propertyKeyIdStruct1.type == propertyKeyIdStruct2.type) {
+//		int propertyKey1Size = ((size_t) key1->mv_size) - sizeof(PropertyKeyIdStruct);
+//		int propertyKey2Size = ((size_t) key2->mv_size) - sizeof(PropertyKeyIdStruct);
+//
+//		printf("comparePropertyKeyDbId_1 type 1 size = %i\n", propertyKey1Size);
+//		printf("propertyKey_1: %.*s propertyKeyIdType %s\n", propertyKey1Size, propertyKeyIdStruct1.propertyKey,
+//				propertyTypeEnumToString(propertyKeyIdStruct1.type));
+//
+//		printf("comparePropertyKeyDbId_2 type 1 size = %i\n", propertyKey2Size);
+//		printf("propertyKey_2: %.*s propertyKeyIdType %s\n", propertyKey2Size, propertyKeyIdStruct2.propertyKey,
+//				propertyTypeEnumToString(propertyKeyIdStruct2.type));
+//
+//		int compare = strncmp(propertyKeyIdStruct1.propertyKey, propertyKeyIdStruct2.propertyKey, propertyKey1Size);
+//		printf("comparePropertyKeyDbId propertyKey result = %i\n", compare);
+//		return compare;
+//	} else {
+//		printf("comparePropertyKeyDbId 2\n");
+//		int propertyKey1Size = ((size_t) key1->mv_size) - sizeof(PropertyKeyIdStruct);
+//		printf("propertyKey: %.*s propertyKeyIdType %s\n", propertyKey1Size, propertyKeyIdStruct1.propertyKey,
+//		int compare = (propertyKeyIdStruct1.type > propertyKeyIdStruct2.type) - (propertyKeyIdStruct1.type < propertyKeyIdStruct2.type);
+//		printf("comparePropertyKeyDbId type result = %i\n", compare);
+//		return compare;
+//	}
 }
 
 //int compareVertexDbId(const MDB_val *key1, const MDB_val *key2) {
@@ -3754,12 +3729,11 @@ void printEdgeRecord(MDB_val key, MDB_val data) {
 }
 
 void printPropertyKeyDbRecord(MDB_val key, MDB_val data) {
-	PropertyKeyIdStruct propertyKeyIdStruct = (*((PropertyKeyIdStruct *) (key.mv_data)));
-	int propertyKeySize = ((size_t) key.mv_size) - sizeof(PropertyKeyIdStruct);
-	char *propertyKey = propertyKeyIdStruct.propertyKey;
+	char *propertyKeyId = (char *) (key.mv_data);
+	int propertyKeySize = ((size_t) key.mv_size);
 	PropertyKeyDataStruct propertyKeyDataStruct = (*((PropertyKeyDataStruct *) (data.mv_data)));
-	printf("propertyKey: %.*s propertyKeyIdType %s, propertyKeyId: %i , indexed = %s\n", propertyKeySize, propertyKey,
-			propertyTypeEnumToString(propertyKeyIdStruct.type), propertyKeyDataStruct.propertyKeyId,
+	printf("propertyKey: %.*s propertyKeyIdType %s, propertyKeyId: %i , indexed = %s\n", propertyKeySize, propertyKeyId,
+			propertyTypeEnumToString(propertyKeyDataStruct.type), propertyKeyDataStruct.propertyKeyId,
 			(propertyKeyDataStruct.indexed == 1 ? "true" : "false"));
 }
 
@@ -3840,7 +3814,7 @@ int traverseVertexDb(MDB_env *env, MDB_dbi dbi) {
 	MDB_txn *txn;
 	MDB_cursor *cursor;
 	MDB_val key, data;
-	mdb_txn_begin(env, NULL, 1, &txn);
+	mdb_txn_begin(env, NULL, MDB_RDONLY, &txn);
 	mdb_cursor_open(txn, dbi, &cursor);
 	while ((rc = mdb_cursor_get(cursor, &key, &data, MDB_NEXT)) == 0) {
 //		if (i % 10000 == 0) {
@@ -3850,7 +3824,7 @@ int traverseVertexDb(MDB_env *env, MDB_dbi dbi) {
 	}
 	mdb_cursor_close(cursor);
 	mdb_txn_abort(txn);
-	return 0;
+	return rc;
 }
 
 int traverseEdgeDb(MDB_env *env, MDB_dbi dbi) {
@@ -3858,7 +3832,7 @@ int traverseEdgeDb(MDB_env *env, MDB_dbi dbi) {
 	MDB_txn *txn;
 	MDB_cursor *cursor;
 	MDB_val key, data;
-	mdb_txn_begin(env, NULL, 1, &txn);
+	mdb_txn_begin(env, NULL, MDB_RDONLY, &txn);
 	mdb_cursor_open(txn, dbi, &cursor);
 	while ((rc = mdb_cursor_get(cursor, &key, &data, MDB_NEXT)) == 0) {
 //		if (i % 10000 == 0) {
@@ -3872,18 +3846,25 @@ int traverseEdgeDb(MDB_env *env, MDB_dbi dbi) {
 }
 
 int traverseVertexPropertyKeyDb(MDB_env *env, MDB_dbi dbi) {
-	int rc;
+
+	int rc = 0;
 	MDB_txn *txn;
 	MDB_cursor *cursor;
 	MDB_val key, data;
-	mdb_txn_begin(env, NULL, 1, &txn);
-	mdb_cursor_open(txn, dbi, &cursor);
+	rc = mdb_txn_begin(env, NULL, MDB_RDONLY, &txn);
+	if (rc != 0) {
+		goto fail;
+	}
+	rc = mdb_cursor_open(txn, dbi, &cursor);
+	if (rc != 0) {
+		goto fail;
+	}
 	while ((rc = mdb_cursor_get(cursor, &key, &data, MDB_NEXT)) == 0) {
 		printPropertyKeyDbRecord(key, data);
 	}
-	mdb_cursor_close(cursor);
+	fail: mdb_cursor_close(cursor);
 	mdb_txn_abort(txn);
-	return 0;
+	return rc;
 }
 
 int traverseEdgePropertyKeyDb(MDB_env *env, MDB_dbi dbi) {
@@ -3891,7 +3872,7 @@ int traverseEdgePropertyKeyDb(MDB_env *env, MDB_dbi dbi) {
 	MDB_txn *txn;
 	MDB_cursor *cursor;
 	MDB_val key, data;
-	mdb_txn_begin(env, NULL, 1, &txn);
+	mdb_txn_begin(env, NULL, MDB_RDONLY, &txn);
 	mdb_cursor_open(txn, dbi, &cursor);
 	while ((rc = mdb_cursor_get(cursor, &key, &data, MDB_NEXT)) == 0) {
 		printPropertyKeyDbRecord(key, data);

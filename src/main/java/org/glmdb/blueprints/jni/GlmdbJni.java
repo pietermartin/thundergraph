@@ -191,7 +191,7 @@ public class GlmdbJni {
 
     public static final native int mdb_txn_renew(long txn);
 
-    public static final native int mdb_txn_commit(long glmdb_env, long txn);
+    public static final native int mdb_txn_commit(long glmdb_env, long txn, boolean readOnly);
 
     public static final native void mdb_txn_reset(long txn);
 

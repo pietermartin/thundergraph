@@ -50,11 +50,11 @@ typedef struct GLMDB_env {
 
 	MDB_dbi labelDb;
 
-	jlong vertexIdSequence;
-	jlong edgeIdSequence;
-	jint vertexPropertyKeyIdSequence;
-	jint edgePropertyKeyIdSequence;
-	jint labelIdSequence;
+	long long vertexIdSequence;
+	long long edgeIdSequence;
+	int vertexPropertyKeyIdSequence;
+	int edgePropertyKeyIdSequence;
+	int labelIdSequence;
 	char *path;
 } GLMDB_env;
 
@@ -112,13 +112,14 @@ enum PropertyTypeEnum {
 	UNSET
 };
 
-typedef struct PropertyKeyIdStruct {
-	char *propertyKey;
-	enum PropertyTypeEnum type;
-} PropertyKeyIdStruct;
+//typedef struct PropertyKeyIdStruct {
+//	enum PropertyTypeEnum type;
+//	char *propertyKey;
+//} PropertyKeyIdStruct;
 
 typedef struct PropertyKeyDataStruct {
 	jint propertyKeyId;
+	enum PropertyTypeEnum type;
 	jboolean indexed;
 } PropertyKeyDataStruct;
 
@@ -212,9 +213,10 @@ JNIEXPORT jint JNICALL Java_org_glmdb_blueprints_jni_GlmdbJni_mdb_1txn_1renew(JN
 /*
  * Class:     org_glmdb_blueprints_jni_GlmdbJni
  * Method:    mdb_txn_commit
- * Signature: (JJ)I
+ * Signature: (JJZ)I
  */
-JNIEXPORT jint JNICALL Java_org_glmdb_blueprints_jni_GlmdbJni_mdb_1txn_1commit(JNIEnv *env, jclass that, jlong glmdb_env, jlong txn);
+JNIEXPORT jint JNICALL Java_org_glmdb_blueprints_jni_GlmdbJni_mdb_1txn_1commit
+  (JNIEnv *env, jclass that, jlong glmdb_env, jlong txn, jboolean readOnly);
 
 /*
  * Class:     org_glmdb_blueprints_jni_GlmdbJni
@@ -620,7 +622,7 @@ int setVertexPropertyLong(MDB_cursor *cursor, jlong vertexId, jint propertyKeyId
 int setVertexPropertyFloat(MDB_cursor *cursor, jlong vertexId, jint propertyKeyId, jfloat *propertyValue);
 int setVertexPropertyDouble(MDB_cursor *cursor, jlong vertexId, jint propertyKeyId, jdouble *propertyValue);
 int setVertexPropertyChar(MDB_cursor *cursor, jlong vertexId, jint propertyKeyId, jchar *propertyValue);
-int setVertexPropertyString(MDB_cursor *cursor, jlong vertexId, jint propertyKeyId, char *propertyValue);
+int setVertexPropertyString(MDB_cursor *cursor, jlong vertexId, jint propertyKeyId, jint propertyValueLength, char *propertyValue);
 
 int setEdgePropertyBoolean(MDB_cursor *cursor, jlong edgeId, jint propertyKeyId, jboolean *propertyValue);
 int setEdgePropertyByte(MDB_cursor *cursor, jlong edgeId, jint propertyKeyId, jbyte *propertyValue);
@@ -630,7 +632,7 @@ int setEdgePropertyLong(MDB_cursor *cursor, jlong edgeId, jint propertyKeyId, jl
 int setEdgePropertyFloat(MDB_cursor *cursor, jlong edgeId, jint propertyKeyId, jfloat *propertyValue);
 int setEdgePropertyDouble(MDB_cursor *cursor, jlong edgeId, jint propertyKeyId, jdouble *propertyValue);
 int setEdgePropertyChar(MDB_cursor *cursor, jlong edgeId, jint propertyKeyId, jchar *propertyValue);
-int setEdgePropertyString(MDB_cursor *cursor, jlong edgeId, jint propertyKeyId, char *propertyValue);
+int setEdgePropertyString(MDB_cursor *cursor, jlong edgeId, jint propertyKeyId, jint propertyValueLength, char *propertyValue);
 
 int getVertexProperty(MDB_cursor *cursor, jlong vertexId, jint propertyKeyId, MDB_val *data);
 int removeVertexProperty(MDB_cursor *cursor, jlong vertexId, jint propertyKeyId);
@@ -639,7 +641,7 @@ int removeEdgeProperty(MDB_cursor *cursor, jlong edgeId, jint propertyKeyId);
 int getVertexPropertyKeys(MDB_cursor *cursor, jlong vertexId, jint *propertyKeyArraySizeC, jint **propertyKeyArrayC);
 int getEdgePropertyKeys(MDB_cursor *cursor, jlong edgeId, jint *propertyKeyArraySizeC, jint **propertyKeyArrayC);
 
-int setPropertyKey(GLMDB_env *glmdb_env, MDB_txn * txn, int propertyKeyEnum, int *propertyKeyId, char *propertyKeyC, unsigned char vertex,
+int setPropertyKey(GLMDB_env *glmdb_env, MDB_txn * txn, int propertyKeyEnum, int *propertyKeyId, int propertyKeyLength, char propertyKeyC[], unsigned char vertex,
 		unsigned char indexed, unsigned char overwrite);
 char * propertyTypeEnumToString(int propertyTypeEnum);
 

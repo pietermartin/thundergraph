@@ -17,7 +17,7 @@
 #include <time.h>
 #include "glmdb_jni.c"
 
-int addVertexAnd2Properties(GLMDB_env *genv, char *key1, char *value1);
+int addVertexAnd2Properties(GLMDB_env *genv, int propertyKeyLength, char *key1, char *value1);
 
 int main(int argc,char * argv[])
 {
@@ -30,29 +30,29 @@ int main(int argc,char * argv[])
 		goto fail;
 	}
 
-	rc = addVertexAnd2Properties(genv, "key1", "value1");
+	rc = addVertexAnd2Properties(genv, 4, "key1", "value1");
 	if (rc != 0) {
 		goto fail;
 	}
-	rc = addVertexAnd2Properties(genv, "key2", "value2");
+	rc = addVertexAnd2Properties(genv, 4, "key2", "value2");
 	if (rc != 0) {
 		goto fail;
 	}
-	rc = addVertexAnd2Properties(genv, "key3", "value3");
+	rc = addVertexAnd2Properties(genv, 4, "key3", "value3");
 	if (rc != 0) {
 		goto fail;
 	}
-	rc = addVertexAnd2Properties(genv, "key4", "value3");
-	rc = addVertexAnd2Properties(genv, "key5", "value3");
-	rc = addVertexAnd2Properties(genv, "key6", "value3");
-	rc = addVertexAnd2Properties(genv, "key7", "value3");
-	rc = addVertexAnd2Properties(genv, "key8", "value3");
-	rc = addVertexAnd2Properties(genv, "key9", "value3");
-	rc = addVertexAnd2Properties(genv, "key10", "value3");
-	rc = addVertexAnd2Properties(genv, "key11", "value3");
-	rc = addVertexAnd2Properties(genv, "key12", "value3");
-	rc = addVertexAnd2Properties(genv, "key13", "value3");
-	rc = addVertexAnd2Properties(genv, "key14", "value3");
+	rc = addVertexAnd2Properties(genv, 4, "key4", "value3");
+	rc = addVertexAnd2Properties(genv, 4, "key5", "value3");
+	rc = addVertexAnd2Properties(genv, 4, "key6", "value3");
+	rc = addVertexAnd2Properties(genv, 4, "key7", "value3");
+	rc = addVertexAnd2Properties(genv, 4, "key8", "value3");
+	rc = addVertexAnd2Properties(genv, 4, "key9", "value3");
+	rc = addVertexAnd2Properties(genv, 4, "key10", "value3");
+	rc = addVertexAnd2Properties(genv, 4, "key11", "value3");
+	rc = addVertexAnd2Properties(genv, 4, "key12", "value3");
+	rc = addVertexAnd2Properties(genv, 4, "key13", "value3");
+	rc = addVertexAnd2Properties(genv, 4, "key14", "value3");
 
 	traverseVertexPropertyKeyDb(genv->env, genv->vertexPropertyKeyDb);
 
@@ -62,7 +62,7 @@ int main(int argc,char * argv[])
 	return 0;
 }
 
-int addVertexAnd2Properties(GLMDB_env *genv, char *key1, char *value1) {
+int addVertexAnd2Properties(GLMDB_env *genv, int propertyKeyLength, char *key1, char *value1) {
 	int rc;
 	MDB_txn *txn;
 	MDB_cursor *cursor;
@@ -84,7 +84,7 @@ int addVertexAnd2Properties(GLMDB_env *genv, char *key1, char *value1) {
 	}
 
 	int propertyKeyId = 0;
-	setPropertyKey(genv, txn, STRING, &propertyKeyId, key1, 1, 0, 0);
+	setPropertyKey(genv, txn, STRING, &propertyKeyId, propertyKeyLength, key1, 1, 0, 0);
 
 	rc = setVertexPropertyString(cursor, 0, 0, value1);
 	if (rc != 0) {
