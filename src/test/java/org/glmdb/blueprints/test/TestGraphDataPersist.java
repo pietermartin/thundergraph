@@ -55,6 +55,7 @@ public class TestGraphDataPersist extends BaseGlmdbGraphTest  {
             }
 
         }
+        graph.printLabelDb();
         graph.shutdown();
     }
 }

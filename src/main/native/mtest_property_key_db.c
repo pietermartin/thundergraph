@@ -86,7 +86,7 @@ int addVertexAnd2Properties(GLMDB_env *genv, int propertyKeyLength, char *key1, 
 	int propertyKeyId = 0;
 	setPropertyKey(genv, txn, STRING, &propertyKeyId, propertyKeyLength, key1, 1, 0, 0);
 
-	rc = setVertexPropertyString(cursor, 0, 0, value1);
+	rc = setVertexPropertyString(cursor, 0, 0, propertyKeyLength, value1);
 	if (rc != 0) {
 		printf("setVertexPropertyChar failure  = %i!\n", rc);
 		goto fail;

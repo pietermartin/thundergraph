@@ -118,7 +118,7 @@ int addPropertyKey(GLMDB_env *genv, MDB_txn *txn, MDB_cursor *vertexCursor, int 
 		goto fail;
 	}
 
-	rc = setVertexPropertyString(vertexCursor, 0, 0, value1);
+	rc = setVertexPropertyString(vertexCursor, 0, 0, propertyKeyLength, value1);
 	if (rc != 0) {
 		printf("setVertexPropertyString failure  = %i!\n", rc);
 		goto fail;

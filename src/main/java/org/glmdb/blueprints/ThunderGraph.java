@@ -331,6 +331,10 @@ public class ThunderGraph implements TransactionalGraph, KeyIndexableGraph {
         this.glmdb.printEdgepropertyKeyDbX();
     }
 
+    public void printLabelDb() {
+        this.glmdb.printLabelDbX();
+    }
+
     public String getDbPath() {
         return this.glmdb.getDbPath();
     }

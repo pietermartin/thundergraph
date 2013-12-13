@@ -52,7 +52,7 @@ int main(int argc,char * argv[])
 	char *propertyValue1 = malloc(5);
 	char v1[] = "12345";
 	memcpy(propertyValue1, v1, 5);
-	rc = setVertexPropertyString(cursor, 0, 0, propertyValue1);
+	rc = setVertexPropertyString(cursor, 0, 0, 5, propertyValue1);
 	if (rc != 0) {
 		printf("setVertexPropertyChar failure  = %i!\n", rc);
 		goto fail;
@@ -61,7 +61,7 @@ int main(int argc,char * argv[])
 	char *propertyValue2 = malloc(5);
 	char v2[] = "12345";
 	memcpy(propertyValue2, v2, 5);
-	rc = setVertexPropertyString(cursor, 0, 1, propertyValue2);
+	rc = setVertexPropertyString(cursor, 0, 1, 5, propertyValue2);
 	if (rc != 0) {
 		printf("setVertexPropertyChar failure  = %i!\n", rc);
 		goto fail;
@@ -100,7 +100,7 @@ int main(int argc,char * argv[])
 		char v2[] = "12345";
 		memcpy(edgePropertyValue2, v2, 5);
 
-		rc = setEdgePropertyString(edgeCursor, genv->edgeIdSequence - 1, 0, edgePropertyValue2);
+		rc = setEdgePropertyString(edgeCursor, genv->edgeIdSequence - 1, 0, 5, edgePropertyValue2);
 
 		mdb_cursor_close(edgeCursor);
 
@@ -132,7 +132,7 @@ int main(int argc,char * argv[])
 		char v3[] = "54321";
 		memcpy(edgePropertyValue3, v3, 5);
 
-		rc = setEdgePropertyString(edgeCursor, genv->edgeIdSequence - 1, 0, edgePropertyValue3);
+		rc = setEdgePropertyString(edgeCursor, genv->edgeIdSequence - 1, 0, 5, edgePropertyValue3);
 
 		mdb_cursor_close(edgeCursor);
 
@@ -165,7 +165,7 @@ int main(int argc,char * argv[])
 		char v4[] = "44444";
 		memcpy(edgePropertyValue4, v4, 5);
 
-		rc = setEdgePropertyString(edgeCursor, genv->edgeIdSequence - 1, 0, edgePropertyValue4);
+		rc = setEdgePropertyString(edgeCursor, genv->edgeIdSequence - 1, 0, 5, edgePropertyValue4);
 
 		mdb_cursor_close(edgeCursor);
 

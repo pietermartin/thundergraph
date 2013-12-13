@@ -65,6 +65,14 @@ JNIEXPORT jint JNICALL Java_org_glmdb_blueprints_jni_GlmdbJni_printEdgePropertyK
 
 /*
  * Class:     org_glmdb_blueprints_jni_GlmdbJni
+ * Method:    printLabelDb
+ * Signature: (J)I
+ */
+JNIEXPORT jint JNICALL Java_org_glmdb_blueprints_jni_GlmdbJni_printLabelDb
+  (JNIEnv *, jclass, jlong);
+
+/*
+ * Class:     org_glmdb_blueprints_jni_GlmdbJni
  * Method:    glmdb_env_create
  * Signature: (Ljava/lang/String;[J)I
  */
@@ -150,6 +158,14 @@ JNIEXPORT jint JNICALL Java_org_glmdb_blueprints_jni_GlmdbJni_mdb_1cursor_1open_
  */
 JNIEXPORT jint JNICALL Java_org_glmdb_blueprints_jni_GlmdbJni_mdb_1cursor_1open_1property_1key_1db
   (JNIEnv *, jclass, jlong, jlong, jlongArray, jboolean);
+
+/*
+ * Class:     org_glmdb_blueprints_jni_GlmdbJni
+ * Method:    mdb_cursor_open_label_db
+ * Signature: (JJ[J)I
+ */
+JNIEXPORT jint JNICALL Java_org_glmdb_blueprints_jni_GlmdbJni_mdb_1cursor_1open_1label_1db
+  (JNIEnv *, jclass, jlong, jlong, jlongArray);
 
 /*
  * Class:     org_glmdb_blueprints_jni_GlmdbJni
@@ -302,6 +318,22 @@ JNIEXPORT jint JNICALL Java_org_glmdb_blueprints_jni_GlmdbJni_mdb_1get_1first_1p
  */
 JNIEXPORT jint JNICALL Java_org_glmdb_blueprints_jni_GlmdbJni_mdb_1get_1next_1property_1key
   (JNIEnv *, jclass, jlong, jintArray, jintArray, jbooleanArray, jobjectArray);
+
+/*
+ * Class:     org_glmdb_blueprints_jni_GlmdbJni
+ * Method:    mdb_get_first_label
+ * Signature: (J[I[[B)I
+ */
+JNIEXPORT jint JNICALL Java_org_glmdb_blueprints_jni_GlmdbJni_mdb_1get_1first_1label
+  (JNIEnv *, jclass, jlong, jintArray, jobjectArray);
+
+/*
+ * Class:     org_glmdb_blueprints_jni_GlmdbJni
+ * Method:    mdb_get_next_label
+ * Signature: (J[I[[B)I
+ */
+JNIEXPORT jint JNICALL Java_org_glmdb_blueprints_jni_GlmdbJni_mdb_1get_1next_1label
+  (JNIEnv *, jclass, jlong, jintArray, jobjectArray);
 
 /*
  * Class:     org_glmdb_blueprints_jni_GlmdbJni

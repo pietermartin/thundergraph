@@ -164,6 +164,14 @@ JNIEXPORT jint JNICALL Java_org_glmdb_blueprints_jni_GlmdbJni_printVertexPropert
  */
 JNIEXPORT jint JNICALL Java_org_glmdb_blueprints_jni_GlmdbJni_printEdgePropertyKeyDb(JNIEnv *env, jclass that, jlong glmdbEnv);
 
+
+/*
+ * Class:     org_glmdb_blueprints_jni_GlmdbJni
+ * Method:    printLabelDb
+ * Signature: (J)I
+ */
+JNIEXPORT jint JNICALL Java_org_glmdb_blueprints_jni_GlmdbJni_printLabelDb(JNIEnv *env, jclass that , jlong glmdbEnv);
+
 /*
  * Class:     org_glmdb_blueprints_jni_GlmdbJni
  * Method:    init
@@ -249,6 +257,14 @@ JNIEXPORT jint JNICALL Java_org_glmdb_blueprints_jni_GlmdbJni_mdb_1cursor_1open_
  */
 JNIEXPORT jint JNICALL Java_org_glmdb_blueprints_jni_GlmdbJni_mdb_1cursor_1open_1property_1key_1db(JNIEnv *env, jclass that, jlong txn,
 		jlong glmdb_env, jlongArray cursorArray, jboolean vertex);
+
+/*
+ * Class:     org_glmdb_blueprints_jni_GlmdbJni
+ * Method:    mdb_cursor_open_label_db
+ * Signature: (JJ[J)I
+ */
+JNIEXPORT jint JNICALL Java_org_glmdb_blueprints_jni_GlmdbJni_mdb_1cursor_1open_1label_1db
+  (JNIEnv *env, jclass that, jlong txn, jlong glmdb_env, jlongArray cursorArray);
 
 /*
  * Class:     org_glmdb_blueprints_jni_GlmdbJni
@@ -427,6 +443,22 @@ JNIEXPORT jint JNICALL Java_org_glmdb_blueprints_jni_GlmdbJni_mdb_1get_1next_1pr
 
 /*
  * Class:     org_glmdb_blueprints_jni_GlmdbJni
+ * Method:    mdb_get_first_label
+ * Signature: (J[I[[B)I
+ */
+JNIEXPORT jint JNICALL Java_org_glmdb_blueprints_jni_GlmdbJni_mdb_1get_1first_1label
+  (JNIEnv *env, jclass that, jlong cursor, jintArray labelIdArray, jobjectArray labelArray);
+
+/*
+ * Class:     org_glmdb_blueprints_jni_GlmdbJni
+ * Method:    mdb_get_next_label
+ * Signature: (J[I[[B)I
+ */
+JNIEXPORT jint JNICALL Java_org_glmdb_blueprints_jni_GlmdbJni_mdb_1get_1next_1label
+  (JNIEnv *env, jclass that, jlong cursor, jintArray labelIdArray, jobjectArray labelArray);
+
+/*
+ * Class:     org_glmdb_blueprints_jni_GlmdbJni
  * Method:    mdb_set_label
  * Signature: (JJLjava/lang/String;[I)I
  */
@@ -575,6 +607,7 @@ void printVertexRecord(MDB_val key, MDB_val data);
 void printEdgeRecord(MDB_val key, MDB_val data);
 void printKey(MDB_val key);
 void printPropertyKeyDbRecord(MDB_val key, MDB_val data);
+void printLabelDbRecord(MDB_val key, MDB_val data);
 
 void initVertexDbId(VertexDbId *vertexDbId);
 void initEdgeDbId(EdgeDbId *edgeDbId);
@@ -649,6 +682,7 @@ int traverseVertexDb(MDB_env *env, MDB_dbi dbi);
 int traverseEdgeDb(MDB_env *env, MDB_dbi dbi);
 int traverseVertexPropertyKeyDb(MDB_env *env, MDB_dbi dbi);
 int traverseEdgePropertyKeyDb(MDB_env *env, MDB_dbi dbi);
+int traverseLabelDb(MDB_env *env, MDB_dbi dbi);
 
 void buffer_copy(const void *source, size_t source_pos, void *dest, size_t dest_pos, size_t length);
 #ifdef __cplusplus

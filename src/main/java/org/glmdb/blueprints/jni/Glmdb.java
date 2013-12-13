@@ -32,6 +32,7 @@ public class Glmdb extends NativeObject implements Closeable {
     public Glmdb(String path) {
         super(create(path));
         loadPropertyKeys();
+        loadLabels();
     }
 
     private static long create(String path) {
@@ -77,6 +78,12 @@ public class Glmdb extends NativeObject implements Closeable {
     Cursor openCursorToPropertyKeyDb(Transaction tx, boolean vertex) {
         long cursor[] = new long[1];
         checkErrorCode(mdb_cursor_open_property_key_db(tx.pointer(), pointer(), cursor, vertex));
+        return new Cursor(this, cursor[0]);
+    }
+
+    Cursor openCursorToLabelDb(Transaction tx) {
+        long cursor[] = new long[1];
+        checkErrorCode(mdb_cursor_open_label_db(tx.pointer(), pointer(), cursor));
         return new Cursor(this, cursor[0]);
     }
 
@@ -441,6 +448,35 @@ public class Glmdb extends NativeObject implements Closeable {
         }
     }
 
+    private void loadLabels() {
+
+        int labelIdArray[] = new int[1];
+        byte[][] labelArray = new byte[1][];
+
+        Transaction txn = createReadOnlyTransaction();
+        Cursor labelCursor = openCursorToLabelDb(txn);
+        try {
+            int rc = mdb_get_first_label(labelCursor.pointer(), labelIdArray, labelArray);
+            while (rc == 0) {
+                String key = (String) bytesToObject(PropertyTypeEnum.STRING, labelArray[0]);
+                this.labelToIdMap.put(key, labelIdArray[0]);
+                this.idToLabelMap.put(labelIdArray[0], key);
+
+                rc = mdb_get_next_label(
+                        labelCursor.pointer(),
+                        labelIdArray,
+                        labelArray);
+            }
+            if (rc != 0 && rc != MDB_NOTFOUND) {
+                checkErrorCode(rc);
+            }
+
+        } finally {
+            mdb_cursor_close(labelCursor.pointer());
+            checkErrorCode(mdb_txn_commit(this.pointer(), txn.pointer(), true));
+        }
+    }
+
     private PropertyKeyEnumAndId getOrPutPropertyKey(Transaction txn, String propertyKey, PropertyTypeEnum propertyTypeEnum, boolean vertex, boolean indexed) {
 
         Map<String, PropertyKeyEnumAndId> tmpPropertyKeyToIdMap;
@@ -549,6 +585,10 @@ public class Glmdb extends NativeObject implements Closeable {
 
     public void printEdgepropertyKeyDbX() {
         checkErrorCode(printEdgePropertyKeyDb(pointer()));
+    }
+
+    public void printLabelDbX() {
+        checkErrorCode(printLabelDb(pointer()));
     }
 
     public void createKeyIndex(Transaction txn, String key, boolean vertex) {
