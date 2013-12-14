@@ -1,4 +1,4 @@
-glmdb-blueprints
+thundergraph
 ================
 
-tinkerpop blueprints graphdb on top on lmdb
+tinkerpop blueprints graphdb on top on lmdb (lightning memory mapped db)
