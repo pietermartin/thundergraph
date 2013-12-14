@@ -18,15 +18,13 @@ public class ThunderGraphTestSequencesPersist extends BaseGlmdbGraphTest {
         v.setProperty("lala", "lala");
         graph.commit();
 
-        graph.printVertexPropertyKeyDb();
-
         graph.shutdown();
 
-//        graph = new ThunderGraph(this.dbPath);
-//        Vertex v = graph.addVertex(null);
-//        Assert.assertEquals(1L, v.getId());
-//
-//        graph.shutdown();
+        graph = new ThunderGraph(this.dbPath);
+        v = graph.addVertex(null);
+        Assert.assertEquals(1L, v.getId());
+
+        graph.shutdown();
 
     }
 }

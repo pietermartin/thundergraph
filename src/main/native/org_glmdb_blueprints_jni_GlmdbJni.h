@@ -33,43 +33,11 @@ JNIEXPORT jstring JNICALL Java_org_glmdb_blueprints_jni_GlmdbJni_mdb_1strerror
 
 /*
  * Class:     org_glmdb_blueprints_jni_GlmdbJni
- * Method:    printVertexDb
- * Signature: (J)I
+ * Method:    print_db
+ * Signature: (JJI)I
  */
-JNIEXPORT jint JNICALL Java_org_glmdb_blueprints_jni_GlmdbJni_printVertexDb
-  (JNIEnv *, jclass, jlong);
-
-/*
- * Class:     org_glmdb_blueprints_jni_GlmdbJni
- * Method:    printEdgeDb
- * Signature: (J)I
- */
-JNIEXPORT jint JNICALL Java_org_glmdb_blueprints_jni_GlmdbJni_printEdgeDb
-  (JNIEnv *, jclass, jlong);
-
-/*
- * Class:     org_glmdb_blueprints_jni_GlmdbJni
- * Method:    printVertexPropertyKeyDb
- * Signature: (J)I
- */
-JNIEXPORT jint JNICALL Java_org_glmdb_blueprints_jni_GlmdbJni_printVertexPropertyKeyDb
-  (JNIEnv *, jclass, jlong);
-
-/*
- * Class:     org_glmdb_blueprints_jni_GlmdbJni
- * Method:    printEdgePropertyKeyDb
- * Signature: (J)I
- */
-JNIEXPORT jint JNICALL Java_org_glmdb_blueprints_jni_GlmdbJni_printEdgePropertyKeyDb
-  (JNIEnv *, jclass, jlong);
-
-/*
- * Class:     org_glmdb_blueprints_jni_GlmdbJni
- * Method:    printLabelDb
- * Signature: (J)I
- */
-JNIEXPORT jint JNICALL Java_org_glmdb_blueprints_jni_GlmdbJni_printLabelDb
-  (JNIEnv *, jclass, jlong);
+JNIEXPORT jint JNICALL Java_org_glmdb_blueprints_jni_GlmdbJni_print_1db
+  (JNIEnv *, jclass, jlong, jlong, jint);
 
 /*
  * Class:     org_glmdb_blueprints_jni_GlmdbJni

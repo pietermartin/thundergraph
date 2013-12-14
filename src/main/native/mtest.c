@@ -112,9 +112,6 @@ int main(int argc,char * argv[])
 	mdb_cursor_close(cursor);
 	mdb_txn_commit(txn);
 
-//	printf("before traverseEdgeDb\n");
-//	traverseEdgeDb(genv->env, genv->edgeDb);
-
 	rc = mdb_txn_begin(genv->env, NULL, 1, &txn);
 	if (rc != 0) {
 		printf("transaction begin = %i!\n", rc);
@@ -126,7 +123,6 @@ int main(int argc,char * argv[])
 		goto fail;
 	}
 	rc = getVertex(cursor, 0LL, &vertexKey);
-//	printKey(vertexKey);
 	if (rc != 0) {
 		printf("get vertex failure  = %i!\n", rc);
 		goto fail;
@@ -141,23 +137,29 @@ int main(int argc,char * argv[])
 		printf("getFirstEdgefromVertex failure  = %i!\n", rc);
 		goto fail;
 	}
-//	printf("edgeIdResultC = %ld, outVertexIdC = %ld, inVertexIdC = %ld\n", *edgeIdResultC, *outVertexIdC, *inVertexIdC);
 
 	rc = getNextEdgefromVertex(cursor, 0, 0, 0LL, edgeIdResultC, outVertexIdC, inVertexIdC);
 	if (rc != 0) {
 		printf("getNextEdgefromVertex failure  = %i!\n", rc);
 		goto fail;
 	}
-//	printf("edgeIdResultC = %ld, outVertexIdC = %ld, inVertexIdC = %ld\n", *edgeIdResultC, *outVertexIdC, *inVertexIdC);
 
 	mdb_cursor_close(cursor);
 	mdb_txn_commit(txn);
 
+	rc = mdb_txn_begin(genv->env, NULL, 1, &txn);
+	if (rc != 0) {
+		printf("transaction begin = %i!\n", rc);
+		goto fail;
+	}
+
 	printf("before remove traverseVertexDb\n");
-	traverseVertexDb(genv->env, genv->vertexDb);
+	traverseVertexDb(genv, txn);
 
 	printf("before remove traverseEdgeDb\n");
-	traverseEdgeDb(genv->env, genv->edgeDb);
+	traverseEdgeDb(genv, txn);
+
+	mdb_txn_commit(txn);
 
 	rc = mdb_txn_begin(genv->env, NULL, 1, &txn);
 	if (rc != 0) {
@@ -215,13 +217,14 @@ int main(int argc,char * argv[])
 //	rc = removeVertex(txn, genv, 9LL);
 //	rc = removeVertex(txn, genv, 10LL);
 
-	mdb_txn_commit(txn);
 
 	printf("before traverseVertexDb\n");
-	traverseVertexDb(genv->env, genv->vertexDb);
+	traverseVertexDb(genv, txn);
 
 	printf("before traverseEdgeDb\n");
-	traverseEdgeDb(genv->env, genv->edgeDb);
+	traverseEdgeDb(genv, txn);
+
+	mdb_txn_commit(txn);
 
 	fail:
 	printf("closing graph!\n");

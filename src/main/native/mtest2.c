@@ -36,7 +36,16 @@ int main(int argc,char * argv[])
 	}
 
 	printf("before traverseEdgeDb\n");
-	traverseEdgeDb(genv->env, genv->edgeDb);
+	MDB_txn *txn;
+	rc = mdb_txn_begin(genv->env, NULL, 1, &txn);
+	if (rc != 0) {
+		printf("begin transaction failure  = %i!\n", rc);
+		goto fail;
+	}
+
+	traverseEdgeDb(genv, txn);
+
+	mdb_txn_commit(txn);
 
 	fail:
 	printf("closing graph!\n");

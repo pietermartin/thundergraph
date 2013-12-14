@@ -1,7 +1,6 @@
 package org.glmdb.blueprints.test;
 
 import com.tinkerpop.blueprints.Edge;
-import com.tinkerpop.blueprints.Graph;
 import com.tinkerpop.blueprints.Vertex;
 import junit.framework.Assert;
 import org.glmdb.blueprints.ThunderGraph;
@@ -29,8 +28,6 @@ public class GlmdbRemoveEdgeTest extends BaseGlmdbGraphTest {
         }
         thunderGraph.commit();
 
-        thunderGraph.printVertexDb();
-        thunderGraph.printEdgeDb();
         Assert.assertEquals(6, countVertices(thunderGraph));
         Assert.assertEquals(5, countEdges(thunderGraph));
 
@@ -59,8 +56,6 @@ public class GlmdbRemoveEdgeTest extends BaseGlmdbGraphTest {
         Assert.assertEquals(6, countVertices(thunderGraph));
         Assert.assertEquals(0, countEdges(thunderGraph));
 
-        thunderGraph.printVertexDb();
-        thunderGraph.printEdgeDb();
 
         thunderGraph.shutdown();
     }
@@ -109,7 +104,7 @@ public class GlmdbRemoveEdgeTest extends BaseGlmdbGraphTest {
 
     private int countVertices(ThunderGraph thunderGraph) {
         int result = 0;
-        for (Vertex v : thunderGraph.getVertices()) {
+        for (Vertex ignored : thunderGraph.getVertices()) {
             result++;
         }
         return result;
@@ -117,7 +112,7 @@ public class GlmdbRemoveEdgeTest extends BaseGlmdbGraphTest {
 
     private int countEdges(ThunderGraph thunderGraph) {
         int result = 0;
-        for (Edge e : thunderGraph.getEdges()) {
+        for (Edge ignored : thunderGraph.getEdges()) {
             result++;
         }
         return result;

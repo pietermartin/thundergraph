@@ -54,8 +54,6 @@ public class GlmdbVertexesFromVertexTest extends BaseGlmdbGraphTest {
         Assert.assertEquals("vertexIn9", vertexName.get(9));
         thunderGraph.commit();
 
-        thunderGraph.printVertexDb();
-
         vertexName.clear();
         count = 0;
         vertex1_1 = thunderGraph.getVertex(0L);
@@ -100,7 +98,7 @@ public class GlmdbVertexesFromVertexTest extends BaseGlmdbGraphTest {
 
         int count = 0;
         Vertex vertex1_1 = thunderGraph.getVertex(0L);
-        for (Edge edge : vertex1_1.getEdges(Direction.OUT, "testLabel20")) {
+        for (Edge ignored : vertex1_1.getEdges(Direction.OUT, "testLabel20")) {
             count++;
         }
         Assert.assertEquals(20, count);
@@ -108,7 +106,7 @@ public class GlmdbVertexesFromVertexTest extends BaseGlmdbGraphTest {
 
         count = 0;
         vertex1_1 = thunderGraph.getVertex(0L);
-        for (Edge edge : vertex1_1.getEdges(Direction.OUT, "testLabel40")) {
+        for (Edge ignored : vertex1_1.getEdges(Direction.OUT, "testLabel40")) {
             count++;
         }
         Assert.assertEquals(20, count);
@@ -116,7 +114,7 @@ public class GlmdbVertexesFromVertexTest extends BaseGlmdbGraphTest {
 
         count = 0;
         vertex1_1 = thunderGraph.getVertex(0L);
-        for (Edge edge : vertex1_1.getEdges(Direction.OUT, "testLabel60")) {
+        for (Edge ignored : vertex1_1.getEdges(Direction.OUT, "testLabel60")) {
             count++;
         }
         Assert.assertEquals(20, count);
@@ -124,7 +122,7 @@ public class GlmdbVertexesFromVertexTest extends BaseGlmdbGraphTest {
 
         count = 0;
         vertex1_1 = thunderGraph.getVertex(0L);
-        for (Edge edge : vertex1_1.getEdges(Direction.OUT, "testLabel80")) {
+        for (Edge ignored : vertex1_1.getEdges(Direction.OUT, "testLabel80")) {
             count++;
         }
         Assert.assertEquals(20, count);
@@ -132,7 +130,7 @@ public class GlmdbVertexesFromVertexTest extends BaseGlmdbGraphTest {
 
         count = 0;
         vertex1_1 = thunderGraph.getVertex(0L);
-        for (Edge edge : vertex1_1.getEdges(Direction.OUT, "testLabel100")) {
+        for (Edge ignored : vertex1_1.getEdges(Direction.OUT, "testLabel100")) {
             count++;
         }
         Assert.assertEquals(20, count);
@@ -140,7 +138,7 @@ public class GlmdbVertexesFromVertexTest extends BaseGlmdbGraphTest {
 
         count = 0;
         vertex1_1 = thunderGraph.getVertex(0L);
-        for (Edge edge : vertex1_1.getEdges(Direction.OUT)) {
+        for (Edge ignored : vertex1_1.getEdges(Direction.OUT)) {
             count++;
         }
         Assert.assertEquals(100, count);
@@ -163,8 +161,6 @@ public class GlmdbVertexesFromVertexTest extends BaseGlmdbGraphTest {
         thunderGraph.commit();
         Assert.assertEquals(1, countIter(thunderGraph.getVertex(5L).getEdges(Direction.IN, "testLabel1").iterator()));
         thunderGraph.commit();
-
-//        thunderGraph.printVertexDb();
 
         int count = 0;
         Vertex v = thunderGraph.getVertex(0L);
@@ -193,7 +189,6 @@ public class GlmdbVertexesFromVertexTest extends BaseGlmdbGraphTest {
         Assert.assertEquals(0, countIter(thunderGraph.getVertex(0L).getEdges(Direction.OUT, "testLabel1").iterator()));
         thunderGraph.commit();
 
-        thunderGraph.printVertexDb();
         thunderGraph.shutdown();
 
     }
@@ -212,8 +207,6 @@ public class GlmdbVertexesFromVertexTest extends BaseGlmdbGraphTest {
         thunderGraph.commit();
         Assert.assertEquals(1, countIter(thunderGraph.getVertex(5L).getEdges(Direction.IN, "testLabel1").iterator()));
         thunderGraph.commit();
-
-        thunderGraph.printVertexDb();
 
         int count = 0;
         Vertex v = thunderGraph.getVertex(0L);
@@ -240,7 +233,6 @@ public class GlmdbVertexesFromVertexTest extends BaseGlmdbGraphTest {
         Assert.assertEquals(0, countIter(thunderGraph.getVertex(0L).getEdges(Direction.OUT, "testLabel1").iterator()));
         thunderGraph.commit();
 
-        thunderGraph.printVertexDb();
         thunderGraph.shutdown();
 
     }

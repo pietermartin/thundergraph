@@ -2,6 +2,7 @@ package org.glmdb.blueprints;
 
 import com.tinkerpop.blueprints.*;
 import org.glmdb.blueprints.jni.Cursor;
+import org.glmdb.blueprints.jni.DbEnum;
 import org.glmdb.blueprints.jni.Glmdb;
 import org.glmdb.blueprints.jni.Transaction;
 
@@ -14,7 +15,7 @@ import java.util.Set;
  */
 public class ThunderGraph implements TransactionalGraph, KeyIndexableGraph {
 
-    private Glmdb glmdb;
+    private final Glmdb glmdb;
     private ThreadLocal<TransactionAndCursor> currentTransaction;
     private Features thunderGraphFeatures;
 
@@ -103,7 +104,7 @@ public class ThunderGraph implements TransactionalGraph, KeyIndexableGraph {
 
         Long vertexId = (Long) id;
         TransactionAndCursor tc = this.getReadOnlyTx();
-        long vertexIdResult = this.glmdb.getVertex(tc.getVertexCursor(), vertexId.longValue());
+        long vertexIdResult = this.glmdb.getVertex(tc.getVertexCursor(), vertexId);
         if (vertexIdResult != -1 && vertexIdResult != vertexId) {
             throw new IllegalStateException("db returned a vertex with a different id! This is a bug, should never happen");
         }
@@ -161,7 +162,7 @@ public class ThunderGraph implements TransactionalGraph, KeyIndexableGraph {
         String labelArray[] = new String[1];
         long outVertexIdArray[] = new long[1];
         long inVertexIdArray[] = new long[1];
-        this.glmdb.getEdge(tc.getEdgeCursor(), edgeId.longValue(), labelArray, outVertexIdArray, inVertexIdArray);
+        this.glmdb.getEdge(tc.getEdgeCursor(), edgeId, labelArray, outVertexIdArray, inVertexIdArray);
         return new ThunderEdge(this, edgeId, labelArray[0], outVertexIdArray[0], inVertexIdArray[0]);
     }
 
@@ -184,7 +185,7 @@ public class ThunderGraph implements TransactionalGraph, KeyIndexableGraph {
     @Override
     public void shutdown() {
         // As per Blueprints tests, shutdown() implies automatic commit
-        commit();
+        this.commit();
         this.glmdb.close();
     }
 
@@ -204,8 +205,6 @@ public class ThunderGraph implements TransactionalGraph, KeyIndexableGraph {
             }
             this.currentTransaction.remove();
             this.currentTransaction.set(null);
-        } else {
-            //nada
         }
     }
 
@@ -315,24 +314,9 @@ public class ThunderGraph implements TransactionalGraph, KeyIndexableGraph {
         return glmdb;
     }
 
-    public void printVertexDb() {
-        this.glmdb.printVertexDbX();
-    }
-
-    public void printEdgeDb() {
-        this.glmdb.printEdgeDbX();
-    }
-
-    public void printVertexPropertyKeyDb() {
-        this.glmdb.printVertexPropertyKeyDbX();
-    }
-
-    public void printEdgePropertyKeyDb() {
-        this.glmdb.printEdgepropertyKeyDbX();
-    }
-
-    public void printLabelDb() {
-        this.glmdb.printLabelDbX();
+    public void printDb(DbEnum dbEnum) {
+        TransactionAndCursor tc = this.getReadOnlyTx();
+        this.glmdb.printDb(tc.getTxn(), dbEnum);
     }
 
     public String getDbPath() {

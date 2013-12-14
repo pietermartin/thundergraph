@@ -3,6 +3,7 @@ package org.glmdb.blueprints.test;
 import com.tinkerpop.blueprints.Edge;
 import com.tinkerpop.blueprints.Vertex;
 import org.glmdb.blueprints.ThunderGraph;
+import org.glmdb.blueprints.jni.DbEnum;
 import org.junit.Assert;
 import org.junit.Test;
 
@@ -55,7 +56,13 @@ public class TestGraphDataPersist extends BaseGlmdbGraphTest  {
             }
 
         }
-        graph.printLabelDb();
+        graph.commit();
+//        graph.printDb(DbEnum.VERTEX_DB);
+//        graph.printDb(DbEnum.EDGE_DB);
+//        graph.printDb(DbEnum.VERTEX_PROPERTY_DB);
+//        graph.printDb(DbEnum.EDGE_PROPERTY_DB);
+//        graph.printDb(DbEnum.LABEL_DB);
+        graph.printDb(DbEnum.CONFIG_DB);
         graph.shutdown();
     }
 }

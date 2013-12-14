@@ -82,12 +82,19 @@ int main(int argc,char * argv[])
 
 	printf("traverseVertexPropertyKeyDb\n");
 
-	rc = traverseVertexPropertyKeyDb(genv->env, genv->vertexPropertyKeyDb);
+	rc = mdb_txn_begin(genv->env, NULL, 1, &txn);
+	if (rc != 0) {
+		printf("begin transaction failure  = %i!\n", rc);
+		goto fail;
+	}
+
+	rc = traverseVertexPropertyKeyDb(genv, txn);
 
 	if (rc == MDB_NOTFOUND) {
 		printf("traverseVertexDb\n");
-		rc = traverseVertexDb(genv->env, genv->vertexDb);
+		rc = traverseVertexDb(genv, txn);
 	}
+	thundergraph_commit(genv, txn);
 
 	fail:
 	printf("closing graph! %i\n", rc);

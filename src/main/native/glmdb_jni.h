@@ -20,6 +20,7 @@ extern "C" {
 #define GLMDB_DB_INVALID_DIRECTION	(-30595)
 #define GLMDB_DB_INVALID_EDGE	(-30594)
 #define GLMDB_INVALID_SEQUENCE	(-30593)
+#define GLMDB_INVALID_DB	(-30592)
 
 typedef struct GLMDB_env {
 	MDB_env *env;
@@ -57,6 +58,33 @@ typedef struct GLMDB_env {
 	int labelIdSequence;
 	char *path;
 } GLMDB_env;
+
+enum DbEnum {
+	VERTEX_DB,
+	EDGE_DB,
+	VERTEX_PROPERTY_DB,
+	EDGE_PROPERTY_DB,
+	LABEL_DB,
+	CONFIG_DB,
+	VERTEX_BOOLEAN_INDEX,
+	VERTEX_BYTE_INDEX,
+	VERTEX_SHORT_INDEX,
+	VERTEX_INT_INDEX,
+	VERTEX_LONG_INDEX,
+	VERTEX_FLOAT_INDEX,
+	VERTEX_DOUBLE_INDEX,
+	VERTEX_CHAR_INDEX,
+	VERTEX_STRING_INDEX,
+	EDGE_BOOLEAN_INDEX,
+	EDGE_BYTE_INDEX,
+	EDGE_SHORT_INDEX,
+	EDGE_INT_INDEX,
+	EDGE_LONG_INDEX,
+	EDGE_FLOAT_INDEX,
+	EDGE_DOUBLE_INDEX,
+	EDGE_CHAR_INDEX,
+	EDGE_STRING_INDEX
+};
 
 enum SequenceEnum {
 	VERTEX_ID_SEQUENCE, EDGE_ID_SEQUENCE, VERTEX_PROPERTY_KEY_ID_SEQUENCE, EDGE_PROPERTY_KEY_ID_SEQUENCE, LABEL_ID_SEQUENCE
@@ -112,11 +140,6 @@ enum PropertyTypeEnum {
 	UNSET
 };
 
-//typedef struct PropertyKeyIdStruct {
-//	enum PropertyTypeEnum type;
-//	char *propertyKey;
-//} PropertyKeyIdStruct;
-
 typedef struct PropertyKeyDataStruct {
 	jint propertyKeyId;
 	enum PropertyTypeEnum type;
@@ -136,41 +159,14 @@ typedef struct StringIndexKeyStruct {
 JNIEXPORT jint JNICALL Java_org_glmdb_blueprints_jni_GlmdbJni_mdb_1env_1get_1path(JNIEnv *env, jclass that, jlong glmdbEnv,
 		jobjectArray path);
 
-/*
- * Class:     org_glmdb_blueprints_jni_GlmdbJni
- * Method:    printVertexDb
- * Signature: (J)I
- */
-JNIEXPORT jint JNICALL Java_org_glmdb_blueprints_jni_GlmdbJni_printVertexDb(JNIEnv *env, jclass that, jlong glmdbEnv);
 
 /*
  * Class:     org_glmdb_blueprints_jni_GlmdbJni
- * Method:    printEdgeDb
- * Signature: (J)I
+ * Method:    print_db
+ * Signature: (JJI)I
  */
-JNIEXPORT jint JNICALL Java_org_glmdb_blueprints_jni_GlmdbJni_printEdgeDb(JNIEnv *env, jclass that, jlong glmdbEnv);
-
-/*
- * Class:     org_glmdb_blueprints_jni_GlmdbJni
- * Method:    printVertexPropertyKeyDb
- * Signature: (J)I
- */
-JNIEXPORT jint JNICALL Java_org_glmdb_blueprints_jni_GlmdbJni_printVertexPropertyKeyDb(JNIEnv *env, jclass that, jlong glmdbEnv);
-
-/*
- * Class:     org_glmdb_blueprints_jni_GlmdbJni
- * Method:    printEdgePropertyKeyDb
- * Signature: (J)I
- */
-JNIEXPORT jint JNICALL Java_org_glmdb_blueprints_jni_GlmdbJni_printEdgePropertyKeyDb(JNIEnv *env, jclass that, jlong glmdbEnv);
-
-
-/*
- * Class:     org_glmdb_blueprints_jni_GlmdbJni
- * Method:    printLabelDb
- * Signature: (J)I
- */
-JNIEXPORT jint JNICALL Java_org_glmdb_blueprints_jni_GlmdbJni_printLabelDb(JNIEnv *env, jclass that , jlong glmdbEnv);
+JNIEXPORT jint JNICALL Java_org_glmdb_blueprints_jni_GlmdbJni_print_1db
+  (JNIEnv *env, jclass that, jlong glmdbEnv, jlong txn, jint dbEnum);
 
 /*
  * Class:     org_glmdb_blueprints_jni_GlmdbJni
@@ -223,8 +219,8 @@ JNIEXPORT jint JNICALL Java_org_glmdb_blueprints_jni_GlmdbJni_mdb_1txn_1renew(JN
  * Method:    mdb_txn_commit
  * Signature: (JJZ)I
  */
-JNIEXPORT jint JNICALL Java_org_glmdb_blueprints_jni_GlmdbJni_mdb_1txn_1commit
-  (JNIEnv *env, jclass that, jlong glmdb_env, jlong txn, jboolean readOnly);
+JNIEXPORT jint JNICALL Java_org_glmdb_blueprints_jni_GlmdbJni_mdb_1txn_1commit(JNIEnv *env, jclass that, jlong glmdb_env, jlong txn,
+		jboolean readOnly);
 
 /*
  * Class:     org_glmdb_blueprints_jni_GlmdbJni
@@ -263,8 +259,8 @@ JNIEXPORT jint JNICALL Java_org_glmdb_blueprints_jni_GlmdbJni_mdb_1cursor_1open_
  * Method:    mdb_cursor_open_label_db
  * Signature: (JJ[J)I
  */
-JNIEXPORT jint JNICALL Java_org_glmdb_blueprints_jni_GlmdbJni_mdb_1cursor_1open_1label_1db
-  (JNIEnv *env, jclass that, jlong txn, jlong glmdb_env, jlongArray cursorArray);
+JNIEXPORT jint JNICALL Java_org_glmdb_blueprints_jni_GlmdbJni_mdb_1cursor_1open_1label_1db(JNIEnv *env, jclass that, jlong txn,
+		jlong glmdb_env, jlongArray cursorArray);
 
 /*
  * Class:     org_glmdb_blueprints_jni_GlmdbJni
@@ -446,16 +442,16 @@ JNIEXPORT jint JNICALL Java_org_glmdb_blueprints_jni_GlmdbJni_mdb_1get_1next_1pr
  * Method:    mdb_get_first_label
  * Signature: (J[I[[B)I
  */
-JNIEXPORT jint JNICALL Java_org_glmdb_blueprints_jni_GlmdbJni_mdb_1get_1first_1label
-  (JNIEnv *env, jclass that, jlong cursor, jintArray labelIdArray, jobjectArray labelArray);
+JNIEXPORT jint JNICALL Java_org_glmdb_blueprints_jni_GlmdbJni_mdb_1get_1first_1label(JNIEnv *env, jclass that, jlong cursor,
+		jintArray labelIdArray, jobjectArray labelArray);
 
 /*
  * Class:     org_glmdb_blueprints_jni_GlmdbJni
  * Method:    mdb_get_next_label
  * Signature: (J[I[[B)I
  */
-JNIEXPORT jint JNICALL Java_org_glmdb_blueprints_jni_GlmdbJni_mdb_1get_1next_1label
-  (JNIEnv *env, jclass that, jlong cursor, jintArray labelIdArray, jobjectArray labelArray);
+JNIEXPORT jint JNICALL Java_org_glmdb_blueprints_jni_GlmdbJni_mdb_1get_1next_1label(JNIEnv *env, jclass that, jlong cursor,
+		jintArray labelIdArray, jobjectArray labelArray);
 
 /*
  * Class:     org_glmdb_blueprints_jni_GlmdbJni
@@ -608,6 +604,7 @@ void printEdgeRecord(MDB_val key, MDB_val data);
 void printKey(MDB_val key);
 void printPropertyKeyDbRecord(MDB_val key, MDB_val data);
 void printLabelDbRecord(MDB_val key, MDB_val data);
+int printConfigDbRecord(MDB_val key, MDB_val data);
 
 void initVertexDbId(VertexDbId *vertexDbId);
 void initEdgeDbId(EdgeDbId *edgeDbId);
@@ -646,7 +643,9 @@ int addEdgeToVertexDb(MDB_txn *txn, MDB_dbi vertexDb, jlong edgeId, jint labelId
 int compareVertexDbId(const MDB_val *key1, const MDB_val *key2);
 int compareEdgeDbId(const MDB_val *key1, const MDB_val *key2);
 int comparePropertyKeyDbId(const MDB_val *key1, const MDB_val *key2);
-void printDbStats(MDB_env *env, MDB_dbi vertexDb, char *name);
+
+void printDbStats(MDB_env *env, MDB_txn *txn, MDB_dbi vertexDb, char *name);
+
 int setVertexPropertyBoolean(MDB_cursor *cursor, jlong vertexId, jint propertyKeyId, jboolean *propertyValue);
 int setVertexPropertyByte(MDB_cursor *cursor, jlong vertexId, jint propertyKeyId, jbyte *propertyValue);
 int setVertexPropertyShort(MDB_cursor *cursor, jlong vertexId, jint propertyKeyId, jshort *propertyValue);
@@ -674,15 +673,16 @@ int removeEdgeProperty(MDB_cursor *cursor, jlong edgeId, jint propertyKeyId);
 int getVertexPropertyKeys(MDB_cursor *cursor, jlong vertexId, jint *propertyKeyArraySizeC, jint **propertyKeyArrayC);
 int getEdgePropertyKeys(MDB_cursor *cursor, jlong edgeId, jint *propertyKeyArraySizeC, jint **propertyKeyArrayC);
 
-int setPropertyKey(GLMDB_env *glmdb_env, MDB_txn * txn, int propertyKeyEnum, int *propertyKeyId, int propertyKeyLength, char propertyKeyC[], unsigned char vertex,
-		unsigned char indexed, unsigned char overwrite);
+int setPropertyKey(GLMDB_env *glmdb_env, MDB_txn * txn, int propertyKeyEnum, int *propertyKeyId, int propertyKeyLength, char propertyKeyC[],
+		unsigned char vertex, unsigned char indexed, unsigned char overwrite);
 char * propertyTypeEnumToString(int propertyTypeEnum);
 
-int traverseVertexDb(MDB_env *env, MDB_dbi dbi);
-int traverseEdgeDb(MDB_env *env, MDB_dbi dbi);
-int traverseVertexPropertyKeyDb(MDB_env *env, MDB_dbi dbi);
-int traverseEdgePropertyKeyDb(MDB_env *env, MDB_dbi dbi);
-int traverseLabelDb(MDB_env *env, MDB_dbi dbi);
+int traverseVertexDb(GLMDB_env * glmdb_env, MDB_txn *txn);
+int traverseEdgeDb(GLMDB_env * glmdb_env, MDB_txn *txn);
+int traverseVertexPropertyKeyDb(GLMDB_env * glmdb_env, MDB_txn *txn);
+int traverseEdgePropertyKeyDb(GLMDB_env * glmdb_env, MDB_txn *txn);
+int traverseLabelDb(GLMDB_env * glmdb_env, MDB_txn *txn);
+int traverseConfigDb(GLMDB_env * glmdb_env, MDB_txn *txn);
 
 void buffer_copy(const void *source, size_t source_pos, void *dest, size_t dest_pos, size_t length);
 #ifdef __cplusplus

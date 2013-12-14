@@ -175,15 +175,7 @@ public class GlmdbJni {
 
     public static final native String mdb_strerror(int err);
 
-    public static final native int printVertexDb(long glmdb_env);
-
-    public static final native int printEdgeDb(long glmdb_env);
-
-    public static final native int printVertexPropertyKeyDb(long glmdb_env);
-
-    public static final native int printEdgePropertyKeyDb(long glmdb_env);
-
-    public static final native int printLabelDb(long glmdb_env);
+    public static final native int print_db(long glmdb_env, long txn, int dbEnum);
 
     public static final native int glmdb_env_create(String path, long[] env);
 

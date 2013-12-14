@@ -49,8 +49,6 @@ public class GlmdbRemoveVertexTest  extends BaseGlmdbGraphTest {
         thunderGraph.getVertex(0L).remove();
         thunderGraph.commit();
 
-        System.out.println("aaaaaaaaaaaaa");
-        thunderGraph.printVertexDb();
         Assert.assertEquals(0, countIter(thunderGraph.getVertices().iterator()));
 
         thunderGraph.shutdown();

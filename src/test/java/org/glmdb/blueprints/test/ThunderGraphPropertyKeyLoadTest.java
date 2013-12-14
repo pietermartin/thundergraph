@@ -25,10 +25,6 @@ public class ThunderGraphPropertyKeyLoadTest extends BaseGlmdbGraphTest {
             edge.setProperty("edgeName" + i, "name");
         }
         g.commit();
-        g.printVertexDb();
-        g.printVertexPropertyKeyDb();
-        g.printEdgeDb();
-        g.printEdgePropertyKeyDb();
         g.shutdown();
 
         g = new ThunderGraph(this.dbPath);
@@ -53,8 +49,6 @@ public class ThunderGraphPropertyKeyLoadTest extends BaseGlmdbGraphTest {
         g.createKeyIndex("edgeName2", Edge.class);
         g.commit();
 
-        g.printVertexPropertyKeyDb();
-        g.printEdgePropertyKeyDb();
         g.shutdown();
 
     }

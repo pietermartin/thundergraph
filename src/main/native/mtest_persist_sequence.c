@@ -53,9 +53,9 @@ int main(int argc,char * argv[])
 	printf("ddddd %i!\n", rc);
 
 	mdb_cursor_close(cursor);
+	traverseVertexDb(genv, txn);
 	thundergraph_commit(genv, txn);
 
-	traverseVertexDb(genv->env, genv->vertexDb);
 
 	printf("closing graph!\n");
 	closeGraph(genv);
@@ -90,11 +90,11 @@ int main(int argc,char * argv[])
 
 
 
+	traverseVertexDb(genv, txn);
 
 	mdb_cursor_close(cursor);
 	thundergraph_commit(genv, txn);
 
-	traverseVertexDb(genv->env, genv->vertexDb);
 
 	fail:
 	printf("closing graph!\n");

@@ -64,8 +64,8 @@ int main(int argc,char * argv[])
 		}
 	}
 	mdb_cursor_close(cursor);
+	traverseVertexDb(genv, txn);
 	mdb_txn_commit(txn);
-	traverseVertexDb(genv->env, genv->vertexDb);
 
 	rc = mdb_txn_begin(genv->env, NULL, 1, &txn);
 	if (rc != 0) {
@@ -88,9 +88,9 @@ int main(int argc,char * argv[])
 	}
 
 	mdb_cursor_close(cursor);
+	traverseVertexDb(genv, txn);
 	mdb_txn_commit(txn);
 
-	traverseVertexDb(genv->env, genv->vertexDb);
 
 	fail:
 	printf("closing graph!\n");

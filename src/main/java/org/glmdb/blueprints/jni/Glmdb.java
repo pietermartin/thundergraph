@@ -425,7 +425,7 @@ public class Glmdb extends NativeObject implements Closeable {
                         propertyIndexedArray,
                         propertyKeyArray);
             }
-            if (rc != 0 && rc != MDB_NOTFOUND) {
+            if (rc != MDB_NOTFOUND) {
                 checkErrorCode(rc);
             }
 
@@ -437,7 +437,7 @@ public class Glmdb extends NativeObject implements Closeable {
                 this.edgePropertyKeyIdToNameMap.put(propertyKeyIdArray[0], key);
                 rc = mdb_get_next_property_key(edgeCursor.pointer(), propertyKeyIdArray, propertyTypeEnumArray, propertyIndexedArray, propertyKeyArray);
             }
-            if (rc != 0 && rc != MDB_NOTFOUND) {
+            if (rc != MDB_NOTFOUND) {
                 checkErrorCode(rc);
             }
 
@@ -467,7 +467,7 @@ public class Glmdb extends NativeObject implements Closeable {
                         labelIdArray,
                         labelArray);
             }
-            if (rc != 0 && rc != MDB_NOTFOUND) {
+            if (rc != MDB_NOTFOUND) {
                 checkErrorCode(rc);
             }
 
@@ -571,24 +571,8 @@ public class Glmdb extends NativeObject implements Closeable {
 
     }
 
-    public void printVertexDbX() {
-        checkErrorCode(printVertexDb(pointer()));
-    }
-
-    public void printEdgeDbX() {
-        checkErrorCode(printEdgeDb(pointer()));
-    }
-
-    public void printVertexPropertyKeyDbX() {
-        checkErrorCode(printVertexPropertyKeyDb(pointer()));
-    }
-
-    public void printEdgepropertyKeyDbX() {
-        checkErrorCode(printEdgePropertyKeyDb(pointer()));
-    }
-
-    public void printLabelDbX() {
-        checkErrorCode(printLabelDb(pointer()));
+    public void printDb(Transaction txn, DbEnum dbEnum) {
+        checkErrorCode(print_db(this.pointer(), txn.pointer(), dbEnum.ordinal()));
     }
 
     public void createKeyIndex(Transaction txn, String key, boolean vertex) {

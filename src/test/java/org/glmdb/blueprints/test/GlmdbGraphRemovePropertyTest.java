@@ -23,7 +23,6 @@ public class GlmdbGraphRemovePropertyTest extends BaseGlmdbGraphTest  {
             vertex.setProperty("name3", "pieter3" + i);
         }
         thunderGraph.commit();
-        thunderGraph.printVertexDb();
         Vertex vertex = thunderGraph.getVertex(0L);
         Assert.assertNotNull(vertex);
         Assert.assertEquals("pieter00", vertex.getProperty("name0"));
@@ -37,7 +36,6 @@ public class GlmdbGraphRemovePropertyTest extends BaseGlmdbGraphTest  {
         Assert.assertEquals("pieter30", value);
         thunderGraph.commit();
 
-        thunderGraph.printVertexDb();
 
         vertex = thunderGraph.getVertex(1L);
         Assert.assertNotNull(vertex);
@@ -52,8 +50,6 @@ public class GlmdbGraphRemovePropertyTest extends BaseGlmdbGraphTest  {
         Assert.assertEquals("pieter31", value);
         thunderGraph.commit();
 
-        thunderGraph.printVertexDb();
-
         vertex = thunderGraph.getVertex(2L);
         Assert.assertNotNull(vertex);
         Assert.assertEquals("pieter02", vertex.getProperty("name0"));
@@ -66,8 +62,6 @@ public class GlmdbGraphRemovePropertyTest extends BaseGlmdbGraphTest  {
         value = vertex.removeProperty("name3");
         Assert.assertEquals("pieter32", value);
         thunderGraph.commit();
-
-        thunderGraph.printVertexDb();
 
         vertex = thunderGraph.getVertex(3L);
         Assert.assertNotNull(vertex);
@@ -82,8 +76,6 @@ public class GlmdbGraphRemovePropertyTest extends BaseGlmdbGraphTest  {
         Assert.assertEquals("pieter33", value);
         thunderGraph.commit();
 
-        thunderGraph.printVertexDb();
-
         vertex = thunderGraph.getVertex(4L);
         Assert.assertNotNull(vertex);
         Assert.assertEquals("pieter04", vertex.getProperty("name0"));
@@ -96,8 +88,6 @@ public class GlmdbGraphRemovePropertyTest extends BaseGlmdbGraphTest  {
         value = vertex.removeProperty("name3");
         Assert.assertEquals("pieter34", value);
         thunderGraph.commit();
-
-        thunderGraph.printVertexDb();
 
         thunderGraph.shutdown();
     }

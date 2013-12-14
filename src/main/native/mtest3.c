@@ -219,13 +219,14 @@ int main(int argc,char * argv[])
 //	printf("edgeIdResultC = %ld, outVertexIdC = %ld, inVertexIdC = %ld\n", *edgeIdResultC, *outVertexIdC, *inVertexIdC);
 
 	mdb_cursor_close(cursor);
-	mdb_txn_commit(txn);
 
 	printf("before remove traverseVertexDb\n");
-	traverseVertexDb(genv->env, genv->vertexDb);
+	traverseVertexDb(genv, txn);
 
 	printf("before remove traverseEdgeDb\n");
-	traverseEdgeDb(genv->env, genv->edgeDb);
+	traverseEdgeDb(genv, txn);
+
+	mdb_txn_commit(txn);
 
 	rc = mdb_txn_begin(genv->env, NULL, 1, &txn);
 	if (rc != 0) {
@@ -283,13 +284,14 @@ int main(int argc,char * argv[])
 //	rc = removeVertex(txn, genv, 9LL);
 //	rc = removeVertex(txn, genv, 10LL);
 
-	mdb_txn_commit(txn);
 
 	printf("before traverseVertexDb\n");
-	traverseVertexDb(genv->env, genv->vertexDb);
+	traverseVertexDb(genv, txn);
 
 	printf("before traverseEdgeDb\n");
-	traverseEdgeDb(genv->env, genv->edgeDb);
+	traverseEdgeDb(genv, txn);
+
+	mdb_txn_commit(txn);
 
 	fail:
 	printf("closing graph!\n");

@@ -1,7 +1,6 @@
 package org.glmdb.blueprints.test;
 
 import com.tinkerpop.blueprints.Edge;
-import com.tinkerpop.blueprints.Graph;
 import com.tinkerpop.blueprints.Vertex;
 import org.glmdb.blueprints.ThunderGraph;
 import org.junit.Assert;
@@ -84,7 +83,6 @@ public class GlmdbGraphGetPropertyKeysTest extends BaseGlmdbGraphTest {
                 vertices.add(vertex);
             }
             graph.commit();
-            graph.printVertexPropertyKeyDb();
 
             if (graph.getFeatures().supportsVertexIteration)
                 Assert.assertEquals(50, count(graph.getVertices()));
@@ -108,7 +106,6 @@ public class GlmdbGraphGetPropertyKeysTest extends BaseGlmdbGraphTest {
             edge.setProperty("name" + i, i);
         }
         thunderGraph.commit();
-        thunderGraph.printVertexDb();
 
         Set<String> propertyKeys = thunderGraph.getEdge(0L).getPropertyKeys();
         Assert.assertEquals(1, propertyKeys.size());

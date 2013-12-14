@@ -54,7 +54,14 @@ int main(int argc,char * argv[])
 	rc = addVertexAnd2Properties(genv, 4, "key13", "value3");
 	rc = addVertexAnd2Properties(genv, 4, "key14", "value3");
 
-	traverseVertexPropertyKeyDb(genv->env, genv->vertexPropertyKeyDb);
+	MDB_txn *txn;
+	rc = mdb_txn_begin(genv->env, NULL, 1, &txn);
+	if (rc != 0) {
+		printf("begin transaction failure  = %i!\n", rc);
+		goto fail;
+	}
+	traverseVertexPropertyKeyDb(genv, txn);
+	thundergraph_commit(genv, txn);
 
 	fail:
 	printf("closing graph!\n");
