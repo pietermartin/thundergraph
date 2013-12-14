@@ -1,10 +1,5 @@
 package org.glmdb.blueprints;
 
-import org.glmdb.blueprints.jni.Cursor;
-import org.glmdb.blueprints.jni.Glmdb;
-import org.glmdb.blueprints.jni.Transaction;
-
-import java.io.File;
 import java.nio.ByteBuffer;
 
 /**
