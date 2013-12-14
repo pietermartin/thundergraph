@@ -9,7 +9,7 @@ import org.junit.Test;
  * Date: 2013/12/08
  * Time: 1:42 PM
  */
-public class ThundergraphTestConcurrentModification extends BaseGlmdbGraphTest {
+public class ConcurrentModificationTest extends BaseGlmdbGraphTest {
 
     @Test
     public void testConcurrentModification() {

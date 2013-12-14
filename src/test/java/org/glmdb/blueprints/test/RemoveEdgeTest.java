@@ -15,7 +15,7 @@ import java.util.UUID;
  * Date: 2013/11/30
  * Time: 6:58 PM
  */
-public class GlmdbRemoveEdgeTest extends BaseGlmdbGraphTest {
+public class RemoveEdgeTest extends BaseGlmdbGraphTest {
 
     @Test
     public void removeEdgeTest() {

@@ -10,7 +10,7 @@ import org.junit.Test;
  * Date: 2013/11/19
  * Time: 11:24 PM
  */
-public class GlmdbGraphRemovePropertyTest extends BaseGlmdbGraphTest  {
+public class RemovePropertyTest extends BaseGlmdbGraphTest  {
 
     @Test
     public void testRemoveVertex() {

@@ -2,6 +2,9 @@ package org.glmdb.blueprints.test;
 
 import com.tinkerpop.blueprints.*;
 import com.tinkerpop.blueprints.impls.GraphTest;
+import com.tinkerpop.blueprints.util.io.gml.GMLReaderTestSuite;
+import com.tinkerpop.blueprints.util.io.graphml.GraphMLReaderTestSuite;
+import com.tinkerpop.blueprints.util.io.graphson.GraphSONReaderTestSuite;
 import junit.framework.Assert;
 import org.apache.commons.io.FileUtils;
 import org.glmdb.blueprints.ThunderGraph;
@@ -39,41 +42,29 @@ public class BlueprintsTest
         printTestPerformance("GraphTestSuite", this.stopWatch());
     }
 
-    public void testKeyIndexableGraphTestSuite() throws Exception {
+    public void untestKeyIndexableGraphTestSuite() throws Exception {
         this.stopWatch();
         doTestSuite(new KeyIndexableGraphTestSuite(this));
         printTestPerformance("KeyIndexableGraphTestSuite", this.stopWatch());
     }
 
-//    public void testIndexableGraphTestSuite() throws Exception {
-//        this.stopWatch();
-//        doTestSuite(new IndexableGraphTestSuite(this));
-//        printTestPerformance("IndexableGraphTestSuite", this.stopWatch());
-//    }
-
-    public void testIndexTestSuite() throws Exception {
+    public void untestGraphMLReaderTestSuite() throws Exception {
         this.stopWatch();
-        doTestSuite(new IndexTestSuite(this));
-        printTestPerformance("IndexTestSuite", this.stopWatch());
+        doTestSuite(new GraphMLReaderTestSuite(this));
+        printTestPerformance("GraphMLReaderTestSuite", this.stopWatch());
     }
 
-//    public void testGraphMLReaderTestSuite() throws Exception {
-//        this.stopWatch();
-//        doTestSuite(new GraphMLReaderTestSuite(this));
-//        printTestPerformance("GraphMLReaderTestSuite", this.stopWatch());
-//    }
-//
-//    public void testGMLReaderTestSuite() throws Exception {
-//        this.stopWatch();
-//        doTestSuite(new GMLReaderTestSuite(this));
-//        printTestPerformance("GMLReaderTestSuite", this.stopWatch());
-//    }
-//
-//    public void testGraphSONReaderTestSuite() throws Exception {
-//        this.stopWatch();
-//        doTestSuite(new GraphSONReaderTestSuite(this));
-//        printTestPerformance("GraphSONReaderTestSuite", this.stopWatch());
-//    }
+    public void untestGMLReaderTestSuite() throws Exception {
+        this.stopWatch();
+        doTestSuite(new GMLReaderTestSuite(this));
+        printTestPerformance("GMLReaderTestSuite", this.stopWatch());
+    }
+
+    public void untestGraphSONReaderTestSuite() throws Exception {
+        this.stopWatch();
+        doTestSuite(new GraphSONReaderTestSuite(this));
+        printTestPerformance("GraphSONReaderTestSuite", this.stopWatch());
+    }
 
     public Graph generateGraph() {
         return generateGraph("thundergraph");

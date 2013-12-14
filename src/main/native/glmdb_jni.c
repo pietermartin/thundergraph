@@ -787,15 +787,15 @@ JNIEXPORT jint JNICALL Java_org_glmdb_blueprints_jni_GlmdbJni_mdb_1set_1property
 		MDB_cursor *indexCursor;
 		rc = mdb_cursor_open((MDB_txn *) (long) txn, glmdb_env->vertexStringIndexDb, &indexCursor);
 
-//		MDB_val key, data;
-//		StringIndexKeyStruct stringIndexKeyStruct;
-//		stringIndexKeyStruct.propertyKeyId = (int) propertyKeyId;
-//		stringIndexKeyStruct.value = propertyValue;
-//		key.mv_size = strlen + sizeof(StringIndexKeyStruct);
-//		key.mv_data = &stringIndexKeyStruct;
-//		data.mv_size = sizeof(long long);
-//		data.mv_data = (long) elementId;
-//		rc = mdb_cursor_put(cursor, &key, &data, 0);
+		MDB_val key, data;
+		StringIndexKeyStruct stringIndexKeyStruct;
+		stringIndexKeyStruct.propertyKeyId = (int) propertyKeyId;
+		stringIndexKeyStruct.value = propertyValue;
+		key.mv_size = propertyValueLength + sizeof(StringIndexKeyStruct);
+		key.mv_data = &stringIndexKeyStruct;
+		data.mv_size = sizeof(long long);
+		data.mv_data = &elementId;
+		rc = mdb_cursor_put(indexCursor, &key, &data, 0);
 		mdb_cursor_close(indexCursor);
 	}
 
@@ -2190,26 +2190,26 @@ int openGraph(GLMDB_env **genv, const char *path) {
 	MDB_dbi vertexDb;
 	MDB_dbi edgeDb;
 	MDB_dbi vertexPropertyKeyDb;
-//	MDB_dbi vertexBooleanIndexDb;
-//	MDB_dbi vertexByteIndexDb;
-//	MDB_dbi vertexShortIndexDb;
-//	MDB_dbi vertexIntIndexDb;
-//	MDB_dbi vertexLongIndexDb;
-//	MDB_dbi vertexFloatIndexDb;
-//	MDB_dbi vertexDoubleIndexDb;
-//	MDB_dbi vertexCharIndexDb;
-//	MDB_dbi vertexStringIndexDb;
+	MDB_dbi vertexBooleanIndexDb;
+	MDB_dbi vertexByteIndexDb;
+	MDB_dbi vertexShortIndexDb;
+	MDB_dbi vertexIntIndexDb;
+	MDB_dbi vertexLongIndexDb;
+	MDB_dbi vertexFloatIndexDb;
+	MDB_dbi vertexDoubleIndexDb;
+	MDB_dbi vertexCharIndexDb;
+	MDB_dbi vertexStringIndexDb;
 
 	MDB_dbi edgePropertyKeyDb;
-//	MDB_dbi edgeBooleanIndexDb;
-//	MDB_dbi edgeByteIndexDb;
-//	MDB_dbi edgeShortIndexDb;
-//	MDB_dbi edgeIntIndexDb;
-//	MDB_dbi edgeLongIndexDb;
-//	MDB_dbi edgeFloatIndexDb;
-//	MDB_dbi edgeDoubleIndexDb;
-//	MDB_dbi edgeCharIndexDb;
-//	MDB_dbi edgeStringIndexDb;
+	MDB_dbi edgeBooleanIndexDb;
+	MDB_dbi edgeByteIndexDb;
+	MDB_dbi edgeShortIndexDb;
+	MDB_dbi edgeIntIndexDb;
+	MDB_dbi edgeLongIndexDb;
+	MDB_dbi edgeFloatIndexDb;
+	MDB_dbi edgeDoubleIndexDb;
+	MDB_dbi edgeCharIndexDb;
+	MDB_dbi edgeStringIndexDb;
 
 	MDB_dbi labelDb;
 
@@ -2221,7 +2221,7 @@ int openGraph(GLMDB_env **genv, const char *path) {
 	if (rc != 0) {
 		return rc;
 	}
-	rc = mdb_env_set_maxdbs(env, 7);
+	rc = mdb_env_set_maxdbs(env, 25);
 	if (rc != 0) {
 		return rc;
 	}
@@ -2272,12 +2272,132 @@ int openGraph(GLMDB_env **genv, const char *path) {
 	}
 	glmdbEnv->labelDb = labelDb;
 
-//	//Create the String index db
-//	rc = createDb(env, "vertexStringIndexDb", MDB_CREATE, &vertexStringIndexDb, NULL);
-//	if (rc != 0) {
-//		return rc;
-//	}
-//	glmdbEnv->vertexStringIndexDb = vertexStringIndexDb;
+	//Create the Boolean index db
+	rc = createDb(env, "vertexBooleanIndexDb", MDB_CREATE, &vertexBooleanIndexDb, NULL);
+	if (rc != 0) {
+		return rc;
+	}
+	glmdbEnv->vertexBooleanIndexDb = vertexBooleanIndexDb;
+
+	//Create the Byte index db
+	rc = createDb(env, "vertexByteIndexDb", MDB_CREATE, &vertexByteIndexDb, NULL);
+	if (rc != 0) {
+		return rc;
+	}
+	glmdbEnv->vertexByteIndexDb = vertexByteIndexDb;
+
+	//Create the Short index db
+	rc = createDb(env, "vertexShortIndexDb", MDB_CREATE, &vertexShortIndexDb, NULL);
+	if (rc != 0) {
+		return rc;
+	}
+	glmdbEnv->vertexShortIndexDb = vertexShortIndexDb;
+
+	//Create the Int index db
+	rc = createDb(env, "vertexIntIndexDb", MDB_CREATE, &vertexIntIndexDb, NULL);
+	if (rc != 0) {
+		return rc;
+	}
+	glmdbEnv->vertexIntIndexDb = vertexIntIndexDb;
+
+	//Create the Long index db
+	rc = createDb(env, "vertexLongIndexDb", MDB_CREATE, &vertexLongIndexDb, NULL);
+	if (rc != 0) {
+		return rc;
+	}
+	glmdbEnv->vertexLongIndexDb = vertexLongIndexDb;
+
+	//Create the Float index db
+	rc = createDb(env, "vertexFloatIndexDb", MDB_CREATE, &vertexFloatIndexDb, NULL);
+	if (rc != 0) {
+		return rc;
+	}
+	glmdbEnv->vertexFloatIndexDb = vertexFloatIndexDb;
+
+	//Create the Double index db
+	rc = createDb(env, "vertexDoubleIndexDb", MDB_CREATE, &vertexDoubleIndexDb, NULL);
+	if (rc != 0) {
+		return rc;
+	}
+	glmdbEnv->vertexDoubleIndexDb = vertexDoubleIndexDb;
+
+	//Create the Char index db
+	rc = createDb(env, "vertexCharIndexDb", MDB_CREATE, &vertexCharIndexDb, NULL);
+	if (rc != 0) {
+		return rc;
+	}
+	glmdbEnv->vertexCharIndexDb = vertexCharIndexDb;
+
+	//Create the String index db
+	rc = createDb(env, "vertexStringIndexDb", MDB_CREATE, &vertexStringIndexDb, NULL);
+	if (rc != 0) {
+		return rc;
+	}
+	glmdbEnv->vertexStringIndexDb = vertexStringIndexDb;
+
+
+	//Create the Boolean index db
+	rc = createDb(env, "edgeBooleanIndexDb", MDB_CREATE, &edgeBooleanIndexDb, NULL);
+	if (rc != 0) {
+		return rc;
+	}
+	glmdbEnv->edgeBooleanIndexDb = edgeBooleanIndexDb;
+
+	//Create the Byte index db
+	rc = createDb(env, "edgeByteIndexDb", MDB_CREATE, &edgeByteIndexDb, NULL);
+	if (rc != 0) {
+		return rc;
+	}
+	glmdbEnv->edgeByteIndexDb = edgeByteIndexDb;
+
+	//Create the Short index db
+	rc = createDb(env, "edgeShortIndexDb", MDB_CREATE, &edgeShortIndexDb, NULL);
+	if (rc != 0) {
+		return rc;
+	}
+	glmdbEnv->edgeShortIndexDb = edgeShortIndexDb;
+
+	//Create the Int index db
+	rc = createDb(env, "edgeIntIndexDb", MDB_CREATE, &edgeIntIndexDb, NULL);
+	if (rc != 0) {
+		return rc;
+	}
+	glmdbEnv->edgeIntIndexDb = edgeIntIndexDb;
+
+	//Create the Long index db
+	rc = createDb(env, "edgeLongIndexDb", MDB_CREATE, &edgeLongIndexDb, NULL);
+	if (rc != 0) {
+		return rc;
+	}
+	glmdbEnv->edgeLongIndexDb = edgeLongIndexDb;
+
+	//Create the Float index db
+	rc = createDb(env, "edgeFloatIndexDb", MDB_CREATE, &edgeFloatIndexDb, NULL);
+	if (rc != 0) {
+		return rc;
+	}
+	glmdbEnv->edgeFloatIndexDb = edgeFloatIndexDb;
+
+	//Create the Double index db
+	rc = createDb(env, "edgeDoubleIndexDb", MDB_CREATE, &edgeDoubleIndexDb, NULL);
+	if (rc != 0) {
+		return rc;
+	}
+	glmdbEnv->edgeDoubleIndexDb = edgeDoubleIndexDb;
+
+	//Create the Char index db
+	rc = createDb(env, "edgeCharIndexDb", MDB_CREATE, &edgeCharIndexDb, NULL);
+	if (rc != 0) {
+		return rc;
+	}
+	glmdbEnv->edgeCharIndexDb = edgeCharIndexDb;
+
+	//Create the String index db
+	rc = createDb(env, "edgeStringIndexDb", MDB_CREATE, &edgeStringIndexDb, NULL);
+	if (rc != 0) {
+		return rc;
+	}
+	glmdbEnv->edgeStringIndexDb = edgeStringIndexDb;
 
 	glmdbEnv->env = env;
 	*genv = glmdbEnv;
@@ -2417,15 +2537,26 @@ void closeGraph(GLMDB_env *genv) {
 	MDB_dbi vertexPropertyKeyDb = genv->vertexPropertyKeyDb;
 	MDB_dbi edgePropertyKeyDb = genv->edgePropertyKeyDb;
 	MDB_dbi labelDb = genv->labelDb;
-//	MDB_dbi vertexStringIndexDb = genv->vertexStringIndexDb;
 
-//	printDbStats(env, configDb, "configDb");
-//	printDbStats(env, vertexDb, "vertexDb");
-//	printDbStats(env, edgeDb, "edgeDb");
-//	printDbStats(env, vertexPropertyKeyDb, "vertexPropertyKeyDb");
-//	printDbStats(env, edgePropertyKeyDb, "edgePropertyKeyDb");
-//	printDbStats(env, labelDb, "labelDb");
-//	printDbStats(env, vertexStringIndexDb, "vertexStringIndexDb");
+	MDB_dbi vertexBooleanIndexDb = genv->vertexBooleanIndexDb;
+	MDB_dbi vertexByteIndexDb = genv->vertexByteIndexDb;
+	MDB_dbi vertexShortIndexDb = genv->vertexShortIndexDb;
+	MDB_dbi vertexIntIndexDb = genv->vertexIntIndexDb;
+	MDB_dbi vertexLongIndexDb = genv->vertexLongIndexDb;
+	MDB_dbi vertexFloatIndexDb = genv->vertexFloatIndexDb;
+	MDB_dbi vertexDoubleIndexDb = genv->vertexDoubleIndexDb;
+	MDB_dbi vertexCharIndexDb = genv->vertexCharIndexDb;
+	MDB_dbi vertexStringIndexDb = genv->vertexStringIndexDb;
+
+	MDB_dbi edgeBooleanIndexDb = genv->edgeBooleanIndexDb;
+	MDB_dbi edgeByteIndexDb = genv->edgeByteIndexDb;
+	MDB_dbi edgeShortIndexDb = genv->edgeShortIndexDb;
+	MDB_dbi edgeIntIndexDb = genv->edgeIntIndexDb;
+	MDB_dbi edgeLongIndexDb = genv->edgeLongIndexDb;
+	MDB_dbi edgeFloatIndexDb = genv->edgeFloatIndexDb;
+	MDB_dbi edgeDoubleIndexDb = genv->edgeDoubleIndexDb;
+	MDB_dbi edgeCharIndexDb = genv->edgeCharIndexDb;
+	MDB_dbi edgeStringIndexDb = genv->edgeStringIndexDb;
 
 	mdb_close(env, configDb);
 	mdb_close(env, vertexDb);
@@ -2433,7 +2564,26 @@ void closeGraph(GLMDB_env *genv) {
 	mdb_close(env, vertexPropertyKeyDb);
 	mdb_close(env, edgePropertyKeyDb);
 	mdb_close(env, labelDb);
-//	mdb_close(env, vertexStringIndexDb);
+
+	mdb_close(env, vertexBooleanIndexDb);
+	mdb_close(env, vertexByteIndexDb);
+	mdb_close(env, vertexShortIndexDb);
+	mdb_close(env, vertexIntIndexDb);
+	mdb_close(env, vertexLongIndexDb);
+	mdb_close(env, vertexFloatIndexDb);
+	mdb_close(env, vertexDoubleIndexDb);
+	mdb_close(env, vertexCharIndexDb);
+	mdb_close(env, vertexStringIndexDb);
+
+	mdb_close(env, edgeBooleanIndexDb);
+	mdb_close(env, edgeByteIndexDb);
+	mdb_close(env, edgeShortIndexDb);
+	mdb_close(env, edgeIntIndexDb);
+	mdb_close(env, edgeLongIndexDb);
+	mdb_close(env, edgeFloatIndexDb);
+	mdb_close(env, edgeDoubleIndexDb);
+	mdb_close(env, edgeCharIndexDb);
+	mdb_close(env, edgeStringIndexDb);
 
 	mdb_env_close(env);
 }

@@ -10,7 +10,7 @@ import org.junit.Test;
  * Date: 2013/12/02
  * Time: 10:02 PM
  */
-public class ThunderSpeedTest extends BaseGlmdbGraphTest {
+public class SpeedTest extends BaseGlmdbGraphTest {
 
     @Test
     public void testSpeedDude() {

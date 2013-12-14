@@ -14,7 +14,7 @@ import static com.tinkerpop.blueprints.Direction.BOTH;
  * Date: 2013/12/07
  * Time: 8:57 PM
  */
-public class ThunderGraphTestBothEdges extends BaseGlmdbGraphTest {
+public class BothEdgesTest extends BaseGlmdbGraphTest {
 
     @Test
     public void test() {
