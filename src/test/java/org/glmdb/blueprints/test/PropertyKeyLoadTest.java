@@ -11,7 +11,7 @@ import org.junit.Test;
  * Date: 2013/12/05
  * Time: 7:44 AM
  */
-public class ThunderGraphPropertyKeyLoadTest extends BaseGlmdbGraphTest {
+public class PropertyKeyLoadTest extends BaseGlmdbGraphTest {
 
     @Test
     public void testLoadPropertyKeyDb() {

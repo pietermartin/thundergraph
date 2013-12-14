@@ -4,7 +4,7 @@ import java.io.UnsupportedEncodingException;
 import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
 
-import static org.glmdb.blueprints.jni.GlmdbJni.mdb_strerror;
+import static org.glmdb.blueprints.jni.ThunderJni.mdb_strerror;
 
 /**
  * Date: 2013/11/19
@@ -15,7 +15,7 @@ public class Util {
     static void checkErrorCode(int rc) {
         if (rc != 0) {
             String msg = mdb_strerror(rc);
-            throw new GLMDBException(msg, rc);
+            throw new ThunderException(msg, rc);
         }
     }
 

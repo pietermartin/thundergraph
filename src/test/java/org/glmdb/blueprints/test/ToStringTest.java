@@ -8,7 +8,7 @@ import org.junit.Test;
  * Date: 2013/12/08
  * Time: 1:37 AM
  */
-public class ThunderGraphToStringTest extends BaseGlmdbGraphTest {
+public class ToStringTest extends BaseGlmdbGraphTest {
 
     @Test
     public void testPath() {

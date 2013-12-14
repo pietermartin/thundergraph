@@ -5,14 +5,14 @@ import com.tinkerpop.blueprints.Direction;
 import java.io.Closeable;
 import java.util.*;
 
-import static org.glmdb.blueprints.jni.GlmdbJni.*;
+import static org.glmdb.blueprints.jni.ThunderJni.*;
 import static org.glmdb.blueprints.jni.Util.*;
 
 /**
  * Date: 2013/11/18
  * Time: 8:07 PM
  */
-public class Glmdb extends NativeObject implements Closeable {
+public class Thunder extends NativeObject implements Closeable {
 
     private final Map<String, PropertyKeyEnumAndId> vertexPropertyKeyToIdMap = new HashMap<String, PropertyKeyEnumAndId>();
     private final Map<String, PropertyKeyEnumAndId> vertexPropertyKeyToIdToSyncMap = new HashMap<String, PropertyKeyEnumAndId>();
@@ -29,7 +29,7 @@ public class Glmdb extends NativeObject implements Closeable {
     private final Map<Integer, String> idToLabelMap = new HashMap<Integer, String>();
     private final Map<Integer, String> idToLabelSyncMap = new HashMap<Integer, String>();
 
-    public Glmdb(String path) {
+    public Thunder(String path) {
         super(create(path));
         loadPropertyKeys();
         loadLabels();
@@ -65,7 +65,7 @@ public class Glmdb extends NativeObject implements Closeable {
 
     private Transaction createTransaction(Transaction parent, boolean readOnly) {
         long txpointer[] = new long[1];
-        checkErrorCode(mdb_txn_begin(pointer(), parent == null ? 0 : parent.pointer(), readOnly ? GlmdbJni.MDB_RDONLY : 0, txpointer));
+        checkErrorCode(mdb_txn_begin(pointer(), parent == null ? 0 : parent.pointer(), readOnly ? ThunderJni.MDB_RDONLY : 0, txpointer));
         return new Transaction(this, txpointer[0], readOnly);
     }
 

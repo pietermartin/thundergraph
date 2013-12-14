@@ -9,7 +9,7 @@ import org.junit.Test;
  * Date: 2013/12/08
  * Time: 6:31 PM
  */
-public class ThunderGraphTestSequencesPersist extends BaseGlmdbGraphTest {
+public class SequencesPersistTest extends BaseGlmdbGraphTest {
 
     @Test
     public void testSequencePersist() {

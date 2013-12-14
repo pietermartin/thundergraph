@@ -10,7 +10,7 @@ import java.util.*;
  * Date: 2013/11/24
  * Time: 10:22 AM
  */
-public class GlmdbEdgesFromVertexIterable<T extends Edge> implements Iterable<ThunderEdge> {
+public class EdgesFromVertexIterable<T extends Edge> implements Iterable<ThunderEdge> {
 
     private final ThunderGraph thunderGraph;
     private TransactionAndCursor tc;
@@ -18,7 +18,7 @@ public class GlmdbEdgesFromVertexIterable<T extends Edge> implements Iterable<Th
     private final Direction direction;
     private final List<String> labels;
 
-    public GlmdbEdgesFromVertexIterable(ThunderGraph thunderGraph, long vertexId, Direction direction, String[] labels) {
+    public EdgesFromVertexIterable(ThunderGraph thunderGraph, long vertexId, Direction direction, String[] labels) {
         this.thunderGraph = thunderGraph;
         this.tc = this.thunderGraph.getReadOnlyTx();
         this.vertexId = vertexId;
@@ -46,12 +46,12 @@ public class GlmdbEdgesFromVertexIterable<T extends Edge> implements Iterable<Th
         private Iterator<String> labelIterator;
 
         private EdgesIteratorForLabel() {
-            this.labelIterator = GlmdbEdgesFromVertexIterable.this.labels.iterator();
+            this.labelIterator = EdgesFromVertexIterable.this.labels.iterator();
             //No need to check hasNext as Iterator<ThunderEdge> iterator() ensures there is at least one label.
             this.currentLabel = this.labelIterator.next();
-            this.cursorIsReadOnly = GlmdbEdgesFromVertexIterable.this.tc.isReadOnly();
-            this.cursor = GlmdbEdgesFromVertexIterable.this.thunderGraph.getGlmdb().openCursorToVertexDb(GlmdbEdgesFromVertexIterable.this.tc.getTxn());
-            GlmdbEdgesFromVertexIterable.this.tc.addIteratorCursor(this.cursor);
+            this.cursorIsReadOnly = EdgesFromVertexIterable.this.tc.isReadOnly();
+            this.cursor = EdgesFromVertexIterable.this.thunderGraph.getThunder().openCursorToVertexDb(EdgesFromVertexIterable.this.tc.getTxn());
+            EdgesFromVertexIterable.this.tc.addIteratorCursor(this.cursor);
         }
 
         @Override
@@ -82,17 +82,17 @@ public class GlmdbEdgesFromVertexIterable<T extends Edge> implements Iterable<Th
             if (this.cursorIsReadOnly) {
                 //Upgrade transaction to a writable one.
                 //Replace the current cursor with a new one from the writable transaction
-                GlmdbEdgesFromVertexIterable.this.tc = GlmdbEdgesFromVertexIterable.this.thunderGraph.getWriteTx();
+                EdgesFromVertexIterable.this.tc = EdgesFromVertexIterable.this.thunderGraph.getWriteTx();
                 this.cursorIsReadOnly = false;
-                this.cursor = GlmdbEdgesFromVertexIterable.this.thunderGraph.getGlmdb().openAndPositionCursorOnEdgeInVertexDb(
-                        GlmdbEdgesFromVertexIterable.this.tc.getTxn(),
-                        GlmdbEdgesFromVertexIterable.this.vertexId,
-                        (this.internalNext.getOutVertexId() == GlmdbEdgesFromVertexIterable.this.vertexId ? Direction.OUT : Direction.IN),
+                this.cursor = EdgesFromVertexIterable.this.thunderGraph.getThunder().openAndPositionCursorOnEdgeInVertexDb(
+                        EdgesFromVertexIterable.this.tc.getTxn(),
+                        EdgesFromVertexIterable.this.vertexId,
+                        (this.internalNext.getOutVertexId() == EdgesFromVertexIterable.this.vertexId ? Direction.OUT : Direction.IN),
                         this.internalNext.getLabel(),
                         this.internalNext.id
                 );
             }
-            GlmdbEdgesFromVertexIterable.this.thunderGraph.getGlmdb().removeEdge(GlmdbEdgesFromVertexIterable.this.tc.getTxn(), this.internalNext.id);
+            EdgesFromVertexIterable.this.thunderGraph.getThunder().removeEdge(EdgesFromVertexIterable.this.tc.getTxn(), this.internalNext.id);
         }
 
         private ThunderEdge internalNext() {
@@ -104,9 +104,9 @@ public class GlmdbEdgesFromVertexIterable<T extends Edge> implements Iterable<Th
             while (this.currentLabel != null) {
                 if (this.goToFirst) {
                     this.goToFirst = false;
-                    if (GlmdbEdgesFromVertexIterable.this.thunderGraph.getGlmdb().getFirstEdgeFromVertex(
-                            this.cursor, GlmdbEdgesFromVertexIterable.this.direction, currentLabel, GlmdbEdgesFromVertexIterable.this.vertexId, edgeIdArray, outVertexIdArray, inVertexIdArray)) {
-                        return new ThunderEdge(GlmdbEdgesFromVertexIterable.this.thunderGraph, edgeIdArray[0], currentLabel, outVertexIdArray[0], inVertexIdArray[0]);
+                    if (EdgesFromVertexIterable.this.thunderGraph.getThunder().getFirstEdgeFromVertex(
+                            this.cursor, EdgesFromVertexIterable.this.direction, currentLabel, EdgesFromVertexIterable.this.vertexId, edgeIdArray, outVertexIdArray, inVertexIdArray)) {
+                        return new ThunderEdge(EdgesFromVertexIterable.this.thunderGraph, edgeIdArray[0], currentLabel, outVertexIdArray[0], inVertexIdArray[0]);
                     } else {
                         if (this.labelIterator.hasNext()) {
                             this.currentLabel = this.labelIterator.next();
@@ -116,9 +116,9 @@ public class GlmdbEdgesFromVertexIterable<T extends Edge> implements Iterable<Th
                         }
                     }
                 } else {
-                    if (GlmdbEdgesFromVertexIterable.this.thunderGraph.getGlmdb().getNextEdgeFromVertex(
-                            this.cursor, GlmdbEdgesFromVertexIterable.this.direction, currentLabel, GlmdbEdgesFromVertexIterable.this.vertexId, edgeIdArray, outVertexIdArray, inVertexIdArray)) {
-                        return new ThunderEdge(GlmdbEdgesFromVertexIterable.this.thunderGraph, edgeIdArray[0], currentLabel, outVertexIdArray[0], inVertexIdArray[0]);
+                    if (EdgesFromVertexIterable.this.thunderGraph.getThunder().getNextEdgeFromVertex(
+                            this.cursor, EdgesFromVertexIterable.this.direction, currentLabel, EdgesFromVertexIterable.this.vertexId, edgeIdArray, outVertexIdArray, inVertexIdArray)) {
+                        return new ThunderEdge(EdgesFromVertexIterable.this.thunderGraph, edgeIdArray[0], currentLabel, outVertexIdArray[0], inVertexIdArray[0]);
                     } else {
                         if (this.labelIterator.hasNext()) {
                             this.currentLabel = this.labelIterator.next();
@@ -142,9 +142,9 @@ public class GlmdbEdgesFromVertexIterable<T extends Edge> implements Iterable<Th
         private boolean goToFirst = true;
 
         private EdgesIterator() {
-            this.cursorIsReadOnly = GlmdbEdgesFromVertexIterable.this.tc.isReadOnly();
-            this.cursor = GlmdbEdgesFromVertexIterable.this.thunderGraph.getGlmdb().openCursorToVertexDb(GlmdbEdgesFromVertexIterable.this.tc.getTxn());
-            GlmdbEdgesFromVertexIterable.this.tc.addIteratorCursor(this.cursor);
+            this.cursorIsReadOnly = EdgesFromVertexIterable.this.tc.isReadOnly();
+            this.cursor = EdgesFromVertexIterable.this.thunderGraph.getThunder().openCursorToVertexDb(EdgesFromVertexIterable.this.tc.getTxn());
+            EdgesFromVertexIterable.this.tc.addIteratorCursor(this.cursor);
         }
 
         @Override
@@ -175,17 +175,17 @@ public class GlmdbEdgesFromVertexIterable<T extends Edge> implements Iterable<Th
             if (this.cursorIsReadOnly) {
                 //Upgrade transaction to a writable one.
                 //Replace the current cursor with a new one from the writable transaction
-                GlmdbEdgesFromVertexIterable.this.tc = GlmdbEdgesFromVertexIterable.this.thunderGraph.getWriteTx();
+                EdgesFromVertexIterable.this.tc = EdgesFromVertexIterable.this.thunderGraph.getWriteTx();
                 this.cursorIsReadOnly = false;
-                this.cursor = GlmdbEdgesFromVertexIterable.this.thunderGraph.getGlmdb().openAndPositionCursorOnEdgeInVertexDb(
-                        GlmdbEdgesFromVertexIterable.this.tc.getTxn(),
-                        GlmdbEdgesFromVertexIterable.this.vertexId,
-                        (this.internalNext.getOutVertexId() == GlmdbEdgesFromVertexIterable.this.vertexId ? Direction.OUT : Direction.IN),
+                this.cursor = EdgesFromVertexIterable.this.thunderGraph.getThunder().openAndPositionCursorOnEdgeInVertexDb(
+                        EdgesFromVertexIterable.this.tc.getTxn(),
+                        EdgesFromVertexIterable.this.vertexId,
+                        (this.internalNext.getOutVertexId() == EdgesFromVertexIterable.this.vertexId ? Direction.OUT : Direction.IN),
                         this.internalNext.getLabel(),
                         this.internalNext.id
                 );
             }
-            GlmdbEdgesFromVertexIterable.this.thunderGraph.getGlmdb().removeEdge(GlmdbEdgesFromVertexIterable.this.tc.getTxn(), this.internalNext.id);
+            EdgesFromVertexIterable.this.thunderGraph.getThunder().removeEdge(EdgesFromVertexIterable.this.tc.getTxn(), this.internalNext.id);
         }
 
         private ThunderEdge internalNext() {
@@ -197,16 +197,16 @@ public class GlmdbEdgesFromVertexIterable<T extends Edge> implements Iterable<Th
 
             if (this.goToFirst) {
                 this.goToFirst = false;
-                if (GlmdbEdgesFromVertexIterable.this.thunderGraph.getGlmdb().getFirstEdgeFromVertex(
-                        this.cursor, GlmdbEdgesFromVertexIterable.this.direction, GlmdbEdgesFromVertexIterable.this.vertexId, labelArray, edgeIdArray, outVertexIdArray, inVertexIdArray)) {
-                    return new ThunderEdge(GlmdbEdgesFromVertexIterable.this.thunderGraph, edgeIdArray[0], labelArray[0], outVertexIdArray[0], inVertexIdArray[0]);
+                if (EdgesFromVertexIterable.this.thunderGraph.getThunder().getFirstEdgeFromVertex(
+                        this.cursor, EdgesFromVertexIterable.this.direction, EdgesFromVertexIterable.this.vertexId, labelArray, edgeIdArray, outVertexIdArray, inVertexIdArray)) {
+                    return new ThunderEdge(EdgesFromVertexIterable.this.thunderGraph, edgeIdArray[0], labelArray[0], outVertexIdArray[0], inVertexIdArray[0]);
                 } else {
                     return null;
                 }
             } else {
-                if (GlmdbEdgesFromVertexIterable.this.thunderGraph.getGlmdb().getNextEdgeFromVertex(
-                        this.cursor, GlmdbEdgesFromVertexIterable.this.direction, GlmdbEdgesFromVertexIterable.this.vertexId, labelArray, edgeIdArray, outVertexIdArray, inVertexIdArray)) {
-                    return new ThunderEdge(GlmdbEdgesFromVertexIterable.this.thunderGraph, edgeIdArray[0], labelArray[0], outVertexIdArray[0], inVertexIdArray[0]);
+                if (EdgesFromVertexIterable.this.thunderGraph.getThunder().getNextEdgeFromVertex(
+                        this.cursor, EdgesFromVertexIterable.this.direction, EdgesFromVertexIterable.this.vertexId, labelArray, edgeIdArray, outVertexIdArray, inVertexIdArray)) {
+                    return new ThunderEdge(EdgesFromVertexIterable.this.thunderGraph, edgeIdArray[0], labelArray[0], outVertexIdArray[0], inVertexIdArray[0]);
                 } else {
                     return null;
                 }

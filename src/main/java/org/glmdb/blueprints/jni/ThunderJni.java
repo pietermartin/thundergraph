@@ -4,7 +4,7 @@ package org.glmdb.blueprints.jni;
  * Date: 2013/11/17
  * Time: 4:28 PM
  */
-public class GlmdbJni {
+public class ThunderJni {
 
     static {
         try {
@@ -16,53 +16,6 @@ public class GlmdbJni {
         init();
     }
 
-//    /**
-//     * <a href="http://symas.com/mdb/doc/group__mdb.html#structMDB__envinfo">details</a>
-//     */
-//    static public class MDB_envinfo {
-//        public long me_mapaddr;
-//        public long me_mapsize;
-//        public long me_last_pgno;
-//        public long me_last_txnid;
-//        public long me_maxreaders;
-//        public long me_numreaders;
-//
-//        @Override
-//        public String toString() {
-//            return "{" +
-//                    "me_last_pgno=" + me_last_pgno +
-//                    ", me_mapaddr=" + me_mapaddr +
-//                    ", me_mapsize=" + me_mapsize +
-//                    ", me_last_txnid=" + me_last_txnid +
-//                    ", me_maxreaders=" + me_maxreaders +
-//                    ", me_numreaders=" + me_numreaders +
-//                    '}';
-//        }
-//    }
-//
-//    /**
-//     * <a href="http://symas.com/mdb/doc/group__mdb.html#structMDB_stat">details</a>
-//     */
-//    public static class MDB_stat {
-//        public long ms_psize;
-//        public long ms_depth;
-//        public long ms_branch_pages;
-//        public long ms_leaf_pages;
-//        public long ms_overflow_pages;
-//        public long ms_entries;
-//
-//        @Override
-//        public String toString() {
-//            return "{" +
-//                    "ms_branch_pages=" + ms_branch_pages +
-//                    ", ms_psize=" + ms_psize +
-//                    ", ms_depth=" + ms_depth +
-//                    ", ms_leaf_pages=" + ms_leaf_pages +
-//                    ", ms_overflow_pages=" + ms_overflow_pages +
-//                    ", ms_entries=" + ms_entries +
-//                    '}';
-//        }
-//    }
 
     /**
      * This loads all lmdb's constants
@@ -167,7 +120,7 @@ public class GlmdbJni {
     static public int MDB_BAD_RSLOT;
     static public int MDB_LAST_ERRCODE;
 
-    //Glmdb error codes
+    //Thunder error codes
     static public int GLMDB_WRITE_NULL = -30599;
     static public int GLMDB_END_OF_EDGES = -30598;
 

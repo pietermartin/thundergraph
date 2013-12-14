@@ -11,7 +11,7 @@ import org.junit.Test;
  * Date: 2013/12/08
  * Time: 5:21 PM
  */
-public class TestGraphDataPersist extends BaseGlmdbGraphTest  {
+public class DataPersistTest extends BaseGlmdbGraphTest  {
 
     @Test
     public void testGraphDataPersists() {

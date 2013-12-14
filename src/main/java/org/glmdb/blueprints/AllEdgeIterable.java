@@ -9,29 +9,26 @@ import java.util.NoSuchElementException;
  * Date: 2013/11/24
  * Time: 10:22 AM
  */
-public class GlmdbEdgeForKeyValueIterable<T extends Edge> implements Iterable<ThunderEdge> {
+public class AllEdgeIterable<T extends Edge> implements Iterable<ThunderEdge> {
 
     private final ThunderGraph thunderGraph;
     private final TransactionAndCursor tc;
-    private String key;
-    private Object value;
 
-    public GlmdbEdgeForKeyValueIterable(ThunderGraph thunderGraph, String key, Object value) {
+    public AllEdgeIterable(ThunderGraph thunderGraph) {
         this.thunderGraph = thunderGraph;
         this.tc = this.thunderGraph.getReadOnlyTx();
-        this.key = key;
-        this.value = value;
     }
 
     @Override
     public Iterator<ThunderEdge> iterator() {
-        return new EdgeForKeyValueIterator();
+        return new EdgesIterator();
     }
 
-    private final class EdgeForKeyValueIterator implements Iterator<ThunderEdge>  {
+    private class EdgesIterator implements Iterator<ThunderEdge> {
 
         private ThunderEdge next;
         private boolean goToFirst = true;
+        private long previousEdgeId;
 
         @Override
         public boolean hasNext() {
@@ -66,14 +63,16 @@ public class GlmdbEdgeForKeyValueIterable<T extends Edge> implements Iterable<Th
             long inVertexIdArray[] = new long[1];
             if (this.goToFirst) {
                 this.goToFirst = false;
-                if (GlmdbEdgeForKeyValueIterable.this.thunderGraph.getGlmdb().getFirstEdgeForKeyValue(tc.getEdgeCursor(), edgeIdArray, labelArray, outVertexIdArray, inVertexIdArray, GlmdbEdgeForKeyValueIterable.this.key, GlmdbEdgeForKeyValueIterable.this.value)) {
-                    return new ThunderEdge(GlmdbEdgeForKeyValueIterable.this.thunderGraph, edgeIdArray[0], labelArray[0], outVertexIdArray[0], inVertexIdArray[0]);
+                if (AllEdgeIterable.this.thunderGraph.getThunder().getFirstEdge(tc.getEdgeCursor(), edgeIdArray, labelArray, outVertexIdArray, inVertexIdArray)) {
+                    this.previousEdgeId = edgeIdArray[0];
+                    return new ThunderEdge(AllEdgeIterable.this.thunderGraph, edgeIdArray[0], labelArray[0], outVertexIdArray[0], inVertexIdArray[0]);
                 } else {
                     return null;
                 }
             } else {
-                if (GlmdbEdgeForKeyValueIterable.this.thunderGraph.getGlmdb().getNextEdgeForKeyValue(tc.getEdgeCursor(), edgeIdArray, labelArray, outVertexIdArray, inVertexIdArray, GlmdbEdgeForKeyValueIterable.this.key, GlmdbEdgeForKeyValueIterable.this.value)) {
-                    return new ThunderEdge(GlmdbEdgeForKeyValueIterable.this.thunderGraph, edgeIdArray[0], labelArray[0], outVertexIdArray[0], inVertexIdArray[0]);
+                if (AllEdgeIterable.this.thunderGraph.getThunder().getNextEdge(tc.getEdgeCursor(), this.previousEdgeId, edgeIdArray, labelArray, outVertexIdArray, inVertexIdArray)) {
+                    this.previousEdgeId = edgeIdArray[0];
+                    return new ThunderEdge(AllEdgeIterable.this.thunderGraph, edgeIdArray[0], labelArray[0], outVertexIdArray[0], inVertexIdArray[0]);
                 } else {
                     return null;
                 }

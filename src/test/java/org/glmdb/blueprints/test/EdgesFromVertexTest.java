@@ -15,7 +15,7 @@ import java.util.List;
  * Date: 2013/11/26
  * Time: 9:52 PM
  */
-public class GlmdbEdgesFromVertexTest extends BaseGlmdbGraphTest {
+public class EdgesFromVertexTest extends BaseGlmdbGraphTest {
 
     @Test
     public void testEdgesFromVertices() {

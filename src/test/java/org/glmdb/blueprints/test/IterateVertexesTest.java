@@ -13,7 +13,7 @@ import java.util.List;
  * Date: 2013/11/24
  * Time: 11:01 AM
  */
-public class GlmdbGraphIterateVertexesTest extends BaseGlmdbGraphTest  {
+public class IterateVertexesTest extends BaseGlmdbGraphTest  {
 
 
     @Test

@@ -14,7 +14,7 @@ import java.util.UUID;
  * Date: 2013/11/19
  * Time: 11:24 PM
  */
-public class GlmdbGraphGetPropertyKeysTest extends BaseGlmdbGraphTest {
+public class GetPropertyKeysTest extends BaseGlmdbGraphTest {
 
     @Test
     public void testEmptyPropertyKeys() {

@@ -11,7 +11,7 @@ import java.nio.ByteBuffer;
  * Date: 2013/11/19
  * Time: 11:24 PM
  */
-public class GlmdbGraphVertexesTest extends BaseGlmdbGraphTest  {
+public class VertexesTest extends BaseGlmdbGraphTest  {
 
     @Test
     public void testOpenGraph() {

@@ -5,7 +5,7 @@ import java.io.*;
 /**
  * Date: 2013/11/17
  * Time: 6:29 PM
- * Contains helper methods for loading native libraries, particularly JNI.
+ * Contains helper methods for loading native libraries, particularly ThunderJni.
  * Thanks to gkubisa
  *
  * @author gkubisa
