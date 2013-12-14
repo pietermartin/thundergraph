@@ -75,7 +75,7 @@
                                     <arg value="-classpath"/>
                                     <arg value="${project.build.outputDirectory}"/>
                                     <arg value="-force"/>
-                                    <arg value="org.glmdb.blueprints.jni.GlmdbJni"/>
+                                    <arg value="org.glmdb.blueprints.jni.ThunderJni"/>
                                 </exec>
 
                                 <exec executable="make" dir="${project.basedir}/src/main/native">

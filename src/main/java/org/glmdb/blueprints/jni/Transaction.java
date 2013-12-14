@@ -1,6 +1,6 @@
 package org.glmdb.blueprints.jni;
 
-import static org.glmdb.blueprints.jni.GlmdbJni.*;
+import static org.glmdb.blueprints.jni.ThunderJni.*;
 
 /**
  * Date: 2013/11/19
@@ -8,10 +8,10 @@ import static org.glmdb.blueprints.jni.GlmdbJni.*;
  */
 public class Transaction extends NativeObject {
 
-    private final Glmdb env;
+    private final Thunder env;
     private final boolean readOnly;
 
-    Transaction(Glmdb env, long self, boolean readOnly) {
+    Transaction(Thunder env, long self, boolean readOnly) {
         super(self);
         this.env = env;
         this.readOnly = readOnly;

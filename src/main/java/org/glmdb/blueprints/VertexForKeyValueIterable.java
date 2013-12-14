@@ -9,14 +9,14 @@ import java.util.NoSuchElementException;
  * Date: 2013/11/24
  * Time: 10:22 AM
  */
-public class GlmdbVertexForKeyValueIterable<T extends Vertex> implements Iterable<ThunderVertex> {
+public class VertexForKeyValueIterable<T extends Vertex> implements Iterable<ThunderVertex> {
 
     private final ThunderGraph thunderGraph;
     private final TransactionAndCursor tc;
     private String key;
     private Object value;
 
-    public GlmdbVertexForKeyValueIterable(ThunderGraph thunderGraph, String key, Object value) {
+    public VertexForKeyValueIterable(ThunderGraph thunderGraph, String key, Object value) {
         this.thunderGraph = thunderGraph;
         this.tc = this.thunderGraph.getReadOnlyTx();
         this.key = key;
@@ -25,10 +25,10 @@ public class GlmdbVertexForKeyValueIterable<T extends Vertex> implements Iterabl
 
     @Override
     public Iterator<ThunderVertex> iterator() {
-        return new VertexForKeyValueIterable();
+        return new VertexForKeyValueIterator();
     }
 
-    private final class VertexForKeyValueIterable implements Iterator<ThunderVertex> {
+    private final class VertexForKeyValueIterator implements Iterator<ThunderVertex> {
 
         private ThunderVertex next;
         private boolean goToFirst = true;
@@ -63,14 +63,14 @@ public class GlmdbVertexForKeyValueIterable<T extends Vertex> implements Iterabl
             long vertexIdArray[] = new long[1];
             if (this.goToFirst) {
                 this.goToFirst = false;
-                if (GlmdbVertexForKeyValueIterable.this.thunderGraph.getGlmdb().getFirstVertexForKeyValue(tc.getVertexCursor(), vertexIdArray, GlmdbVertexForKeyValueIterable.this.key, GlmdbVertexForKeyValueIterable.this.value)) {
-                    return new ThunderVertex(GlmdbVertexForKeyValueIterable.this.thunderGraph, vertexIdArray[0]);
+                if (VertexForKeyValueIterable.this.thunderGraph.getThunder().getFirstVertexForKeyValue(tc.getVertexCursor(), vertexIdArray, VertexForKeyValueIterable.this.key, VertexForKeyValueIterable.this.value)) {
+                    return new ThunderVertex(VertexForKeyValueIterable.this.thunderGraph, vertexIdArray[0]);
                 } else {
                     return null;
                 }
             } else {
-                if (GlmdbVertexForKeyValueIterable.this.thunderGraph.getGlmdb().getNextVertexForKeyValue(tc.getVertexCursor(), vertexIdArray, GlmdbVertexForKeyValueIterable.this.key, GlmdbVertexForKeyValueIterable.this.value)) {
-                    return new ThunderVertex(GlmdbVertexForKeyValueIterable.this.thunderGraph, vertexIdArray[0]);
+                if (VertexForKeyValueIterable.this.thunderGraph.getThunder().getNextVertexForKeyValue(tc.getVertexCursor(), vertexIdArray, VertexForKeyValueIterable.this.key, VertexForKeyValueIterable.this.value)) {
+                    return new ThunderVertex(VertexForKeyValueIterable.this.thunderGraph, vertexIdArray[0]);
                 } else {
                     return null;
                 }

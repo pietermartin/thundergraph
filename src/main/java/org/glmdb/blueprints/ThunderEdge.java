@@ -11,7 +11,7 @@ import java.util.Set;
  * Date: 2013/11/23
  * Time: 8:54 PM
  */
-public class ThunderEdge extends GlmdbElement implements Edge {
+public class ThunderEdge extends ThunderElement implements Edge {
 
     private String label;
     private long outVertexId;
@@ -39,25 +39,25 @@ public class ThunderEdge extends GlmdbElement implements Edge {
             throw new IllegalArgumentException("Can not set the 'label' property on an element");
         }
         TransactionAndCursor tc = this.thunderGraph.getWriteTx();
-        this.thunderGraph.getGlmdb().setProperty(tc.getTxn(), tc.getEdgeCursor(), this.id, key, value, false);
+        this.thunderGraph.getThunder().setProperty(tc.getTxn(), tc.getEdgeCursor(), this.id, key, value, false);
     }
 
     @Override
     public <T> T getProperty(String key) {
         TransactionAndCursor tc = this.thunderGraph.getReadOnlyTx();
-        return (T) this.thunderGraph.getGlmdb().getProperty(tc.getEdgeCursor(), this.id, key, false);
+        return (T) this.thunderGraph.getThunder().getProperty(tc.getEdgeCursor(), this.id, key, false);
     }
 
     @Override
     public <T> T removeProperty(String key) {
         TransactionAndCursor tc = this.thunderGraph.getWriteTx();
-        return (T) this.thunderGraph.getGlmdb().removeProperty(tc.getEdgeCursor(), this.id, key, false);
+        return (T) this.thunderGraph.getThunder().removeProperty(tc.getEdgeCursor(), this.id, key, false);
     }
 
     @Override
     public Set<String> getPropertyKeys() {
         TransactionAndCursor tc = this.thunderGraph.getReadOnlyTx();
-        return this.thunderGraph.getGlmdb().getPropertyKeys(tc.getEdgeCursor(), this.id, false);
+        return this.thunderGraph.getThunder().getPropertyKeys(tc.getEdgeCursor(), this.id, false);
     }
 
 
@@ -75,7 +75,7 @@ public class ThunderEdge extends GlmdbElement implements Edge {
     @Override
     public void remove() {
         TransactionAndCursor tc = this.thunderGraph.getWriteTx();
-        this.thunderGraph.getGlmdb().removeEdge(tc.getTxn(), this.id);
+        this.thunderGraph.getThunder().removeEdge(tc.getTxn(), this.id);
     }
 
     @Override

@@ -11,7 +11,7 @@ import java.util.Set;
  * Date: 2013/11/17
  * Time: 4:06 PM
  */
-public class ThunderVertex extends GlmdbElement implements Vertex {
+public class ThunderVertex extends ThunderElement implements Vertex {
 
     public ThunderVertex(ThunderGraph thunderGraph, long id) {
         super(thunderGraph, id);
@@ -32,35 +32,35 @@ public class ThunderVertex extends GlmdbElement implements Vertex {
             throw new IllegalArgumentException("Can not set the 'label' property on an element");
         }
         TransactionAndCursor tc = this.thunderGraph.getWriteTx();
-        this.thunderGraph.getGlmdb().setProperty(tc.getTxn(), tc.getVertexCursor(), this.id, key, value, true);
+        this.thunderGraph.getThunder().setProperty(tc.getTxn(), tc.getVertexCursor(), this.id, key, value, true);
     }
 
     @Override
     public <T> T getProperty(String key) {
         TransactionAndCursor tc = this.thunderGraph.getReadOnlyTx();
-        return (T) this.thunderGraph.getGlmdb().getProperty(tc.getVertexCursor(), this.id, key, true);
+        return (T) this.thunderGraph.getThunder().getProperty(tc.getVertexCursor(), this.id, key, true);
     }
 
     @Override
     public <T> T removeProperty(String key) {
         TransactionAndCursor tc = this.thunderGraph.getWriteTx();
-        return (T) this.thunderGraph.getGlmdb().removeProperty(tc.getVertexCursor(), this.id, key, true);
+        return (T) this.thunderGraph.getThunder().removeProperty(tc.getVertexCursor(), this.id, key, true);
     }
 
     @Override
     public Set<String> getPropertyKeys() {
         TransactionAndCursor tc = this.thunderGraph.getReadOnlyTx();
-        return this.thunderGraph.getGlmdb().getPropertyKeys(tc.getVertexCursor(), this.id, true);
+        return this.thunderGraph.getThunder().getPropertyKeys(tc.getVertexCursor(), this.id, true);
     }
 
     @Override
     public Iterable<Edge> getEdges(Direction direction, String... labels) {
-        return new GlmdbEdgesFromVertexIterable(this.thunderGraph, this.id, direction, labels);
+        return new EdgesFromVertexIterable(this.thunderGraph, this.id, direction, labels);
     }
 
     @Override
     public Iterable<Vertex> getVertices(Direction direction, String... labels) {
-        return new GlmdbVertexesFromVertexIterable(this.thunderGraph, this.id, direction, labels);
+        return new VertexesFromVertexIterable(this.thunderGraph, this.id, direction, labels);
     }
 
     @Override
@@ -77,6 +77,6 @@ public class ThunderVertex extends GlmdbElement implements Vertex {
     @Override
     public void remove() {
         TransactionAndCursor tc = this.thunderGraph.getWriteTx();
-        this.thunderGraph.getGlmdb().removeVertex(tc.getTxn(), this.id);
+        this.thunderGraph.getThunder().removeVertex(tc.getTxn(), this.id);
     }
 }

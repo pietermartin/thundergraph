@@ -8,22 +8,22 @@ import java.io.Closeable;
  */
 public class Cursor extends NativeObject implements Closeable {
 
-    private final Glmdb env;
+    private final Thunder env;
 
-    Cursor(Glmdb env, long self) {
+    Cursor(Thunder env, long self) {
         super(self);
         this.env = env;
     }
 
     public void close() {
         if( self!=0 ) {
-            GlmdbJni.mdb_cursor_close(self);
+            ThunderJni.mdb_cursor_close(self);
             self=0;
         }
     }
 
     public void renew(Transaction tx) {
-        Util.checkErrorCode(GlmdbJni.mdb_cursor_renew(tx.pointer(), pointer()));
+        Util.checkErrorCode(ThunderJni.mdb_cursor_renew(tx.pointer(), pointer()));
     }
 
 }
