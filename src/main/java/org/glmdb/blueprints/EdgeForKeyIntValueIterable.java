@@ -9,14 +9,14 @@ import java.util.NoSuchElementException;
  * Date: 2013/11/24
  * Time: 10:22 AM
  */
-public class EdgeForKeyValueIterable<T extends Edge> implements Iterable<ThunderEdge> {
+public class EdgeForKeyIntValueIterable<T extends Edge> implements Iterable<ThunderEdge> {
 
     private final ThunderGraph thunderGraph;
     private final TransactionAndCursor tc;
     private String key;
-    private Object value;
+    private int value;
 
-    public EdgeForKeyValueIterable(ThunderGraph thunderGraph, String key, Object value) {
+    public EdgeForKeyIntValueIterable(ThunderGraph thunderGraph, String key, int value) {
         this.thunderGraph = thunderGraph;
         this.tc = this.thunderGraph.getReadOnlyTx();
         this.key = key;
@@ -25,10 +25,10 @@ public class EdgeForKeyValueIterable<T extends Edge> implements Iterable<Thunder
 
     @Override
     public Iterator<ThunderEdge> iterator() {
-        return new EdgeForKeyValueIterator();
+        return new EdgeForKeyIntValueIterator();
     }
 
-    private final class EdgeForKeyValueIterator implements Iterator<ThunderEdge>  {
+    private final class EdgeForKeyIntValueIterator implements Iterator<ThunderEdge>  {
 
         private ThunderEdge next;
         private boolean goToFirst = true;
@@ -66,14 +66,14 @@ public class EdgeForKeyValueIterable<T extends Edge> implements Iterable<Thunder
             long inVertexIdArray[] = new long[1];
             if (this.goToFirst) {
                 this.goToFirst = false;
-                if (EdgeForKeyValueIterable.this.thunderGraph.getThunder().getFirstEdgeForKeyValue(tc.getEdgeCursor(), edgeIdArray, labelArray, outVertexIdArray, inVertexIdArray, EdgeForKeyValueIterable.this.key, EdgeForKeyValueIterable.this.value)) {
-                    return new ThunderEdge(EdgeForKeyValueIterable.this.thunderGraph, edgeIdArray[0], labelArray[0], outVertexIdArray[0], inVertexIdArray[0]);
+                if (EdgeForKeyIntValueIterable.this.thunderGraph.getThunder().getFirstEdgeForKeyIntValue(tc.getEdgeCursor(), edgeIdArray, labelArray, outVertexIdArray, inVertexIdArray, EdgeForKeyIntValueIterable.this.key, EdgeForKeyIntValueIterable.this.value)) {
+                    return new ThunderEdge(EdgeForKeyIntValueIterable.this.thunderGraph, edgeIdArray[0], labelArray[0], outVertexIdArray[0], inVertexIdArray[0]);
                 } else {
                     return null;
                 }
             } else {
-                if (EdgeForKeyValueIterable.this.thunderGraph.getThunder().getNextEdgeForKeyValue(tc.getEdgeCursor(), edgeIdArray, labelArray, outVertexIdArray, inVertexIdArray, EdgeForKeyValueIterable.this.key, EdgeForKeyValueIterable.this.value)) {
-                    return new ThunderEdge(EdgeForKeyValueIterable.this.thunderGraph, edgeIdArray[0], labelArray[0], outVertexIdArray[0], inVertexIdArray[0]);
+                if (EdgeForKeyIntValueIterable.this.thunderGraph.getThunder().getNextEdgeForKeyIntValue(tc.getEdgeCursor(), edgeIdArray, labelArray, outVertexIdArray, inVertexIdArray, EdgeForKeyIntValueIterable.this.key, EdgeForKeyIntValueIterable.this.value)) {
+                    return new ThunderEdge(EdgeForKeyIntValueIterable.this.thunderGraph, edgeIdArray[0], labelArray[0], outVertexIdArray[0], inVertexIdArray[0]);
                 } else {
                     return null;
                 }

@@ -2,6 +2,7 @@ package org.glmdb.blueprints.test;
 
 import com.tinkerpop.blueprints.Vertex;
 import org.glmdb.blueprints.ThunderGraph;
+import org.glmdb.blueprints.jni.DbEnum;
 import org.junit.Assert;
 import org.junit.Test;
 
@@ -11,7 +12,7 @@ import java.nio.ByteBuffer;
  * Date: 2013/11/19
  * Time: 11:24 PM
  */
-public class VertexesTest extends BaseGlmdbGraphTest  {
+public class VertexesTest extends BaseGlmdbGraphTest {
 
     @Test
     public void testOpenGraph() {
@@ -131,7 +132,7 @@ public class VertexesTest extends BaseGlmdbGraphTest  {
     @Test
     public void testAddVertexPropertyInt() {
         ThunderGraph thunderGraph = new ThunderGraph(this.dbPath);
-        for (int i = 0; i < 10000; i++) {
+        for (int i = 0; i < 1000; i++) {
             Vertex vertex = thunderGraph.addVertex(null);
             vertex.setProperty("name0", i);
         }
@@ -150,7 +151,62 @@ public class VertexesTest extends BaseGlmdbGraphTest  {
         Assert.assertEquals(111, vertex.getProperty("name0"));
 
         thunderGraph.commit();
+
+        Assert.assertEquals(1, count(thunderGraph.getVertices("name0", 0)));
+        Assert.assertEquals(1, count(thunderGraph.getVertices("name0", 1)));
+        Assert.assertEquals(1, count(thunderGraph.getVertices("name0", 999)));
+
         thunderGraph.shutdown();
+    }
+
+    @Test
+    public void testAddVertexPropertyString() {
+        ThunderGraph thunderGraph = new ThunderGraph(this.dbPath);
+        for (int i = 0; i < 1000; i++) {
+            Vertex vertex = thunderGraph.addVertex(null);
+            vertex.setProperty("name0", "name" + i);
+        }
+        thunderGraph.commit();
+
+        Vertex vertex = thunderGraph.getVertex(0L);
+        Assert.assertNotNull(vertex);
+        Assert.assertEquals("name" + 0, vertex.getProperty("name0"));
+
+        vertex = thunderGraph.getVertex(1L);
+        Assert.assertNotNull(vertex);
+        Assert.assertEquals("name" + 1, vertex.getProperty("name0"));
+
+        vertex = thunderGraph.getVertex(111L);
+        Assert.assertNotNull(vertex);
+        Assert.assertEquals("name" + 111, vertex.getProperty("name0"));
+
+        thunderGraph.commit();
+
+        for (int i = 0; i < 1000; i++) {
+            Assert.assertEquals(1, count(thunderGraph.getVertices("name0", "name" + i)));
+        }
+
+        thunderGraph.shutdown();
+    }
+
+
+    @Test
+    public void testVerticesByKeyValue() {
+        ThunderGraph thunderGraph = new ThunderGraph(this.dbPath);
+        try {
+            Vertex v1 = thunderGraph.addVertex(null);
+            v1.setProperty("name1", 1);
+            Vertex v2 = thunderGraph.addVertex(null);
+            v2.setProperty("name1", 1);
+            Vertex v3 = thunderGraph.addVertex(null);
+            v3.setProperty("name1", 1);
+            thunderGraph.commit();
+
+            Assert.assertEquals(3, count(thunderGraph.getVertices("name1", 1)));
+
+        } finally {
+            thunderGraph.shutdown();
+        }
     }
 
     @Test

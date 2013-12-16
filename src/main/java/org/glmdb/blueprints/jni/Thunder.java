@@ -1,6 +1,7 @@
 package org.glmdb.blueprints.jni;
 
 import com.tinkerpop.blueprints.Direction;
+import com.tinkerpop.blueprints.Element;
 
 import java.io.Closeable;
 import java.util.*;
@@ -18,11 +19,13 @@ public class Thunder extends NativeObject implements Closeable {
     private final Map<String, PropertyKeyEnumAndId> vertexPropertyKeyToIdToSyncMap = new HashMap<String, PropertyKeyEnumAndId>();
     private final Map<Integer, String> vertexPropertyKeyIdToNameMap = new HashMap<Integer, String>();
     private final Map<Integer, String> vertexPropertyKeyIdToNameSyncMap = new HashMap<Integer, String>();
+    private Set<String> vertexIndexedKeys = new HashSet<String>();
 
     private final Map<String, PropertyKeyEnumAndId> edgePropertyKeyToIdMap = new HashMap<String, PropertyKeyEnumAndId>();
     private final Map<String, PropertyKeyEnumAndId> edgePropertyKeyToIdToSyncMap = new HashMap<String, PropertyKeyEnumAndId>();
     private final Map<Integer, String> edgePropertyKeyIdToNameMap = new HashMap<Integer, String>();
     private final Map<Integer, String> edgePropertyKeyIdToNameSyncMap = new HashMap<Integer, String>();
+    private Set<String> edgeIndexedKeys = new HashSet<String>();
 
     private final Map<String, Integer> labelToIdMap = new HashMap<String, Integer>();
     private final Map<String, Integer> labelToIdToSyncMap = new HashMap<String, Integer>();
@@ -52,7 +55,7 @@ public class Thunder extends NativeObject implements Closeable {
         byte[][] value = new byte[1][];
         int rc = mdb_env_get_path(this.pointer(), value);
         checkErrorCode(rc);
-        return (String)bytesToObject(PropertyTypeEnum.STRING, value[0]);
+        return (String) bytesToObject(PropertyTypeEnum.STRING, value[0]);
     }
 
     public Transaction createReadOnlyTransaction() {
@@ -69,21 +72,9 @@ public class Thunder extends NativeObject implements Closeable {
         return new Transaction(this, txpointer[0], readOnly);
     }
 
-    public Cursor openCursorToVertexDb(Transaction tx) {
+    public Cursor openCursor(Transaction tx, DbEnum dbEnum) {
         long cursor[] = new long[1];
-        checkErrorCode(mdb_cursor_open_vertex_db(tx.pointer(), pointer(), cursor));
-        return new Cursor(this, cursor[0]);
-    }
-
-    Cursor openCursorToPropertyKeyDb(Transaction tx, boolean vertex) {
-        long cursor[] = new long[1];
-        checkErrorCode(mdb_cursor_open_property_key_db(tx.pointer(), pointer(), cursor, vertex));
-        return new Cursor(this, cursor[0]);
-    }
-
-    Cursor openCursorToLabelDb(Transaction tx) {
-        long cursor[] = new long[1];
-        checkErrorCode(mdb_cursor_open_label_db(tx.pointer(), pointer(), cursor));
+        checkErrorCode(mdb_cursor_open(tx.pointer(), pointer(), dbEnum.ordinal(), cursor));
         return new Cursor(this, cursor[0]);
     }
 
@@ -91,12 +82,6 @@ public class Thunder extends NativeObject implements Closeable {
         Integer labelId = this.getOrPutLabel(tx, label);
         long cursor[] = new long[1];
         checkErrorCode(mdb_cursor_open_and_position_on_edge_vertex_db(tx.pointer(), pointer(), vertexId, direction.ordinal(), labelId, edgeId, cursor));
-        return new Cursor(this, cursor[0]);
-    }
-
-    public Cursor openCursorToEdgeDb(Transaction tx) {
-        long cursor[] = new long[1];
-        checkErrorCode(mdb_cursor_open_edge_db(tx.pointer(), pointer(), cursor));
         return new Cursor(this, cursor[0]);
     }
 
@@ -141,13 +126,17 @@ public class Thunder extends NativeObject implements Closeable {
         }
     }
 
-    public boolean getFirstVertexForKeyValue(Cursor cursor, long vertexIdArray[], String key, Object value) {
+    public boolean getFirstVertexForKeyStringValue(Cursor cursor, long vertexIdArray[], String key, String value) {
         PropertyKeyEnumAndId propertyKeyEnumAndId = this.vertexPropertyKeyToIdMap.get(key);
         if (propertyKeyEnumAndId != null) {
-            int rc = mdb_get_first_vertex_for_key_value(cursor.pointer(), vertexIdArray, propertyKeyEnumAndId.id, objectToBytes(propertyKeyEnumAndId.propertyTypeEnum, value));
-            if (rc != MDB_NOTFOUND) {
-                checkErrorCode(rc);
-                return true;
+            if (propertyKeyEnumAndId.propertyTypeEnum == PropertyTypeEnum.STRING) {
+                int rc = mdb_get_first_vertex_for_key_string_value(cursor.pointer(), vertexIdArray, propertyKeyEnumAndId.id, value);
+                if (rc != MDB_NOTFOUND) {
+                    checkErrorCode(rc);
+                    return true;
+                } else {
+                    return false;
+                }
             } else {
                 return false;
             }
@@ -156,13 +145,55 @@ public class Thunder extends NativeObject implements Closeable {
         }
     }
 
-    public boolean getNextVertexForKeyValue(Cursor cursor, long vertexIdArray[], String key, Object value) {
+    public boolean getNextVertexForKeyStringValue(Cursor cursor, long vertexIdArray[], String key, String value) {
         PropertyKeyEnumAndId propertyKeyEnumAndId = this.vertexPropertyKeyToIdMap.get(key);
         if (propertyKeyEnumAndId != null) {
-            int rc = mdb_get_next_vertex_for_key_value(cursor.pointer(), vertexIdArray, propertyKeyEnumAndId.id, objectToBytes(propertyKeyEnumAndId.propertyTypeEnum, value));
-            if (rc != MDB_NOTFOUND) {
-                checkErrorCode(rc);
-                return true;
+            if (propertyKeyEnumAndId.propertyTypeEnum == PropertyTypeEnum.STRING) {
+                int rc = mdb_get_next_vertex_for_key_string_value(cursor.pointer(), vertexIdArray, propertyKeyEnumAndId.id, value);
+                if (rc != MDB_NOTFOUND) {
+                    checkErrorCode(rc);
+                    return true;
+                } else {
+                    return false;
+                }
+            } else {
+                return false;
+            }
+        } else {
+            return false;
+        }
+    }
+
+    public boolean getFirstVertexForKeyIntValue(Cursor cursor, long vertexIdArray[], String key, int value) {
+        PropertyKeyEnumAndId propertyKeyEnumAndId = this.vertexPropertyKeyToIdMap.get(key);
+        if (propertyKeyEnumAndId != null) {
+            if (propertyKeyEnumAndId.propertyTypeEnum == PropertyTypeEnum.INT) {
+                int rc = mdb_get_first_vertex_for_key_int_value(cursor.pointer(), vertexIdArray, propertyKeyEnumAndId.id, value);
+                if (rc != MDB_NOTFOUND) {
+                    checkErrorCode(rc);
+                    return true;
+                } else {
+                    return false;
+                }
+            } else {
+                return false;
+            }
+        } else {
+            return false;
+        }
+    }
+
+    public boolean getNextVertexForKeyIntValue(Cursor cursor, long vertexIdArray[], String key, int value) {
+        PropertyKeyEnumAndId propertyKeyEnumAndId = this.vertexPropertyKeyToIdMap.get(key);
+        if (propertyKeyEnumAndId != null) {
+            if (propertyKeyEnumAndId.propertyTypeEnum == PropertyTypeEnum.INT) {
+                int rc = mdb_get_next_vertex_for_key_int_value(cursor.pointer(), vertexIdArray, propertyKeyEnumAndId.id, value);
+                if (rc != MDB_NOTFOUND) {
+                    checkErrorCode(rc);
+                    return true;
+                } else {
+                    return false;
+                }
             } else {
                 return false;
             }
@@ -209,15 +240,19 @@ public class Thunder extends NativeObject implements Closeable {
         }
     }
 
-    public boolean getFirstEdgeForKeyValue(Cursor cursor, long edgeIdArray[], String labelArray[], long outVertexIdArray[], long inVertexIdArray[], String key, Object value) {
+    public boolean getFirstEdgeForKeyStringValue(Cursor cursor, long edgeIdArray[], String labelArray[], long outVertexIdArray[], long inVertexIdArray[], String key, String value) {
         PropertyKeyEnumAndId propertyKeyEnumAndId = this.edgePropertyKeyToIdMap.get(key);
         if (propertyKeyEnumAndId != null) {
-            int labelIdArray[] = new int[1];
-            int rc = mdb_get_first_edge_for_key_value(cursor.pointer(), edgeIdArray, labelIdArray, outVertexIdArray, inVertexIdArray, propertyKeyEnumAndId.id, objectToBytes(propertyKeyEnumAndId.propertyTypeEnum, value));
-            if (rc != MDB_NOTFOUND) {
-                checkErrorCode(rc);
-                labelArray[0] = this.idToLabelMap.get(labelIdArray[0]);
-                return true;
+            if (propertyKeyEnumAndId.propertyTypeEnum == PropertyTypeEnum.STRING) {
+                int labelIdArray[] = new int[1];
+                int rc = mdb_get_first_edge_for_key_string_value(cursor.pointer(), edgeIdArray, labelIdArray, outVertexIdArray, inVertexIdArray, propertyKeyEnumAndId.id, value);
+                if (rc != MDB_NOTFOUND) {
+                    checkErrorCode(rc);
+                    labelArray[0] = this.idToLabelMap.get(labelIdArray[0]);
+                    return true;
+                } else {
+                    return false;
+                }
             } else {
                 return false;
             }
@@ -226,15 +261,19 @@ public class Thunder extends NativeObject implements Closeable {
         }
     }
 
-    public boolean getNextEdgeForKeyValue(Cursor cursor, long edgeIdArray[], String labelArray[], long outVertexIdArray[], long inVertexIdArray[], String key, Object value) {
+    public boolean getNextEdgeForKeyStringValue(Cursor cursor, long edgeIdArray[], String labelArray[], long outVertexIdArray[], long inVertexIdArray[], String key, String value) {
         PropertyKeyEnumAndId propertyKeyEnumAndId = this.edgePropertyKeyToIdMap.get(key);
         if (propertyKeyEnumAndId != null) {
-            int labelIdArray[] = new int[1];
-            int rc = mdb_get_next_edge_for_key_value(cursor.pointer(), edgeIdArray, labelIdArray, outVertexIdArray, inVertexIdArray, propertyKeyEnumAndId.id, objectToBytes(propertyKeyEnumAndId.propertyTypeEnum, value));
-            if (rc != MDB_NOTFOUND) {
-                checkErrorCode(rc);
-                labelArray[0] = this.idToLabelMap.get(labelIdArray[0]);
-                return true;
+            if (propertyKeyEnumAndId.propertyTypeEnum == PropertyTypeEnum.STRING) {
+                int labelIdArray[] = new int[1];
+                int rc = mdb_get_next_edge_for_key_string_value(cursor.pointer(), edgeIdArray, labelIdArray, outVertexIdArray, inVertexIdArray, propertyKeyEnumAndId.id, value);
+                if (rc != MDB_NOTFOUND) {
+                    checkErrorCode(rc);
+                    labelArray[0] = this.idToLabelMap.get(labelIdArray[0]);
+                    return true;
+                } else {
+                    return false;
+                }
             } else {
                 return false;
             }
@@ -242,6 +281,53 @@ public class Thunder extends NativeObject implements Closeable {
             return false;
         }
     }
+
+    public boolean getFirstEdgeForKeyIntValue(Cursor cursor, long edgeIdArray[], String labelArray[], long outVertexIdArray[], long inVertexIdArray[], String key, int value) {
+        PropertyKeyEnumAndId propertyKeyEnumAndId = this.edgePropertyKeyToIdMap.get(key);
+        if (propertyKeyEnumAndId != null) {
+            if (propertyKeyEnumAndId.propertyTypeEnum == PropertyTypeEnum.INT) {
+                int labelIdArray[] = new int[1];
+                int rc = mdb_get_first_edge_for_key_int_value(cursor.pointer(), edgeIdArray, labelIdArray, outVertexIdArray, inVertexIdArray, propertyKeyEnumAndId.id, value);
+                if (rc != MDB_NOTFOUND) {
+                    checkErrorCode(rc);
+                    labelArray[0] = this.idToLabelMap.get(labelIdArray[0]);
+                    return true;
+                } else {
+                    return false;
+                }
+            } else {
+                return false;
+            }
+        } else {
+            return false;
+        }
+    }
+
+    public boolean getNextEdgeForKeyIntValue(Cursor cursor, long edgeIdArray[], String labelArray[], long outVertexIdArray[], long inVertexIdArray[], String key, int value) {
+        PropertyKeyEnumAndId propertyKeyEnumAndId = this.edgePropertyKeyToIdMap.get(key);
+        if (propertyKeyEnumAndId != null) {
+            if (propertyKeyEnumAndId.propertyTypeEnum == PropertyTypeEnum.INT) {
+                int labelIdArray[] = new int[1];
+                int rc = mdb_get_next_edge_for_key_int_value(cursor.pointer(), edgeIdArray, labelIdArray, outVertexIdArray, inVertexIdArray, propertyKeyEnumAndId.id, value);
+                if (rc != MDB_NOTFOUND) {
+                    checkErrorCode(rc);
+                    labelArray[0] = this.idToLabelMap.get(labelIdArray[0]);
+                    return true;
+                } else {
+                    return false;
+                }
+            } else {
+                return false;
+            }
+        } else {
+            return false;
+        }
+    }
+
+
+
+
+
 
     public boolean getFirstEdgeFromVertex(Cursor cursor, Direction direction, String label, long fromVertexId, long edgeIdArray[], long outVertexIdArray[], long inVertexIdArray[]) {
         Integer labelId = this.labelToIdMap.get(label);
@@ -304,34 +390,35 @@ public class Thunder extends NativeObject implements Closeable {
         return edgeId[0];
     }
 
-    public void setProperty(Transaction txn, Cursor cursor, long vertexId, String key, Object value, boolean vertex) {
+    public void setProperty(Transaction txn, Cursor cursor, long elementId, String key, Object value, boolean vertex) {
+        boolean indexed = (vertex ? this.vertexIndexedKeys.contains(key) : this.edgeIndexedKeys.contains(key));
         if (value instanceof String) {
-            PropertyKeyEnumAndId propertyKeyEnumAndId = this.getOrPutPropertyKey(txn, key, PropertyTypeEnum.STRING, vertex, false);
-            checkErrorCode(mdb_set_property_string(this.pointer(), txn.pointer(), cursor.pointer(), vertexId, propertyKeyEnumAndId.id, (String) value, vertex, propertyKeyEnumAndId.indexed));
+            PropertyKeyEnumAndId propertyKeyEnumAndId = this.getOrPutPropertyKey(txn, key, PropertyTypeEnum.STRING, vertex, indexed);
+            checkErrorCode(mdb_set_property_string(this.pointer(), txn.pointer(), cursor.pointer(), elementId, propertyKeyEnumAndId.id, (String) value, vertex, propertyKeyEnumAndId.indexed));
         } else if (value instanceof Boolean) {
-            PropertyKeyEnumAndId propertyKeyEnumAndId = this.getOrPutPropertyKey(txn, key, PropertyTypeEnum.BOOLEAN, vertex, false);
-            checkErrorCode(mdb_set_property_boolean(cursor.pointer(), vertexId, propertyKeyEnumAndId.id, (Boolean) value, vertex));
+            PropertyKeyEnumAndId propertyKeyEnumAndId = this.getOrPutPropertyKey(txn, key, PropertyTypeEnum.BOOLEAN, vertex, indexed);
+            checkErrorCode(mdb_set_property_boolean(cursor.pointer(), elementId, propertyKeyEnumAndId.id, (Boolean) value, vertex));
         } else if (value instanceof Integer) {
-            PropertyKeyEnumAndId propertyKeyEnumAndId = this.getOrPutPropertyKey(txn, key, PropertyTypeEnum.INT, vertex, false);
-            checkErrorCode(mdb_set_property_int(cursor.pointer(), vertexId, propertyKeyEnumAndId.id, (Integer) value, vertex));
+            PropertyKeyEnumAndId propertyKeyEnumAndId = this.getOrPutPropertyKey(txn, key, PropertyTypeEnum.INT, vertex, indexed);
+            checkErrorCode(mdb_set_property_int(this.pointer(), txn.pointer(), cursor.pointer(), elementId, propertyKeyEnumAndId.id, (Integer) value, vertex, propertyKeyEnumAndId.indexed));
         } else if (value instanceof Long) {
-            PropertyKeyEnumAndId propertyKeyEnumAndId = this.getOrPutPropertyKey(txn, key, PropertyTypeEnum.LONG, vertex, false);
-            checkErrorCode(mdb_set_property_long(cursor.pointer(), vertexId, propertyKeyEnumAndId.id, (Long) value, vertex));
+            PropertyKeyEnumAndId propertyKeyEnumAndId = this.getOrPutPropertyKey(txn, key, PropertyTypeEnum.LONG, vertex, indexed);
+            checkErrorCode(mdb_set_property_long(cursor.pointer(), elementId, propertyKeyEnumAndId.id, (Long) value, vertex));
         } else if (value instanceof Float) {
-            PropertyKeyEnumAndId propertyKeyEnumAndId = this.getOrPutPropertyKey(txn, key, PropertyTypeEnum.FLOAT, vertex, false);
-            checkErrorCode(mdb_set_property_float(cursor.pointer(), vertexId, propertyKeyEnumAndId.id, (Float) value, vertex));
+            PropertyKeyEnumAndId propertyKeyEnumAndId = this.getOrPutPropertyKey(txn, key, PropertyTypeEnum.FLOAT, vertex, indexed);
+            checkErrorCode(mdb_set_property_float(cursor.pointer(), elementId, propertyKeyEnumAndId.id, (Float) value, vertex));
         } else if (value instanceof Double) {
-            PropertyKeyEnumAndId propertyKeyEnumAndId = this.getOrPutPropertyKey(txn, key, PropertyTypeEnum.DOUBLE, vertex, false);
-            checkErrorCode(mdb_set_property_double(cursor.pointer(), vertexId, propertyKeyEnumAndId.id, (Double) value, vertex));
+            PropertyKeyEnumAndId propertyKeyEnumAndId = this.getOrPutPropertyKey(txn, key, PropertyTypeEnum.DOUBLE, vertex, indexed);
+            checkErrorCode(mdb_set_property_double(cursor.pointer(), elementId, propertyKeyEnumAndId.id, (Double) value, vertex));
         } else if (value instanceof Character) {
-            PropertyKeyEnumAndId propertyKeyEnumAndId = this.getOrPutPropertyKey(txn, key, PropertyTypeEnum.CHAR, vertex, false);
-            checkErrorCode(mdb_set_property_char(cursor.pointer(), vertexId, propertyKeyEnumAndId.id, (Character) value, vertex));
+            PropertyKeyEnumAndId propertyKeyEnumAndId = this.getOrPutPropertyKey(txn, key, PropertyTypeEnum.CHAR, vertex, indexed);
+            checkErrorCode(mdb_set_property_char(cursor.pointer(), elementId, propertyKeyEnumAndId.id, (Character) value, vertex));
         } else if (value instanceof Byte) {
-            PropertyKeyEnumAndId propertyKeyEnumAndId = this.getOrPutPropertyKey(txn, key, PropertyTypeEnum.BYTE, vertex, false);
-            checkErrorCode(mdb_set_property_byte(cursor.pointer(), vertexId, propertyKeyEnumAndId.id, (Byte) value, vertex));
+            PropertyKeyEnumAndId propertyKeyEnumAndId = this.getOrPutPropertyKey(txn, key, PropertyTypeEnum.BYTE, vertex, indexed);
+            checkErrorCode(mdb_set_property_byte(cursor.pointer(), elementId, propertyKeyEnumAndId.id, (Byte) value, vertex));
         } else if (value instanceof Short) {
-            PropertyKeyEnumAndId propertyKeyEnumAndId = this.getOrPutPropertyKey(txn, key, PropertyTypeEnum.SHORT, vertex, false);
-            checkErrorCode(mdb_set_property_short(cursor.pointer(), vertexId, propertyKeyEnumAndId.id, (Short) value, vertex));
+            PropertyKeyEnumAndId propertyKeyEnumAndId = this.getOrPutPropertyKey(txn, key, PropertyTypeEnum.SHORT, vertex, indexed);
+            checkErrorCode(mdb_set_property_short(cursor.pointer(), elementId, propertyKeyEnumAndId.id, (Short) value, vertex));
         } else {
             throw new IllegalArgumentException(String.format("Unsupported value type %s", new String[]{value.getClass().getName()}));
         }
@@ -408,15 +495,20 @@ public class Thunder extends NativeObject implements Closeable {
         byte[][] propertyKeyArray = new byte[1][];
 
         Transaction txn = createReadOnlyTransaction();
-        Cursor vertexCursor = openCursorToPropertyKeyDb(txn, true);
-        Cursor edgeCursor = openCursorToPropertyKeyDb(txn, false);
+        Cursor vertexCursor = openCursor(txn, DbEnum.VERTEX_PROPERTY_DB);
+        Cursor edgeCursor = openCursor(txn, DbEnum.EDGE_PROPERTY_DB);
         try {
             int rc = mdb_get_first_property_key(vertexCursor.pointer(), propertyKeyIdArray, propertyTypeEnumArray, propertyIndexedArray, propertyKeyArray);
             while (rc == 0) {
                 PropertyTypeEnum propertyTypeEnum = PropertyTypeEnum.fromOrdinal(propertyTypeEnumArray[0]);
                 String key = (String) bytesToObject(PropertyTypeEnum.STRING, propertyKeyArray[0]);
-                this.vertexPropertyKeyToIdMap.put(key, new PropertyKeyEnumAndId(propertyTypeEnum, propertyKeyIdArray[0], propertyIndexedArray[0]));
+                PropertyKeyEnumAndId propertyKeyEnumAndId = new PropertyKeyEnumAndId(propertyTypeEnum, propertyKeyIdArray[0], propertyIndexedArray[0]);
+                this.vertexPropertyKeyToIdMap.put(key, propertyKeyEnumAndId);
                 this.vertexPropertyKeyIdToNameMap.put(propertyKeyIdArray[0], key);
+
+                if (propertyKeyEnumAndId.indexed) {
+                    this.vertexIndexedKeys.add(key);
+                }
 
                 rc = mdb_get_next_property_key(
                         vertexCursor.pointer(),
@@ -433,8 +525,13 @@ public class Thunder extends NativeObject implements Closeable {
             while (rc == 0) {
                 PropertyTypeEnum propertyTypeEnum = PropertyTypeEnum.fromOrdinal(propertyTypeEnumArray[0]);
                 String key = (String) bytesToObject(PropertyTypeEnum.STRING, propertyKeyArray[0]);
-                this.edgePropertyKeyToIdMap.put(key, new PropertyKeyEnumAndId(propertyTypeEnum, propertyKeyIdArray[0], propertyIndexedArray[0]));
+                PropertyKeyEnumAndId propertyKeyEnumAndId = new PropertyKeyEnumAndId(propertyTypeEnum, propertyKeyIdArray[0], propertyIndexedArray[0]);
+                this.edgePropertyKeyToIdMap.put(key, propertyKeyEnumAndId);
                 this.edgePropertyKeyIdToNameMap.put(propertyKeyIdArray[0], key);
+                if (propertyKeyEnumAndId.indexed) {
+                    this.edgeIndexedKeys.add(key);
+                }
+
                 rc = mdb_get_next_property_key(edgeCursor.pointer(), propertyKeyIdArray, propertyTypeEnumArray, propertyIndexedArray, propertyKeyArray);
             }
             if (rc != MDB_NOTFOUND) {
@@ -454,7 +551,7 @@ public class Thunder extends NativeObject implements Closeable {
         byte[][] labelArray = new byte[1][];
 
         Transaction txn = createReadOnlyTransaction();
-        Cursor labelCursor = openCursorToLabelDb(txn);
+        Cursor labelCursor = openCursor(txn, DbEnum.LABEL_DB);
         try {
             int rc = mdb_get_first_label(labelCursor.pointer(), labelIdArray, labelArray);
             while (rc == 0) {
@@ -483,17 +580,20 @@ public class Thunder extends NativeObject implements Closeable {
         Map<String, PropertyKeyEnumAndId> tmpPropertyKeyToIdToSyncMap;
         Map<Integer, String> tmpPropertyKeyIdToNameMap;
         Map<Integer, String> tmpPropertyKeyIdToNameSyncMap;
+        Set<String> tmpIndexedKeys;
 
         if (vertex) {
             tmpPropertyKeyToIdMap = this.vertexPropertyKeyToIdMap;
             tmpPropertyKeyToIdToSyncMap = this.vertexPropertyKeyToIdToSyncMap;
             tmpPropertyKeyIdToNameMap = this.vertexPropertyKeyIdToNameMap;
             tmpPropertyKeyIdToNameSyncMap = this.vertexPropertyKeyIdToNameSyncMap;
+            tmpIndexedKeys = this.vertexIndexedKeys;
         } else {
             tmpPropertyKeyToIdMap = this.edgePropertyKeyToIdMap;
             tmpPropertyKeyToIdToSyncMap = this.edgePropertyKeyToIdToSyncMap;
             tmpPropertyKeyIdToNameMap = this.edgePropertyKeyIdToNameMap;
             tmpPropertyKeyIdToNameSyncMap = this.edgePropertyKeyIdToNameSyncMap;
+            tmpIndexedKeys = this.edgeIndexedKeys;
         }
 
         PropertyKeyEnumAndId propertyKeyEnumAndId = tmpPropertyKeyToIdMap.get(propertyKey);
@@ -507,22 +607,42 @@ public class Thunder extends NativeObject implements Closeable {
             tmpPropertyKeyToIdToSyncMap.put(propertyKey, propertyKeyEnumAndId);
             tmpPropertyKeyIdToNameMap.put(propertyKeyId, propertyKey);
             tmpPropertyKeyIdToNameSyncMap.put(propertyKeyId, propertyKey);
+            if (indexed) {
+                tmpIndexedKeys.add(propertyKey);
+            }
         } else {
-            //Check if the property's indexed property needs updating
-            if (indexed != propertyKeyEnumAndId.indexed) {
+            //Check if the property's indexed or type needs updating
+            if (indexed != propertyKeyEnumAndId.indexed || propertyTypeEnum != propertyKeyEnumAndId.propertyTypeEnum) {
+
                 //TODO reindex all properties
+                boolean reindex = (indexed != propertyKeyEnumAndId.indexed) && indexed;
+
                 int propertyKeyIdArray[] = new int[]{propertyKeyEnumAndId.id};
-                checkErrorCode(mdb_set_propertykey(this.pointer(), txn.pointer(), propertyKey, propertyKeyEnumAndId.propertyTypeEnum.ordinal(), propertyKeyIdArray, vertex, indexed, true));
+                //Do not unset the type
+                if (propertyTypeEnum == PropertyTypeEnum.UNSET) {
+                    checkErrorCode(mdb_set_propertykey(this.pointer(), txn.pointer(), propertyKey, propertyKeyEnumAndId.propertyTypeEnum.ordinal(), propertyKeyIdArray, vertex, indexed, true));
+                } else {
+                    checkErrorCode(mdb_set_propertykey(this.pointer(), txn.pointer(), propertyKey, propertyTypeEnum.ordinal(), propertyKeyIdArray, vertex, indexed, true));
+                }
                 propertyKeyId = propertyKeyIdArray[0];
                 //Do a little sanity check
                 if (propertyKeyId != propertyKeyEnumAndId.id) {
                     throw new IllegalStateException("Property key id is suppose to be the same!!! This should never happen!!!");
                 }
-                propertyKeyEnumAndId.indexed = true;
+                propertyKeyEnumAndId.indexed = indexed;
+                if (propertyTypeEnum != PropertyTypeEnum.UNSET) {
+                    propertyKeyEnumAndId.propertyTypeEnum = propertyTypeEnum;
+                }
                 tmpPropertyKeyToIdMap.put(propertyKey, propertyKeyEnumAndId);
                 tmpPropertyKeyToIdToSyncMap.put(propertyKey, propertyKeyEnumAndId);
                 tmpPropertyKeyIdToNameMap.put(propertyKeyId, propertyKey);
                 tmpPropertyKeyIdToNameSyncMap.put(propertyKeyId, propertyKey);
+                if (indexed) {
+                    tmpIndexedKeys.add(propertyKey);
+                }
+                if (reindex) {
+                    checkErrorCode(mdb_reindex_property(this.pointer(), txn.pointer(), propertyKeyEnumAndId.id, propertyKeyEnumAndId.propertyTypeEnum.ordinal(), vertex));
+                }
             }
         }
         return propertyKeyEnumAndId;
@@ -577,6 +697,197 @@ public class Thunder extends NativeObject implements Closeable {
 
     public void createKeyIndex(Transaction txn, String key, boolean vertex) {
         this.getOrPutPropertyKey(txn, key, PropertyTypeEnum.UNSET, vertex, true);
+    }
+
+    public void dropKeyIndex(Transaction txn, String key, boolean vertex) {
+        if (vertex) {
+            if (this.vertexIndexedKeys.remove(key)) {
+                PropertyKeyEnumAndId propertyKeyEnumAndId = this.getOrPutPropertyKey(txn, key, PropertyTypeEnum.UNSET, vertex, false);
+                checkErrorCode(mdb_delete_string_index(this.pointer(), txn.pointer(), propertyKeyEnumAndId.id, vertex));
+            }
+        } else {
+            if (this.edgeIndexedKeys.remove(key)) {
+                PropertyKeyEnumAndId propertyKeyEnumAndId = this.getOrPutPropertyKey(txn, key, PropertyTypeEnum.UNSET, vertex, false);
+                checkErrorCode(mdb_delete_string_index(this.pointer(), txn.pointer(), propertyKeyEnumAndId.id, vertex));
+            }
+        }
+    }
+
+    public Set<String> getIndexedKeys(Boolean vertex) {
+        if (vertex) {
+            return this.vertexIndexedKeys;
+        } else {
+            return this.edgeIndexedKeys;
+        }
+    }
+
+    public boolean getFirstVertexForKeyValueFromStringIndex(Cursor cursor, long vertexIdArray[], String key, String value) {
+        PropertyKeyEnumAndId propertyKeyEnumAndId = this.vertexPropertyKeyToIdMap.get(key);
+        if (propertyKeyEnumAndId != null) {
+            //Make sure it is a string property
+            if (propertyKeyEnumAndId.propertyTypeEnum == PropertyTypeEnum.STRING) {
+                int rc = mdb_get_first_vertex_for_key_value_from_string_index(cursor.pointer(), vertexIdArray, propertyKeyEnumAndId.id, value);
+                if (rc != MDB_NOTFOUND) {
+                    checkErrorCode(rc);
+                    return true;
+                } else {
+                    return false;
+                }
+            } else {
+                return false;
+            }
+        } else {
+            return false;
+        }
+    }
+
+    public boolean getNextVertexForKeyValueFromStringIndex(Cursor cursor, long vertexIdArray[], String key, String value) {
+        PropertyKeyEnumAndId propertyKeyEnumAndId = this.vertexPropertyKeyToIdMap.get(key);
+        if (propertyKeyEnumAndId != null) {
+            //Make sure it is a string property
+            if (propertyKeyEnumAndId.propertyTypeEnum == PropertyTypeEnum.STRING) {
+                int rc = mdb_get_next_vertex_for_key_value_for_string_index(cursor.pointer(), vertexIdArray, propertyKeyEnumAndId.id, value);
+                if (rc != MDB_NOTFOUND) {
+                    checkErrorCode(rc);
+                    return true;
+                } else {
+                    return false;
+                }
+            } else {
+                return false;
+            }
+        } else {
+            return false;
+        }
+    }
+
+    public boolean getFirstEdgeForKeyValueFromStringIndex(Cursor edgeStringIndexDbCursor, Cursor edgeDbCursor, String key, String value, long edgeIdArray[], String labelArray[], long outVertexIdArray[], long inVertexIdArray[]) {
+        PropertyKeyEnumAndId propertyKeyEnumAndId = this.edgePropertyKeyToIdMap.get(key);
+        if (propertyKeyEnumAndId != null) {
+            //Make sure it is a string property
+            if (propertyKeyEnumAndId.propertyTypeEnum == PropertyTypeEnum.STRING) {
+                int labelIdArray[] = new int[1];
+                int rc = mdb_get_first_edge_for_key_value_from_string_index(edgeStringIndexDbCursor.pointer(), edgeDbCursor.pointer(), propertyKeyEnumAndId.id, value, edgeIdArray, labelIdArray, outVertexIdArray, inVertexIdArray);
+                if (rc != MDB_NOTFOUND) {
+                    checkErrorCode(rc);
+                    labelArray[0] = this.idToLabelMap.get(labelIdArray[0]);
+                    return true;
+                } else {
+                    return false;
+                }
+            } else {
+                return false;
+            }
+        } else {
+            return false;
+        }
+    }
+
+    public boolean getNextEdgeForKeyValueFromStringIndex(Cursor edgeStringIndexDbCursor, Cursor edgeDbCursor, String key, String value, long edgeIdArray[], String labelArray[], long outVertexIdArray[], long inVertexIdArray[]) {
+        PropertyKeyEnumAndId propertyKeyEnumAndId = this.edgePropertyKeyToIdMap.get(key);
+        if (propertyKeyEnumAndId != null) {
+            //Make sure it is a string property
+            if (propertyKeyEnumAndId.propertyTypeEnum == PropertyTypeEnum.STRING) {
+                int labelIdArray[] = new int[1];
+                int rc = mdb_get_next_edge_for_key_value_for_string_index(edgeStringIndexDbCursor.pointer(), edgeDbCursor.pointer(), propertyKeyEnumAndId.id, value, edgeIdArray, labelIdArray, outVertexIdArray, inVertexIdArray);
+                if (rc != MDB_NOTFOUND) {
+                    checkErrorCode(rc);
+                    labelArray[0] = this.idToLabelMap.get(labelIdArray[0]);
+                    return true;
+                } else {
+                    return false;
+                }
+            } else {
+                return false;
+            }
+        } else {
+            return false;
+        }
+    }
+
+
+    public boolean getFirstVertexForKeyValueFromIntIndex(Cursor cursor, long vertexIdArray[], String key, int value) {
+        PropertyKeyEnumAndId propertyKeyEnumAndId = this.vertexPropertyKeyToIdMap.get(key);
+        if (propertyKeyEnumAndId != null) {
+            //Make sure it is a string property
+            if (propertyKeyEnumAndId.propertyTypeEnum == PropertyTypeEnum.INT) {
+                int rc = mdb_get_first_vertex_for_key_value_from_int_index(cursor.pointer(), vertexIdArray, propertyKeyEnumAndId.id, value);
+                if (rc != MDB_NOTFOUND) {
+                    checkErrorCode(rc);
+                    return true;
+                } else {
+                    return false;
+                }
+            } else {
+                return false;
+            }
+        } else {
+            return false;
+        }
+    }
+
+    public boolean getNextVertexForKeyValueFromIntIndex(Cursor cursor, long vertexIdArray[], String key, int value) {
+        PropertyKeyEnumAndId propertyKeyEnumAndId = this.vertexPropertyKeyToIdMap.get(key);
+        if (propertyKeyEnumAndId != null) {
+            //Make sure it is a string property
+            if (propertyKeyEnumAndId.propertyTypeEnum == PropertyTypeEnum.INT) {
+                int rc = mdb_get_next_vertex_for_key_value_for_int_index(cursor.pointer(), vertexIdArray, propertyKeyEnumAndId.id, value);
+                if (rc != MDB_NOTFOUND) {
+                    checkErrorCode(rc);
+                    return true;
+                } else {
+                    return false;
+                }
+            } else {
+                return false;
+            }
+        } else {
+            return false;
+        }
+    }
+
+    public boolean getFirstEdgeForKeyValueFromIntIndex(Cursor edgeStringIndexDbCursor, Cursor edgeDbCursor, String key, int value, long edgeIdArray[], String labelArray[], long outVertexIdArray[], long inVertexIdArray[]) {
+        PropertyKeyEnumAndId propertyKeyEnumAndId = this.edgePropertyKeyToIdMap.get(key);
+        if (propertyKeyEnumAndId != null) {
+            //Make sure it is a string property
+            if (propertyKeyEnumAndId.propertyTypeEnum == PropertyTypeEnum.INT) {
+                int labelIdArray[] = new int[1];
+                int rc = mdb_get_first_edge_for_key_value_from_int_index(edgeStringIndexDbCursor.pointer(), edgeDbCursor.pointer(), propertyKeyEnumAndId.id, value, edgeIdArray, labelIdArray, outVertexIdArray, inVertexIdArray);
+                if (rc != MDB_NOTFOUND) {
+                    checkErrorCode(rc);
+                    labelArray[0] = this.idToLabelMap.get(labelIdArray[0]);
+                    return true;
+                } else {
+                    return false;
+                }
+            } else {
+                return false;
+            }
+        } else {
+            return false;
+        }
+    }
+
+    public boolean getNextEdgeForKeyValueFromIntIndex(Cursor edgeStringIndexDbCursor, Cursor edgeDbCursor, String key, int value, long edgeIdArray[], String labelArray[], long outVertexIdArray[], long inVertexIdArray[]) {
+        PropertyKeyEnumAndId propertyKeyEnumAndId = this.edgePropertyKeyToIdMap.get(key);
+        if (propertyKeyEnumAndId != null) {
+            //Make sure it is a string property
+            if (propertyKeyEnumAndId.propertyTypeEnum == PropertyTypeEnum.INT) {
+                int labelIdArray[] = new int[1];
+                int rc = mdb_get_next_edge_for_key_value_for_int_index(edgeStringIndexDbCursor.pointer(), edgeDbCursor.pointer(), propertyKeyEnumAndId.id, value, edgeIdArray, labelIdArray, outVertexIdArray, inVertexIdArray);
+                if (rc != MDB_NOTFOUND) {
+                    checkErrorCode(rc);
+                    labelArray[0] = this.idToLabelMap.get(labelIdArray[0]);
+                    return true;
+                } else {
+                    return false;
+                }
+            } else {
+                return false;
+            }
+        } else {
+            return false;
+        }
     }
 
 }

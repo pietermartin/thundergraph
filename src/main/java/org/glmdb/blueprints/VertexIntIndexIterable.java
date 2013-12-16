@@ -11,33 +11,36 @@ import java.util.NoSuchElementException;
  * Date: 2013/11/24
  * Time: 10:22 AM
  */
-public class AllVertexIterable<T extends Vertex> implements Iterable<ThunderVertex> {
+public class VertexIntIndexIterable<T extends Vertex> implements Iterable<ThunderVertex> {
 
     private final ThunderGraph thunderGraph;
     private final TransactionAndCursor tc;
+    private String key;
+    private int value;
 
-    public AllVertexIterable(ThunderGraph thunderGraph) {
+    public VertexIntIndexIterable(ThunderGraph thunderGraph, String key, int value) {
         this.thunderGraph = thunderGraph;
         this.tc = this.thunderGraph.getReadOnlyTx();
+        this.key = key;
+        this.value = value;
     }
 
     @Override
     public Iterator<ThunderVertex> iterator() {
-        return new AllVertexIterator();
+        return new VertexIntIndexIterator();
     }
 
-    private final class AllVertexIterator implements Iterator<ThunderVertex> {
+    private final class VertexIntIndexIterator implements Iterator<ThunderVertex> {
 
         private ThunderVertex next;
         private boolean goToFirst = true;
         private Cursor cursor;
         private boolean cursorIsReadOnly;
-        private long previousId;
 
-        private AllVertexIterator() {
-            this.cursorIsReadOnly = AllVertexIterable.this.tc.isReadOnly();
-            this.cursor = AllVertexIterable.this.thunderGraph.getThunder().openCursor(AllVertexIterable.this.tc.getTxn(), DbEnum.VERTEX_DB);
-            AllVertexIterable.this.tc.addIteratorCursor(this.cursor);
+        public VertexIntIndexIterator() {
+            this.cursorIsReadOnly = VertexIntIndexIterable.this.tc.isReadOnly();
+            this.cursor = VertexIntIndexIterable.this.thunderGraph.getThunder().openCursor(VertexIntIndexIterable.this.tc.getTxn(), DbEnum.VERTEX_INT_INDEX);
+            VertexIntIndexIterable.this.tc.addIteratorCursor(this.cursor);
         }
 
         @Override
@@ -67,19 +70,17 @@ public class AllVertexIterable<T extends Vertex> implements Iterable<ThunderVert
         }
 
         private ThunderVertex internalNext() {
-            long vertexIdArray[] = new long[1];
+            long elementIdArray[] = new long[1];
             if (this.goToFirst) {
                 this.goToFirst = false;
-                if (AllVertexIterable.this.thunderGraph.getThunder().getFirstVertex(this.cursor, vertexIdArray)) {
-                    this.previousId = vertexIdArray[0];
-                    return new ThunderVertex(AllVertexIterable.this.thunderGraph, vertexIdArray[0]);
+                if (VertexIntIndexIterable.this.thunderGraph.getThunder().getFirstVertexForKeyValueFromIntIndex(this.cursor, elementIdArray, VertexIntIndexIterable.this.key, VertexIntIndexIterable.this.value)) {
+                    return new ThunderVertex(VertexIntIndexIterable.this.thunderGraph, elementIdArray[0]);
                 } else {
                     return null;
                 }
             } else {
-                if (AllVertexIterable.this.thunderGraph.getThunder().getNextVertex(this.cursor, this.previousId, vertexIdArray)) {
-                    this.previousId = vertexIdArray[0];
-                    return new ThunderVertex(AllVertexIterable.this.thunderGraph, vertexIdArray[0]);
+                if (VertexIntIndexIterable.this.thunderGraph.getThunder().getNextVertexForKeyValueFromIntIndex(this.cursor, elementIdArray, VertexIntIndexIterable.this.key, VertexIntIndexIterable.this.value)) {
+                    return new ThunderVertex(VertexIntIndexIterable.this.thunderGraph, elementIdArray[0]);
                 } else {
                     return null;
                 }
@@ -87,4 +88,5 @@ public class AllVertexIterable<T extends Vertex> implements Iterable<ThunderVert
         }
 
     }
+
 }

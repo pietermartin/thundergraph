@@ -132,7 +132,23 @@ public class ThunderGraph implements TransactionalGraph, KeyIndexableGraph {
 
     @Override
     public Iterable<Vertex> getVertices(String key, Object value) {
-        return new VertexForKeyValueIterable(this, key, value);
+        if (this.thunder.getIndexedKeys(true).contains(key)) {
+            if (value instanceof String) {
+                return new VertexStringIndexIterable(this, key, (String)value);
+            } else if (value instanceof Integer) {
+                return new VertexIntIndexIterable(this, key, (Integer)value);
+            } else {
+                throw new RuntimeException("Not yet implemented!");
+            }
+        } else {
+            if (value instanceof String) {
+                return new VertexForKeyStringValueIterable(this, key, (String)value);
+            } else if (value instanceof Integer) {
+                return new VertexForKeyIntValueIterable(this, key, (Integer)value);
+            } else {
+                throw new RuntimeException("Not yet implemented!");
+            }
+        }
     }
 
     @Override
@@ -173,8 +189,25 @@ public class ThunderGraph implements TransactionalGraph, KeyIndexableGraph {
 
     @Override
     public Iterable<Edge> getEdges(String key, Object value) {
-        return new EdgeForKeyValueIterable(this, key, value);
+        if (this.thunder.getIndexedKeys(false).contains(key)) {
+            if (value instanceof String) {
+                return new EdgeStringIndexIterable(this, key, (String)value);
+            } else if (value instanceof Integer) {
+                return new EdgeIntIndexIterable(this, key, (Integer)value);
+            } else {
+                throw new RuntimeException("Not yet implemented!");
+            }
+        } else {
+            if (value instanceof String) {
+                return new EdgeForKeyStringValueIterable(this, key, (String)value);
+            } else if (value instanceof Integer) {
+                return new EdgeForKeyIntValueIterable(this, key, (Integer)value);
+            } else {
+                throw new RuntimeException("Not yet implemented!");
+            }
+        }
     }
+
 
     @Override
     public GraphQuery query() {
@@ -249,8 +282,8 @@ public class ThunderGraph implements TransactionalGraph, KeyIndexableGraph {
             } else {
                 t = this.thunder.createWriteTransaction();
             }
-            Cursor vertexCursor = this.thunder.openCursorToVertexDb(t);
-            Cursor edgeCursor = this.thunder.openCursorToEdgeDb(t);
+            Cursor vertexCursor = this.thunder.openCursor(t, DbEnum.VERTEX_DB);
+            Cursor edgeCursor = this.thunder.openCursor(t, DbEnum.EDGE_DB);
             tc = new TransactionAndCursor(t, vertexCursor, edgeCursor, readOnly);
             this.currentTransaction.set(tc);
         }
@@ -271,8 +304,8 @@ public class ThunderGraph implements TransactionalGraph, KeyIndexableGraph {
 //                );
 
 
-                Cursor vertexCursor = this.thunder.openCursorToVertexDb(t);
-                Cursor edgeCursor = this.thunder.openCursorToEdgeDb(t);
+                Cursor vertexCursor = this.thunder.openCursor(t, DbEnum.VERTEX_DB);
+                Cursor edgeCursor = this.thunder.openCursor(t, DbEnum.EDGE_DB);
                 tc = new TransactionAndCursor(t, vertexCursor, edgeCursor, readOnly);
                 this.currentTransaction.set(tc);
             }
@@ -282,7 +315,22 @@ public class ThunderGraph implements TransactionalGraph, KeyIndexableGraph {
 
     @Override
     public <T extends Element> void dropKeyIndex(String key, Class<T> elementClass) {
-        //To change body of implemented methods use File | Settings | File Templates.
+        if (key == null) {
+            throw new IllegalStateException("key in dropKeyIndex can not be null");
+        }
+        if (elementClass == null) {
+            throw new IllegalStateException("elementClass in dropKeyIndex can not be null");
+        }
+        if (elementClass.equals(Vertex.class)) {
+            TransactionAndCursor tc = this.getWriteTx();
+            this.thunder.dropKeyIndex(tc.getTxn(), key, true);
+
+        } else if (elementClass.equals(Edge.class)) {
+            TransactionAndCursor tc = this.getWriteTx();
+            this.thunder.dropKeyIndex(tc.getTxn(), key, false);
+        } else {
+            throw new IllegalStateException("Unsupported elementClass " + elementClass.getName());
+        }
     }
 
     @Override
@@ -307,7 +355,16 @@ public class ThunderGraph implements TransactionalGraph, KeyIndexableGraph {
 
     @Override
     public <T extends Element> Set<String> getIndexedKeys(Class<T> elementClass) {
-        return null;  //To change body of implemented methods use File | Settings | File Templates.
+        if (elementClass == null) {
+            throw new IllegalStateException("elementClass in getIndexedKeys can not be null");
+        }
+        if (elementClass.equals(Vertex.class)) {
+            return this.thunder.getIndexedKeys(true);
+        } else if (elementClass.equals(Edge.class)) {
+            return this.thunder.getIndexedKeys(false);
+        } else {
+            throw new IllegalStateException("Unsupported elementClass " + elementClass.getName());
+        }
     }
 
     Thunder getThunder() {

@@ -42,7 +42,7 @@ public class BlueprintsTest
         printTestPerformance("GraphTestSuite", this.stopWatch());
     }
 
-    public void untestKeyIndexableGraphTestSuite() throws Exception {
+    public void testKeyIndexableGraphTestSuite() throws Exception {
         this.stopWatch();
         doTestSuite(new KeyIndexableGraphTestSuite(this));
         printTestPerformance("KeyIndexableGraphTestSuite", this.stopWatch());

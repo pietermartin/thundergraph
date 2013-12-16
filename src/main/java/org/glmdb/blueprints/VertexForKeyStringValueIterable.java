@@ -1,8 +1,6 @@
 package org.glmdb.blueprints;
 
 import com.tinkerpop.blueprints.Vertex;
-import org.glmdb.blueprints.jni.Cursor;
-import org.glmdb.blueprints.jni.DbEnum;
 
 import java.util.Iterator;
 import java.util.NoSuchElementException;
@@ -11,34 +9,29 @@ import java.util.NoSuchElementException;
  * Date: 2013/11/24
  * Time: 10:22 AM
  */
-public class AllVertexIterable<T extends Vertex> implements Iterable<ThunderVertex> {
+public class VertexForKeyStringValueIterable<T extends Vertex> implements Iterable<ThunderVertex> {
 
     private final ThunderGraph thunderGraph;
     private final TransactionAndCursor tc;
+    private String key;
+    private String value;
 
-    public AllVertexIterable(ThunderGraph thunderGraph) {
+    public VertexForKeyStringValueIterable(ThunderGraph thunderGraph, String key, String value) {
         this.thunderGraph = thunderGraph;
         this.tc = this.thunderGraph.getReadOnlyTx();
+        this.key = key;
+        this.value = value;
     }
 
     @Override
     public Iterator<ThunderVertex> iterator() {
-        return new AllVertexIterator();
+        return new VertexForKeyStringValueIterator();
     }
 
-    private final class AllVertexIterator implements Iterator<ThunderVertex> {
+    private final class VertexForKeyStringValueIterator implements Iterator<ThunderVertex> {
 
         private ThunderVertex next;
         private boolean goToFirst = true;
-        private Cursor cursor;
-        private boolean cursorIsReadOnly;
-        private long previousId;
-
-        private AllVertexIterator() {
-            this.cursorIsReadOnly = AllVertexIterable.this.tc.isReadOnly();
-            this.cursor = AllVertexIterable.this.thunderGraph.getThunder().openCursor(AllVertexIterable.this.tc.getTxn(), DbEnum.VERTEX_DB);
-            AllVertexIterable.this.tc.addIteratorCursor(this.cursor);
-        }
 
         @Override
         public boolean hasNext() {
@@ -70,16 +63,14 @@ public class AllVertexIterable<T extends Vertex> implements Iterable<ThunderVert
             long vertexIdArray[] = new long[1];
             if (this.goToFirst) {
                 this.goToFirst = false;
-                if (AllVertexIterable.this.thunderGraph.getThunder().getFirstVertex(this.cursor, vertexIdArray)) {
-                    this.previousId = vertexIdArray[0];
-                    return new ThunderVertex(AllVertexIterable.this.thunderGraph, vertexIdArray[0]);
+                if (VertexForKeyStringValueIterable.this.thunderGraph.getThunder().getFirstVertexForKeyStringValue(tc.getVertexCursor(), vertexIdArray, VertexForKeyStringValueIterable.this.key, VertexForKeyStringValueIterable.this.value)) {
+                    return new ThunderVertex(VertexForKeyStringValueIterable.this.thunderGraph, vertexIdArray[0]);
                 } else {
                     return null;
                 }
             } else {
-                if (AllVertexIterable.this.thunderGraph.getThunder().getNextVertex(this.cursor, this.previousId, vertexIdArray)) {
-                    this.previousId = vertexIdArray[0];
-                    return new ThunderVertex(AllVertexIterable.this.thunderGraph, vertexIdArray[0]);
+                if (VertexForKeyStringValueIterable.this.thunderGraph.getThunder().getNextVertexForKeyStringValue(tc.getVertexCursor(), vertexIdArray, VertexForKeyStringValueIterable.this.key, VertexForKeyStringValueIterable.this.value)) {
+                    return new ThunderVertex(VertexForKeyStringValueIterable.this.thunderGraph, vertexIdArray[0]);
                 } else {
                     return null;
                 }

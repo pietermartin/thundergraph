@@ -3,6 +3,7 @@ package org.glmdb.blueprints;
 import com.tinkerpop.blueprints.Direction;
 import com.tinkerpop.blueprints.Vertex;
 import org.glmdb.blueprints.jni.Cursor;
+import org.glmdb.blueprints.jni.DbEnum;
 
 import java.util.*;
 
@@ -51,7 +52,7 @@ public class VertexesFromVertexIterable<T extends Vertex> implements Iterable<Th
             //No need to check hasNext as Iterator<ThunderEdge> iterator() ensures there is at least one label.
             this.currentLabel = this.labelIterator.next();
             this.cursorIsReadOnly = VertexesFromVertexIterable.this.tc.isReadOnly();
-            this.cursor = VertexesFromVertexIterable.this.thunderGraph.getThunder().openCursorToVertexDb(VertexesFromVertexIterable.this.tc.getTxn());
+            this.cursor = VertexesFromVertexIterable.this.thunderGraph.getThunder().openCursor(VertexesFromVertexIterable.this.tc.getTxn(), DbEnum.VERTEX_DB);
             VertexesFromVertexIterable.this.tc.addIteratorCursor(this.cursor);
         }
 
@@ -158,7 +159,7 @@ public class VertexesFromVertexIterable<T extends Vertex> implements Iterable<Th
 
         private VertexesIterator() {
             this.cursorIsReadOnly = VertexesFromVertexIterable.this.tc.isReadOnly();
-            this.cursor = VertexesFromVertexIterable.this.thunderGraph.getThunder().openCursorToVertexDb(VertexesFromVertexIterable.this.tc.getTxn());
+            this.cursor = VertexesFromVertexIterable.this.thunderGraph.getThunder().openCursor(VertexesFromVertexIterable.this.tc.getTxn(), DbEnum.VERTEX_DB);
             VertexesFromVertexIterable.this.tc.addIteratorCursor(this.cursor);
         }
 
