@@ -1,6 +1,8 @@
 package org.glmdb.blueprints.test;
 
 import com.tinkerpop.blueprints.Edge;
+import com.tinkerpop.blueprints.KeyIndexableGraph;
+import com.tinkerpop.blueprints.TransactionalGraph;
 import com.tinkerpop.blueprints.Vertex;
 import org.glmdb.blueprints.ThunderGraph;
 import org.glmdb.blueprints.jni.DbEnum;
@@ -236,6 +238,78 @@ public class IndexStringTest extends BaseGlmdbGraphTest {
         } finally {
             thunderGraph.shutdown();
         }
+    }
+
+    @Test
+    public void deleteIndexedVertex() {
+        ThunderGraph thunderGraph = new ThunderGraph(this.dbPath);
+        try {
+            thunderGraph.createKeyIndex("name", Vertex.class);
+
+            Vertex v1 = thunderGraph.addVertex(null);
+            v1.setProperty("name", "aaaa");
+            thunderGraph.commit();
+            thunderGraph.printDb(DbEnum.VERTEX_STRING_INDEX);
+
+            v1.remove();
+            thunderGraph.commit();
+            thunderGraph.printDb(DbEnum.VERTEX_STRING_INDEX);
+        } finally {
+            thunderGraph.shutdown();
+        }
+
+    }
+
+    @Test
+    public void testUpdateValuesInIndexKeys() throws Exception {
+        ThunderGraph graph = new ThunderGraph(this.dbPath);
+        try {
+            graph.createKeyIndex("name", Vertex.class);
+            graph.commit();
+
+            Vertex v1 = graph.addVertex(null);
+            v1.setProperty("name", "marko");
+            Assert.assertEquals(v1.getProperty("name"), "marko");
+            Assert.assertEquals(1, count(graph.getVertices()));
+            graph.commit();
+
+            v1 = graph.getVertices("name", "marko").iterator().next();
+            Assert.assertEquals(v1.getProperty("name"), "marko");
+            v1.setProperty("name", "marko a. rodriguez");
+            Assert.assertEquals(v1.getProperty("name"), "marko a. rodriguez");
+            Assert.assertEquals(1, count(graph.getVertices()));
+            graph.commit();
+
+
+            Assert.assertFalse(graph.getVertices("name", "marko").iterator().hasNext());
+            v1 = graph.getVertices("name", "marko a. rodriguez").iterator().next();
+            Assert.assertEquals(v1.getProperty("name"), "marko a. rodriguez");
+            Assert.assertEquals(1, count(graph.getVertices()));
+            graph.commit();
+
+        } finally {
+            graph.shutdown();
+        }
+    }
+
+    @Test
+    public void testPartialMatchFails() {
+        ThunderGraph graph = new ThunderGraph(this.dbPath);
+        try {
+            graph.createKeyIndex("name", Vertex.class);
+            graph.commit();
+
+            Vertex v1 = graph.addVertex(null);
+            v1.setProperty("name", "aaaa");
+
+            graph.commit();
+
+            Assert.assertEquals(1, count(graph.getVertices("name", "aaaa")));
+            Assert.assertEquals(0, count(graph.getVertices("name", "a")));
+        } finally {
+            graph.shutdown();
+        }
+
     }
 
 }

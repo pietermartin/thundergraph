@@ -21,6 +21,7 @@ extern "C" {
 #define GLMDB_DB_INVALID_EDGE	(-30594)
 #define GLMDB_INVALID_SEQUENCE	(-30593)
 #define GLMDB_INVALID_DB	(-30592)
+#define GLMDB_PROPERTY_KEY_NOT_FOUND	(-30591)
 
 typedef struct GLMDB_env {
 	MDB_env *env;
@@ -28,6 +29,8 @@ typedef struct GLMDB_env {
 	MDB_dbi vertexDb;
 	MDB_dbi edgeDb;
 	MDB_dbi vertexPropertyKeyDb;
+	MDB_dbi vertexPropertyKeyInverseDb;
+
 	MDB_dbi vertexBooleanIndexDb;
 	MDB_dbi vertexByteIndexDb;
 	MDB_dbi vertexShortIndexDb;
@@ -39,6 +42,8 @@ typedef struct GLMDB_env {
 	MDB_dbi vertexStringIndexDb;
 
 	MDB_dbi edgePropertyKeyDb;
+	MDB_dbi edgePropertyKeyInverseDb;
+
 	MDB_dbi edgeBooleanIndexDb;
 	MDB_dbi edgeByteIndexDb;
 	MDB_dbi edgeShortIndexDb;
@@ -63,7 +68,9 @@ enum DbEnum {
 	VERTEX_DB,
 	EDGE_DB,
 	VERTEX_PROPERTY_DB,
+	VERTEX_PROPERTY_INVERSE_DB,
 	EDGE_PROPERTY_DB,
+	EDGE_PROPERTY_INVERSE_DB,
 	LABEL_DB,
 	CONFIG_DB,
 	VERTEX_BOOLEAN_INDEX,
@@ -145,6 +152,12 @@ typedef struct PropertyKeyDataStruct {
 	enum PropertyTypeEnum type;
 	jboolean indexed;
 } PropertyKeyDataStruct;
+
+typedef struct PropertyKeyInverseDataStruct {
+	enum PropertyTypeEnum type;
+	jboolean indexed;
+	char propertyKey[0];
+} PropertyKeyInverseDataStruct;
 
 typedef struct StringIndexKeyStruct {
 	jint propertyKeyId;
@@ -766,6 +779,7 @@ void printVertexRecord(MDB_val key, MDB_val data);
 void printEdgeRecord(MDB_val key, MDB_val data);
 void printKey(MDB_val key);
 void printPropertyKeyDbRecord(MDB_val key, MDB_val data);
+void printPropertyKeyInverseDbRecord(MDB_val key, MDB_val data);
 void printLabelDbRecord(MDB_val key, MDB_val data);
 int printConfigDbRecord(MDB_val key, MDB_val data);
 void printStringIndexDbRecord(MDB_val key, MDB_val data);
@@ -834,7 +848,9 @@ int setEdgePropertyChar(MDB_cursor *cursor, jlong edgeId, jint propertyKeyId, jc
 int setEdgePropertyString(MDB_cursor *cursor, jlong edgeId, jint propertyKeyId, jint propertyValueLength, char *propertyValue);
 
 int setStringIndex(MDB_cursor *indexCursor, long long vertexId, int propertyKeyId, int propertyValueLength, char propertyValue[]);
+int removeStringIndex(MDB_cursor *indexCursor, long long elementId, int propertyKeyId, int propertyValueLength, char propertyValue[]);
 int setIntIndex(MDB_cursor *indexCursor, long long elementId, int propertyKeyId, int propertyValue);
+int removeIntIndex(MDB_cursor *indexCursor, long long elementId, int propertyKeyId, int propertyValue);
 int addOrUpdateStringIndexedProperty(GLMDB_env *glmdb_env, MDB_txn *mdbTxn, MDB_cursor * vertexCursor, long long elementId,
 		int propertyKeyId, int propertyValueLength, char *propertyValue, unsigned char vertex);
 int addOrUpdateIntIndexedProperty(GLMDB_env *glmdb_env, MDB_txn *mdbTxn, MDB_cursor * vertexCursor, long long elementId, int propertyKeyId,
@@ -860,7 +876,9 @@ char * propertyTypeEnumToString(int propertyTypeEnum);
 int traverseVertexDb(GLMDB_env * glmdb_env, MDB_txn *txn);
 int traverseEdgeDb(GLMDB_env * glmdb_env, MDB_txn *txn);
 int traverseVertexPropertyKeyDb(GLMDB_env * glmdb_env, MDB_txn *txn);
+int traverseVertexPropertyKeyInverseDb(GLMDB_env * glmdb_env, MDB_txn *txn);
 int traverseEdgePropertyKeyDb(GLMDB_env * glmdb_env, MDB_txn *txn);
+int traverseEdgePropertyKeyInverseDb(GLMDB_env * glmdb_env, MDB_txn *txn);
 int traverseLabelDb(GLMDB_env * glmdb_env, MDB_txn *txn);
 int traverseConfigDb(GLMDB_env * glmdb_env, MDB_txn *txn);
 int traverseStringIndexDb(GLMDB_env * glmdb_env, MDB_txn *txn, MDB_dbi dbi);

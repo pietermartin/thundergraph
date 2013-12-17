@@ -48,19 +48,19 @@ public class BlueprintsTest
         printTestPerformance("KeyIndexableGraphTestSuite", this.stopWatch());
     }
 
-    public void untestGraphMLReaderTestSuite() throws Exception {
+    public void testGraphMLReaderTestSuite() throws Exception {
         this.stopWatch();
         doTestSuite(new GraphMLReaderTestSuite(this));
         printTestPerformance("GraphMLReaderTestSuite", this.stopWatch());
     }
 
-    public void untestGMLReaderTestSuite() throws Exception {
+    public void testGMLReaderTestSuite() throws Exception {
         this.stopWatch();
         doTestSuite(new GMLReaderTestSuite(this));
         printTestPerformance("GMLReaderTestSuite", this.stopWatch());
     }
 
-    public void untestGraphSONReaderTestSuite() throws Exception {
+    public void testGraphSONReaderTestSuite() throws Exception {
         this.stopWatch();
         doTestSuite(new GraphSONReaderTestSuite(this));
         printTestPerformance("GraphSONReaderTestSuite", this.stopWatch());

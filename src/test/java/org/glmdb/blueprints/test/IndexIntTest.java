@@ -238,4 +238,24 @@ public class IndexIntTest extends BaseGlmdbGraphTest {
         }
     }
 
+    @Test
+    public void deleteIndexedVertex() {
+        ThunderGraph thunderGraph = new ThunderGraph(this.dbPath);
+        try {
+            thunderGraph.createKeyIndex("name", Vertex.class);
+
+            Vertex v1 = thunderGraph.addVertex(null);
+            v1.setProperty("name", 1);
+            thunderGraph.commit();
+            thunderGraph.printDb(DbEnum.VERTEX_INT_INDEX);
+
+            v1.remove();
+            thunderGraph.commit();
+            thunderGraph.printDb(DbEnum.VERTEX_INT_INDEX);
+        } finally {
+            thunderGraph.shutdown();
+        }
+
+    }
+
 }

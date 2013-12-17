@@ -3,6 +3,7 @@ package org.glmdb.blueprints.test;
 import com.tinkerpop.blueprints.Vertex;
 import junit.framework.Assert;
 import org.glmdb.blueprints.ThunderGraph;
+import org.glmdb.blueprints.jni.DbEnum;
 import org.junit.Test;
 
 /**
@@ -21,8 +22,6 @@ public class RemoveVertexTest extends BaseGlmdbGraphTest {
             vertex1.addEdge("test", vertex2);
         }
         thunderGraph.commit();
-
-//        thunderGraph.printVertexDb();
 
         Assert.assertEquals(6, countIter(thunderGraph.getVertices().iterator()));
 

@@ -18,9 +18,6 @@
 #include <time.h>
 #include "glmdb_jni.c"
 
-int addPropertyKey(GLMDB_env *genv, MDB_txn *txn, MDB_cursor *cursor, int propertyKeyLength, char *key1, char *value1);
-int callAddProperty(GLMDB_env *genv,MDB_txn *txn, MDB_cursor *cursor, int propertyKeyLength, char *key1, char *value1);
-
 int main(int argc,char * argv[])
 {
 	int rc;
@@ -142,36 +139,3 @@ int main(int argc,char * argv[])
 	closeGraph(genv);
 	return 0;
 }
-
-int callAddProperty(GLMDB_env *genv,MDB_txn *txn, MDB_cursor *vertexCursor, int propertyKeyLength, char *key, char *value) {
-	int rc;
-	rc = addPropertyKey(genv, txn, vertexCursor, propertyKeyLength, key, value);
-	return rc;
-}
-
-
-int addPropertyKey(GLMDB_env *genv, MDB_txn *txn, MDB_cursor *vertexCursor, int propertyKeyLength, char *key1, char *value1) {
-	int rc;
-	MDB_val vertexKey;
-	rc = addVertex(vertexCursor, genv->vertexDb, genv->vertexIdSequence++, &vertexKey);
-	if (rc != 0) {
-		printf("add out vertex failure  = %i!\n", rc);
-		goto fail;
-	}
-
-	int propertyKeyId = 0;
-	rc = setPropertyKey(genv, txn, STRING, &propertyKeyId, propertyKeyLength, key1, 1, 0, 0);
-	if (rc != 0) {
-		printf("setPropertyKey failure  = %i!\n", rc);
-		goto fail;
-	}
-
-	rc = setVertexPropertyString(vertexCursor, 0, 0, propertyKeyLength, value1);
-	if (rc != 0) {
-		printf("setVertexPropertyString failure  = %i!\n", rc);
-		goto fail;
-	}
-	fail:
-	return rc;
-}
-

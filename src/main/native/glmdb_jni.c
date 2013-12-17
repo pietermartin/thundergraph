@@ -146,10 +146,20 @@ JNIEXPORT jint JNICALL Java_org_glmdb_blueprints_jni_ThunderJni_print_1db(JNIEnv
 		traverseVertexPropertyKeyDb(glmdb_env, (MDB_txn *) (long) txn);
 		printDbStats(glmdb_env->env, (MDB_txn *) (long) txn, glmdb_env->vertexPropertyKeyDb, "vertexPropertyKeyDb");
 		break;
+	case VERTEX_PROPERTY_INVERSE_DB:
+		printf("VERTEX_PROPERTY_INVERSE_DB...\n");
+		traverseVertexPropertyKeyInverseDb(glmdb_env, (MDB_txn *) (long) txn);
+		printDbStats(glmdb_env->env, (MDB_txn *) (long) txn, glmdb_env->vertexPropertyKeyInverseDb, "vertexPropertyKeyInverseDb");
+		break;
 	case EDGE_PROPERTY_DB:
 		printf("EDGE_PROPERTY_DB...\n");
 		traverseEdgePropertyKeyDb(glmdb_env, (MDB_txn *) (long) txn);
 		printDbStats(glmdb_env->env, (MDB_txn *) (long) txn, glmdb_env->edgePropertyKeyDb, "edgePropertyKeyDb");
+		break;
+	case EDGE_PROPERTY_INVERSE_DB:
+		printf("EDGE_PROPERTY_INVERSE_DB...\n");
+		traverseEdgePropertyKeyInverseDb(glmdb_env, (MDB_txn *) (long) txn);
+		printDbStats(glmdb_env->env, (MDB_txn *) (long) txn, glmdb_env->edgePropertyKeyInverseDb, "edgePropertyKeyInverseDb");
 		break;
 	case LABEL_DB:
 		printf("LABEL_DB...\n");
@@ -1138,7 +1148,7 @@ int reindexProperty(GLMDB_env *glmdb_env, MDB_txn *mdbTxn, int propertyKeyId, in
 		goto fail;
 	}
 	MDB_dbi indexDbi;
-	switch(propertyKeyEnum) {
+	switch (propertyKeyEnum) {
 	case BOOLEAN:
 		indexDbi = vertex ? glmdb_env->vertexBooleanIndexDb : glmdb_env->edgeBooleanIndexDb;
 		break;
@@ -1186,7 +1196,7 @@ int reindexProperty(GLMDB_env *glmdb_env, MDB_txn *mdbTxn, int propertyKeyId, in
 
 			int propertyValueLength = data.mv_size;
 			char propertyValue[propertyValueLength];
-			switch(propertyKeyEnum) {
+			switch (propertyKeyEnum) {
 //			case BOOLEAN:
 //				break;
 //			case BYTE:
@@ -1194,7 +1204,7 @@ int reindexProperty(GLMDB_env *glmdb_env, MDB_txn *mdbTxn, int propertyKeyId, in
 //			case SHORT:
 //				break;
 			case INT:
-				rc = setIntIndex(indexCursor, vertexDbId.vertexId, propertyKeyId, *((int *)data.mv_data));
+				rc = setIntIndex(indexCursor, vertexDbId.vertexId, propertyKeyId, *((int *) data.mv_data));
 				break;
 //			case LONG:
 //				break;
@@ -1423,11 +1433,16 @@ int setPropertyKey(GLMDB_env *glmdb_env, MDB_txn * txn, int propertyKeyEnum, int
 
 	int rc = 0;
 	MDB_cursor *cursor;
+	MDB_cursor *inverseCursor;
 	MDB_dbi propertyKeyDb;
+	MDB_dbi propertyKeyInverseDb;
+	PropertyKeyInverseDataStruct *propertyKeyInverseDataStruct = NULL;
 	if (vertex == 0) {
 		propertyKeyDb = glmdb_env->edgePropertyKeyDb;
+		propertyKeyInverseDb = glmdb_env->edgePropertyKeyInverseDb;
 	} else {
 		propertyKeyDb = glmdb_env->vertexPropertyKeyDb;
+		propertyKeyInverseDb = glmdb_env->vertexPropertyKeyInverseDb;
 	}
 
 	PropertyKeyDataStruct propertyKeyDataStruct;
@@ -1517,12 +1532,39 @@ int setPropertyKey(GLMDB_env *glmdb_env, MDB_txn * txn, int propertyKeyEnum, int
 		rc = mdb_cursor_put(cursor, &key, &data, MDB_NOOVERWRITE);
 	}
 
+	if (rc != 0) {
+		goto fail;
+	}
+
+	//Do the inverse property key db
+	MDB_val inverseKey, inverseData;
+	inverseKey.mv_size = sizeof(int);
+	inverseKey.mv_data = &(propertyKeyDataStruct.propertyKeyId);
+	propertyKeyInverseDataStruct = malloc(sizeof(PropertyKeyInverseDataStruct) + propertyKeyLength);
+	propertyKeyInverseDataStruct->type = propertyKeyDataStruct.type;
+	propertyKeyInverseDataStruct->indexed = propertyKeyDataStruct.indexed;
+	memcpy(propertyKeyInverseDataStruct->propertyKey, propertyKeyC, propertyKeyLength);
+	inverseData.mv_size = sizeof(PropertyKeyInverseDataStruct) + propertyKeyLength;
+	inverseData.mv_data = propertyKeyInverseDataStruct;
+	rc = mdb_cursor_open(txn, propertyKeyInverseDb, &inverseCursor);
 	if (rc != 0)
 		goto fail;
 
+	if (overwrite) {
+		rc = mdb_cursor_put(inverseCursor, &inverseKey, &inverseData, 0/*Allow overwrites*/);
+	} else {
+		rc = mdb_cursor_put(inverseCursor, &inverseKey, &inverseData, MDB_NOOVERWRITE);
+	}
+
+	if (rc != 0) {
+		goto fail;
+	}
+
 	*propertyKeyId = (*((PropertyKeyDataStruct *) (data.mv_data))).propertyKeyId;
 
-	fail: mdb_cursor_close(cursor);
+	fail: free(propertyKeyInverseDataStruct);
+	mdb_cursor_close(cursor);
+	mdb_cursor_close(inverseCursor);
 	return rc;
 
 }
@@ -2157,12 +2199,20 @@ int getFirstElementForKeyValueFromStringIndex(MDB_cursor *cursor, int propertyKe
 	rc = mdb_cursor_get(cursor, &key, &data, MDB_SET_RANGE);
 	if (rc == 0) {
 
-		StringIndexKeyStruct *stringIndexKeyStructTmp = (StringIndexKeyStruct *) (key.mv_data);
-		char *value1 = stringIndexKeyStructTmp->value;
+		int propertyKeySize = (size_t) key.mv_size;
+		int propertyKeyInIndexValueSize = propertyKeySize - sizeof(StringIndexKeyStruct);
 
-		int compare = strncmp(value1, value, propertyValueLength);
-		if (compare == 0) {
-			*vertexIdResultC = *((long long *) data.mv_data);
+		if (propertyKeyInIndexValueSize == propertyValueLength) {
+
+			StringIndexKeyStruct *stringIndexKeyStructTmp = (StringIndexKeyStruct *) (key.mv_data);
+			char *value1 = stringIndexKeyStructTmp->value;
+			int compare = strncmp(value1, value, propertyValueLength);
+			if (compare == 0) {
+				*vertexIdResultC = *((long long *) data.mv_data);
+			} else {
+				rc = MDB_NOTFOUND;
+			}
+
 		} else {
 			rc = MDB_NOTFOUND;
 		}
@@ -2179,11 +2229,20 @@ int getNextElementForKeyValueFromStringIndex(MDB_cursor *cursor, int propertyKey
 	rc = mdb_cursor_get(cursor, &key, &data, MDB_NEXT);
 	if (rc == 0) {
 
-		StringIndexKeyStruct *stringIndexKeyStructTmp = (StringIndexKeyStruct *) (key.mv_data);
-		char *value1 = stringIndexKeyStructTmp->value;
-		int compare = strncmp(value1, value, propertyValueLength);
-		if (compare == 0) {
-			*vertexIdResultC = *((long long *) data.mv_data);
+		int propertyKeySize = (size_t) key.mv_size;
+		int propertyKeyInIndexValueSize = propertyKeySize - sizeof(StringIndexKeyStruct);
+
+		if (propertyKeyInIndexValueSize == propertyValueLength) {
+
+			StringIndexKeyStruct *stringIndexKeyStructTmp = (StringIndexKeyStruct *) (key.mv_data);
+			char *value1 = stringIndexKeyStructTmp->value;
+			int compare = strncmp(value1, value, propertyValueLength);
+			if (compare == 0) {
+				*vertexIdResultC = *((long long *) data.mv_data);
+			} else {
+				rc = MDB_NOTFOUND;
+			}
+
 		} else {
 			rc = MDB_NOTFOUND;
 		}
@@ -2729,7 +2788,7 @@ JNIEXPORT jint JNICALL Java_org_glmdb_blueprints_jni_ThunderJni_mdb_1get_1first_
 
 		if (vertexDbId.coreOrPropertyEnum == VPROPERTY_KEY && vertexDbId.propertykeyId == (int) propertyKeyId) {
 
-			if (propertyValueLength == (int)data.mv_size) {
+			if (propertyValueLength == (int) data.mv_size) {
 
 				int compare = strncmp(propertyValue, data.mv_data, propertyValueLength);
 				if (compare == 0) {
@@ -2786,7 +2845,7 @@ JNIEXPORT jint JNICALL Java_org_glmdb_blueprints_jni_ThunderJni_mdb_1get_1next_1
 
 		if (vertexDbId.coreOrPropertyEnum == VPROPERTY_KEY && vertexDbId.propertykeyId == (int) propertyKeyId) {
 
-			if (propertyValueLength == (int)data.mv_size) {
+			if (propertyValueLength == (int) data.mv_size) {
 
 				int compare = strncmp(propertyValue, data.mv_data, propertyValueLength);
 				if (compare == 0) {
@@ -2967,7 +3026,7 @@ JNIEXPORT jint JNICALL Java_org_glmdb_blueprints_jni_ThunderJni_mdb_1get_1first_
 
 		if (edgeDbId.coreOrPropertyEnum == EPROPERTY_KEY && edgeDbId.propertykeyId == (int) propertyKeyId) {
 
-			if (propertyValueLength == (int)data.mv_size) {
+			if (propertyValueLength == (int) data.mv_size) {
 				if (strncmp(propertyValue, data.mv_data, propertyValueLength) == 0) {
 					foundPropertyKeyAndValue = 0;
 					break;
@@ -3053,7 +3112,7 @@ JNIEXPORT jint JNICALL Java_org_glmdb_blueprints_jni_ThunderJni_mdb_1get_1next_1
 
 		if (edgeDbId.coreOrPropertyEnum == EPROPERTY_KEY && edgeDbId.propertykeyId == (int) propertyKeyId) {
 
-			if (propertyValueLength == (int)data.mv_size) {
+			if (propertyValueLength == (int) data.mv_size) {
 				if (strncmp(propertyValue, data.mv_data, propertyValueLength) == 0) {
 					foundPropertyKeyAndValue = 0;
 					break;
@@ -3307,6 +3366,7 @@ int openGraph(GLMDB_env **genv, const char *path) {
 	MDB_dbi vertexDb;
 	MDB_dbi edgeDb;
 	MDB_dbi vertexPropertyKeyDb;
+	MDB_dbi vertexPropertyKeyInverseDb;
 	MDB_dbi vertexBooleanIndexDb;
 	MDB_dbi vertexByteIndexDb;
 	MDB_dbi vertexShortIndexDb;
@@ -3318,6 +3378,7 @@ int openGraph(GLMDB_env **genv, const char *path) {
 	MDB_dbi vertexStringIndexDb;
 
 	MDB_dbi edgePropertyKeyDb;
+	MDB_dbi edgePropertyKeyInverseDb;
 	MDB_dbi edgeBooleanIndexDb;
 	MDB_dbi edgeByteIndexDb;
 	MDB_dbi edgeShortIndexDb;
@@ -3338,7 +3399,7 @@ int openGraph(GLMDB_env **genv, const char *path) {
 	if (rc != 0) {
 		return rc;
 	}
-	rc = mdb_env_set_maxdbs(env, 25);
+	rc = mdb_env_set_maxdbs(env, 27);
 	if (rc != 0) {
 		return rc;
 	}
@@ -3375,12 +3436,26 @@ int openGraph(GLMDB_env **genv, const char *path) {
 	}
 	glmdbEnv->vertexPropertyKeyDb = vertexPropertyKeyDb;
 
+	//Create the vertex property key inverse db
+	rc = createDb(env, "vertexPropertyKeyInverseDb", MDB_CREATE | MDB_INTEGERKEY, &vertexPropertyKeyInverseDb, NULL);
+	if (rc != 0) {
+		return rc;
+	}
+	glmdbEnv->vertexPropertyKeyInverseDb = vertexPropertyKeyInverseDb;
+
 	//Create the edge property key db
 	rc = createDb(env, "edgePropertyKeyDb", MDB_CREATE, &edgePropertyKeyDb, comparePropertyKeyDbId);
 	if (rc != 0) {
 		return rc;
 	}
 	glmdbEnv->edgePropertyKeyDb = edgePropertyKeyDb;
+
+	//Create the edge property key inverse db
+	rc = createDb(env, "edgePropertyKeyInverseDb", MDB_CREATE | MDB_INTEGERKEY, &edgePropertyKeyInverseDb, NULL);
+	if (rc != 0) {
+		return rc;
+	}
+	glmdbEnv->edgePropertyKeyInverseDb = edgePropertyKeyInverseDb;
 
 	//Create the label db
 	rc = createDb(env, "labelDb", MDB_CREATE, &labelDb, NULL);
@@ -3651,7 +3726,9 @@ void closeGraph(GLMDB_env *genv) {
 	MDB_dbi vertexDb = genv->vertexDb;
 	MDB_dbi edgeDb = genv->edgeDb;
 	MDB_dbi vertexPropertyKeyDb = genv->vertexPropertyKeyDb;
+	MDB_dbi vertexPropertyKeyInverseDb = genv->vertexPropertyKeyInverseDb;
 	MDB_dbi edgePropertyKeyDb = genv->edgePropertyKeyDb;
+	MDB_dbi edgePropertyKeyInverseDb = genv->edgePropertyKeyInverseDb;
 	MDB_dbi labelDb = genv->labelDb;
 
 	MDB_dbi vertexBooleanIndexDb = genv->vertexBooleanIndexDb;
@@ -3678,7 +3755,9 @@ void closeGraph(GLMDB_env *genv) {
 	mdb_close(env, vertexDb);
 	mdb_close(env, edgeDb);
 	mdb_close(env, vertexPropertyKeyDb);
+	mdb_close(env, vertexPropertyKeyInverseDb);
 	mdb_close(env, edgePropertyKeyDb);
+	mdb_close(env, edgePropertyKeyInverseDb);
 	mdb_close(env, labelDb);
 
 	mdb_close(env, vertexBooleanIndexDb);
@@ -3729,6 +3808,7 @@ int removeVertex(MDB_txn *txn, GLMDB_env *genv, jlong vertexId) {
 	MDB_cursor *vertexCursor;
 	MDB_cursor *inverseCursor;
 	MDB_cursor *edgeCursor;
+	MDB_cursor *vertexPropertyKeyInverseDbCursor;
 	rc = mdb_cursor_open(txn, genv->vertexDb, &vertexCursor);
 	if (rc != 0) {
 		goto fail;
@@ -3741,6 +3821,11 @@ int removeVertex(MDB_txn *txn, GLMDB_env *genv, jlong vertexId) {
 	if (rc != 0) {
 		goto fail;
 	}
+	rc = mdb_cursor_open(txn, genv->vertexPropertyKeyInverseDb, &vertexPropertyKeyInverseDbCursor);
+	if (rc != 0) {
+		goto fail;
+	}
+
 	VertexDbId id;
 	initVertexDbId(&id);
 	id.vertexId = vertexId;
@@ -3811,6 +3896,65 @@ int removeVertex(MDB_txn *txn, GLMDB_env *genv, jlong vertexId) {
 
 			} else if (vertexDbId.coreOrPropertyEnum == VPROPERTY_KEY) {
 
+				//If it was indexed then remove all entries from the index
+				MDB_val propertyKeyInverseKey, propertyKeyInverseData;
+				propertyKeyInverseKey.mv_size = sizeof(int);
+				propertyKeyInverseKey.mv_data = &(vertexDbId.propertykeyId);
+
+				rc = mdb_cursor_get(vertexPropertyKeyInverseDbCursor, &propertyKeyInverseKey, &propertyKeyInverseData, MDB_SET_KEY);
+				if (rc != 0) {
+					rc = GLMDB_PROPERTY_KEY_NOT_FOUND;
+					goto fail;
+				}
+
+				PropertyKeyInverseDataStruct *propertyKeyInverseDataStruct = (PropertyKeyInverseDataStruct *) propertyKeyInverseData.mv_data;
+				int propertyKeySize = propertyKeyInverseData.mv_size - sizeof(PropertyKeyInverseDataStruct);
+				if (propertyKeyInverseDataStruct->indexed == 1) {
+					switch (propertyKeyInverseDataStruct->type) {
+					case BOOLEAN:
+						break;
+					case BYTE:
+						break;
+					case SHORT:
+						break;
+					case INT:
+						;
+						MDB_cursor *intIndexCursor;
+						rc = mdb_cursor_open(txn, genv->vertexIntIndexDb, &intIndexCursor);
+						if (rc != 0) {
+							goto fail;
+						}
+						rc = removeIntIndex(intIndexCursor, vertexId, vertexDbId.propertykeyId, *((int *) data.mv_data));
+						mdb_cursor_close(intIndexCursor);
+						break;
+					case LONG:
+						break;
+					case FLOAT:
+						break;
+					case DOUBLE:
+						break;
+					case CHAR:
+						break;
+					case STRING:
+						;
+						MDB_cursor *stringIndexCursor;
+						rc = mdb_cursor_open(txn, genv->vertexStringIndexDb, &stringIndexCursor);
+						if (rc != 0) {
+							goto fail;
+						}
+						rc = removeStringIndex(stringIndexCursor, vertexId, vertexDbId.propertykeyId, propertyKeySize,
+								(char *) data.mv_data);
+						mdb_cursor_close(stringIndexCursor);
+						break;
+					default:
+						rc = GLMDB_INVALID_SEQUENCE;
+						break;
+					}
+					if (rc != 0) {
+						goto fail;
+					}
+				}
+
 				rc = mdb_cursor_del(vertexCursor, 0);
 				if (rc != 0) {
 					rc = GLMDB_DB_CORRUPT;
@@ -3845,19 +3989,12 @@ int removeVertex(MDB_txn *txn, GLMDB_env *genv, jlong vertexId) {
 	mdb_cursor_close(vertexCursor);
 	mdb_cursor_close(inverseCursor);
 	mdb_cursor_close(edgeCursor);
+	mdb_cursor_close(vertexPropertyKeyInverseDbCursor);
 	return rc;
 }
 
 int internalDeleteVertex(MDB_cursor *vertexCursor, MDB_cursor *inverseCursor, MDB_cursor *edgeCursor, VertexDbId vertexDbId,
 		VertexDbId inverseId, MDB_val inverseKey, MDB_val data, MDB_val inverseData) {
-
-//	MDB_val key, data;
-//	MDB_val inverseKey, inverseData;
-//	VertexDbId inverseId;
-//	initVertexDbId(&inverseId);
-//	MDB_cursor *vertexCursor;
-//	MDB_cursor *inverseCursor;
-//	MDB_cursor *edgeCursor;
 
 	int rc;
 	rc = internalRemoveEdge(edgeCursor, vertexDbId.edgeId);
@@ -4162,8 +4299,10 @@ int setVertexPropertyString(MDB_cursor *cursor, jlong vertexId, jint propertyKey
 		id.edgeId = -1LL;
 		key.mv_size = sizeof(VertexDbId);
 		key.mv_data = &id;
+
 		data.mv_size = propertyValueLength;
 		data.mv_data = propertyValue;
+
 		return mdb_cursor_put(cursor, &key, &data, 0);
 	} else {
 		return GLMDB_WRITE_NULL;
@@ -4186,6 +4325,25 @@ int setStringIndex(MDB_cursor *indexCursor, long long elementId, int propertyKey
 	return rc;
 }
 
+int removeStringIndex(MDB_cursor *indexCursor, long long elementId, int propertyKeyId, int propertyValueLength, char propertyValue[]) {
+	int rc;
+	MDB_val key, data;
+	StringIndexKeyStruct *stringIndexKeyStruct = malloc(sizeof(StringIndexKeyStruct) + propertyValueLength);
+	stringIndexKeyStruct->propertyKeyId = (int) propertyKeyId;
+	stringIndexKeyStruct->elementId = (long long) elementId;
+	memcpy(stringIndexKeyStruct->value, propertyValue, propertyValueLength);
+	key.mv_size = propertyValueLength + sizeof(StringIndexKeyStruct);
+	key.mv_data = stringIndexKeyStruct;
+	data.mv_size = sizeof(long long);
+	data.mv_data = &elementId;
+	rc = mdb_cursor_get(indexCursor, &key, &data, MDB_SET_KEY);
+	if (rc == 0) {
+		rc = mdb_cursor_del(indexCursor, 0);
+	}
+	free(stringIndexKeyStruct);
+	return rc;
+}
+
 int setIntIndex(MDB_cursor *indexCursor, long long elementId, int propertyKeyId, int propertyValue) {
 	int rc;
 	MDB_val key, data;
@@ -4198,6 +4356,25 @@ int setIntIndex(MDB_cursor *indexCursor, long long elementId, int propertyKeyId,
 	data.mv_size = sizeof(long long);
 	data.mv_data = &elementId;
 	rc = mdb_cursor_put(indexCursor, &key, &data, 0);
+	free(intIndexKeyStruct);
+	return rc;
+}
+
+int removeIntIndex(MDB_cursor *indexCursor, long long elementId, int propertyKeyId, int propertyValue) {
+	int rc;
+	MDB_val key, data;
+	IntIndexKeyStruct *intIndexKeyStruct = malloc(sizeof(IntIndexKeyStruct));
+	intIndexKeyStruct->propertyKeyId = (int) propertyKeyId;
+	intIndexKeyStruct->elementId = (long long) elementId;
+	intIndexKeyStruct->value = propertyValue;
+	key.mv_size = sizeof(IntIndexKeyStruct);
+	key.mv_data = intIndexKeyStruct;
+	data.mv_size = sizeof(long long);
+	data.mv_data = &elementId;
+	rc = mdb_cursor_get(indexCursor, &key, &data, MDB_SET_KEY);
+	if (rc == 0) {
+		rc = mdb_cursor_del(indexCursor, 0);
+	}
 	free(intIndexKeyStruct);
 	return rc;
 }
@@ -4879,10 +5056,12 @@ int compareStringIndexDbId(const MDB_val *key1, const MDB_val *key2) {
 	int propertyKeyId1 = stringIndexKeyStruct1->propertyKeyId;
 	int propertyKeyId2 = stringIndexKeyStruct2->propertyKeyId;
 	if (propertyKeyId1 == propertyKeyId2) {
-		char *value1 = stringIndexKeyStruct1->value;
-		char *value2 = stringIndexKeyStruct2->value;
 
 		if (propertyKey1ValueSize == propertyKey2ValueSize) {
+
+			char *value1 = stringIndexKeyStruct1->value;
+			char *value2 = stringIndexKeyStruct2->value;
+
 			int compare = strncmp(value1, value2, propertyKey1ValueSize);
 			if (compare == 0) {
 				long long elementId1 = stringIndexKeyStruct1->elementId;
@@ -4892,7 +5071,8 @@ int compareStringIndexDbId(const MDB_val *key1, const MDB_val *key2) {
 				return compare;
 			}
 		} else {
-			return (propertyKey1ValueSize > propertyKey2ValueSize) - (propertyKey1ValueSize < propertyKey2ValueSize);
+			int compare = (propertyKey1ValueSize > propertyKey2ValueSize) - (propertyKey1ValueSize < propertyKey2ValueSize);
+			return compare;
 		}
 
 	} else {
@@ -5015,7 +5195,7 @@ void printVertexRecord(MDB_val key, MDB_val data) {
 	VertexDbId vertexDbId = (*((VertexDbId *) (key.mv_data)));
 	switch (vertexDbId.coreOrPropertyEnum) {
 	case VCORE:
-		printf("key: %lld, labelId = %i, type = VCORE, propertyKey: %i,  edgeId = %lld,  data: %s\n", (long long) vertexDbId.vertexId,
+		printf("key: %lld, labelId = %i, type = VCORE, propertyKey: %i, edgeId = %lld,  data: %s\n", (long long) vertexDbId.vertexId,
 				vertexDbId.labelId, vertexDbId.propertykeyId, (long long) vertexDbId.edgeId,
 				*((char *) data.mv_data) == '\0' ? "NULL" : "????");
 		break;
@@ -5053,12 +5233,23 @@ void printEdgeRecord(MDB_val key, MDB_val data) {
 }
 
 void printPropertyKeyDbRecord(MDB_val key, MDB_val data) {
-	char *propertyKeyId = (char *) (key.mv_data);
+	char *propertyKey = (char *) (key.mv_data);
 	int propertyKeySize = ((size_t) key.mv_size);
 	PropertyKeyDataStruct propertyKeyDataStruct = (*((PropertyKeyDataStruct *) (data.mv_data)));
-	printf("propertyKey: %.*s propertyKeyIdType %s, propertyKeyId: %i , indexed = %s\n", propertyKeySize, propertyKeyId,
+	printf("propertyKey: %.*s propertyKeyIdType %s, propertyKeyId: %i , indexed = %s\n", propertyKeySize, propertyKey,
 			propertyTypeEnumToString(propertyKeyDataStruct.type), propertyKeyDataStruct.propertyKeyId,
 			(propertyKeyDataStruct.indexed == 1 ? "true" : "false"));
+}
+
+void printPropertyKeyInverseDbRecord(MDB_val key, MDB_val data) {
+	int propertyKeyId = *((int *) (key.mv_data));
+	int propertyKeySize = data.mv_size - sizeof(PropertyKeyInverseDataStruct);
+	PropertyKeyInverseDataStruct *propertyKeyInverseDataStruct = (PropertyKeyInverseDataStruct *) (data.mv_data);
+	enum PropertyTypeEnum type = propertyKeyInverseDataStruct->type;
+	unsigned char indexed = propertyKeyInverseDataStruct->indexed;
+	char *propertyKey = propertyKeyInverseDataStruct->propertyKey;
+	printf("propertyKeyId: %i propertyKeyIdType %s, indexed = %s, propertyKey = %.*s \n", propertyKeyId, propertyTypeEnumToString(type),
+			(indexed == 1 ? "true" : "false"), propertyKeySize, propertyKey);
 }
 
 void printLabelDbRecord(MDB_val key, MDB_val data) {
@@ -5249,6 +5440,23 @@ int traverseVertexPropertyKeyDb(GLMDB_env * glmdb_env, MDB_txn *txn) {
 	return rc;
 }
 
+int traverseVertexPropertyKeyInverseDb(GLMDB_env * glmdb_env, MDB_txn *txn) {
+
+	int rc = 0;
+	MDB_dbi dbi = glmdb_env->vertexPropertyKeyInverseDb;
+	MDB_cursor *cursor;
+	MDB_val key, data;
+	rc = mdb_cursor_open(txn, dbi, &cursor);
+	if (rc != 0) {
+		goto fail;
+	}
+	while ((rc = mdb_cursor_get(cursor, &key, &data, MDB_NEXT)) == 0) {
+		printPropertyKeyInverseDbRecord(key, data);
+	}
+	fail: mdb_cursor_close(cursor);
+	return rc;
+}
+
 int traverseEdgePropertyKeyDb(GLMDB_env * glmdb_env, MDB_txn *txn) {
 	int rc;
 	MDB_dbi dbi = glmdb_env->edgePropertyKeyDb;
@@ -5260,6 +5468,22 @@ int traverseEdgePropertyKeyDb(GLMDB_env * glmdb_env, MDB_txn *txn) {
 	}
 	while ((rc = mdb_cursor_get(cursor, &key, &data, MDB_NEXT)) == 0) {
 		printPropertyKeyDbRecord(key, data);
+	}
+	fail: mdb_cursor_close(cursor);
+	return 0;
+}
+
+int traverseEdgePropertyKeyInverseDb(GLMDB_env * glmdb_env, MDB_txn *txn) {
+	int rc;
+	MDB_dbi dbi = glmdb_env->edgePropertyKeyInverseDb;
+	MDB_cursor *cursor;
+	MDB_val key, data;
+	rc = mdb_cursor_open(txn, dbi, &cursor);
+	if (rc != 0) {
+		goto fail;
+	}
+	while ((rc = mdb_cursor_get(cursor, &key, &data, MDB_NEXT)) == 0) {
+		printPropertyKeyInverseDbRecord(key, data);
 	}
 	fail: mdb_cursor_close(cursor);
 	return 0;
