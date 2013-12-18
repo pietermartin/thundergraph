@@ -4,6 +4,8 @@ import com.tinkerpop.blueprints.Direction;
 import com.tinkerpop.blueprints.Edge;
 import com.tinkerpop.blueprints.Vertex;
 import com.tinkerpop.blueprints.VertexQuery;
+import org.glmdb.blueprints.iter.EdgesFromVertexIterable;
+import org.glmdb.blueprints.iter.VertexesFromVertexIterable;
 
 import java.util.Set;
 

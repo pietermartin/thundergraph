@@ -21,6 +21,10 @@ public abstract class ThunderElement implements Element {
         return this.id;
     }
 
+    public long getInternalId() {
+        return this.id;
+    }
+
     @Override
     public boolean equals(Object o) {
         if (o instanceof ThunderElement) {

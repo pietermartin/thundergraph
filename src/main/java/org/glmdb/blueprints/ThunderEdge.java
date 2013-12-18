@@ -83,11 +83,11 @@ public class ThunderEdge extends ThunderElement implements Edge {
         return this.label;
     }
 
-    long getOutVertexId() {
+    public long getOutVertexId() {
         return outVertexId;
     }
 
-    long getInVertexId() {
+    public long getInVertexId() {
         return inVertexId;
     }
 

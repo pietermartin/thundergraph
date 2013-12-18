@@ -44,8 +44,6 @@ public class VertexesTest extends BaseGlmdbGraphTest {
         Assert.assertNotNull(vertex);
         Assert.assertEquals("pieter11000", vertex.getProperty("name1"));
 
-//        thunderGraph.printVertexDb();
-
         thunderGraph.commit();
         thunderGraph.shutdown();
     }

@@ -10,7 +10,7 @@ import java.util.Set;
  * Date: 2013/11/24
  * Time: 8:18 AM
  */
-class TransactionAndCursor {
+public class TransactionAndCursor {
 
     private Transaction txn;
     private Cursor vertexCursor;
@@ -25,27 +25,27 @@ class TransactionAndCursor {
         this.readOnly = readOnly;
     }
 
-    Transaction getTxn() {
+    public Transaction getTxn() {
         return txn;
     }
 
-    Cursor getVertexCursor() {
+    public Cursor getVertexCursor() {
         return vertexCursor;
     }
 
-    Cursor getEdgeCursor() {
+    public Cursor getEdgeCursor() {
         return edgeCursor;
     }
 
-    boolean isReadOnly() {
+    public boolean isReadOnly() {
         return readOnly;
     }
 
-    void addIteratorCursor(Cursor cursor) {
+    public void addIteratorCursor(Cursor cursor) {
         this.iteratorCursors.add(cursor);
     }
 
-    void closeCursors() {
+    public void closeCursors() {
         this.vertexCursor.close();
         this.edgeCursor.close();
         for (Cursor c : this.iteratorCursors) {

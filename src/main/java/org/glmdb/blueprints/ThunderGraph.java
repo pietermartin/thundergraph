@@ -1,6 +1,39 @@
 package org.glmdb.blueprints;
 
 import com.tinkerpop.blueprints.*;
+import org.glmdb.blueprints.iter.*;
+import org.glmdb.blueprints.iter._boolean.EdgeBooleanIndexIterable;
+import org.glmdb.blueprints.iter._boolean.EdgeForKeyBooleanValueIterable;
+import org.glmdb.blueprints.iter._boolean.VertexBooleanIndexIterable;
+import org.glmdb.blueprints.iter._boolean.VertexForKeyBooleanValueIterable;
+import org.glmdb.blueprints.iter._char.EdgeCharIndexIterable;
+import org.glmdb.blueprints.iter._char.EdgeForKeyCharValueIterable;
+import org.glmdb.blueprints.iter._char.VertexCharIndexIterable;
+import org.glmdb.blueprints.iter._char.VertexForKeyCharValueIterable;
+import org.glmdb.blueprints.iter._double.EdgeDoubleIndexIterable;
+import org.glmdb.blueprints.iter._double.EdgeForKeyDoubleValueIterable;
+import org.glmdb.blueprints.iter._double.VertexDoubleIndexIterable;
+import org.glmdb.blueprints.iter._double.VertexForKeyDoubleValueIterable;
+import org.glmdb.blueprints.iter._float.EdgeFloatIndexIterable;
+import org.glmdb.blueprints.iter._float.EdgeForKeyFloatValueIterable;
+import org.glmdb.blueprints.iter._float.VertexFloatIndexIterable;
+import org.glmdb.blueprints.iter._float.VertexForKeyFloatValueIterable;
+import org.glmdb.blueprints.iter._int.EdgeForKeyIntValueIterable;
+import org.glmdb.blueprints.iter._int.EdgeIntIndexIterable;
+import org.glmdb.blueprints.iter._int.VertexForKeyIntValueIterable;
+import org.glmdb.blueprints.iter._int.VertexIntIndexIterable;
+import org.glmdb.blueprints.iter._long.EdgeForKeyLongValueIterable;
+import org.glmdb.blueprints.iter._long.EdgeLongIndexIterable;
+import org.glmdb.blueprints.iter._long.VertexForKeyLongValueIterable;
+import org.glmdb.blueprints.iter._long.VertexLongIndexIterable;
+import org.glmdb.blueprints.iter._short.EdgeForKeyShortValueIterable;
+import org.glmdb.blueprints.iter._short.EdgeShortIndexIterable;
+import org.glmdb.blueprints.iter._short.VertexForKeyShortValueIterable;
+import org.glmdb.blueprints.iter._short.VertexShortIndexIterable;
+import org.glmdb.blueprints.iter._string.EdgeForKeyStringValueIterable;
+import org.glmdb.blueprints.iter._string.EdgeStringIndexIterable;
+import org.glmdb.blueprints.iter._string.VertexForKeyStringValueIterable;
+import org.glmdb.blueprints.iter._string.VertexStringIndexIterable;
 import org.glmdb.blueprints.jni.Cursor;
 import org.glmdb.blueprints.jni.DbEnum;
 import org.glmdb.blueprints.jni.Thunder;
@@ -137,6 +170,18 @@ public class ThunderGraph implements TransactionalGraph, KeyIndexableGraph {
                 return new VertexStringIndexIterable(this, key, (String)value);
             } else if (value instanceof Integer) {
                 return new VertexIntIndexIterable(this, key, (Integer)value);
+            } else if (value instanceof Long) {
+                return new VertexLongIndexIterable(this, key, (Long)value);
+            } else if (value instanceof Float) {
+                return new VertexFloatIndexIterable(this, key, (Float)value);
+            } else if (value instanceof Double) {
+                return new VertexDoubleIndexIterable(this, key, (Double)value);
+            } else if (value instanceof Boolean) {
+                return new VertexBooleanIndexIterable(this, key, (Boolean)value);
+            } else if (value instanceof Short) {
+                return new VertexShortIndexIterable(this, key, (Short)value);
+            } else if (value instanceof Character) {
+                return new VertexCharIndexIterable(this, key, (Character)value);
             } else {
                 throw new RuntimeException("Not yet implemented!");
             }
@@ -145,6 +190,18 @@ public class ThunderGraph implements TransactionalGraph, KeyIndexableGraph {
                 return new VertexForKeyStringValueIterable(this, key, (String)value);
             } else if (value instanceof Integer) {
                 return new VertexForKeyIntValueIterable(this, key, (Integer)value);
+            } else if (value instanceof Long) {
+                return new VertexForKeyLongValueIterable(this, key, (Long)value);
+            } else if (value instanceof Float) {
+                return new VertexForKeyFloatValueIterable(this, key, (Float)value);
+            } else if (value instanceof Double) {
+                return new VertexForKeyDoubleValueIterable(this, key, (Double)value);
+            } else if (value instanceof Boolean) {
+                return new VertexForKeyBooleanValueIterable(this, key, (Boolean)value);
+            } else if (value instanceof Short) {
+                return new VertexForKeyShortValueIterable(this, key, (Short)value);
+            } else if (value instanceof Character) {
+                return new VertexForKeyCharValueIterable(this, key, (Character)value);
             } else {
                 throw new RuntimeException("Not yet implemented!");
             }
@@ -194,6 +251,18 @@ public class ThunderGraph implements TransactionalGraph, KeyIndexableGraph {
                 return new EdgeStringIndexIterable(this, key, (String)value);
             } else if (value instanceof Integer) {
                 return new EdgeIntIndexIterable(this, key, (Integer)value);
+            } else if (value instanceof Long) {
+                return new EdgeLongIndexIterable(this, key, (Long)value);
+            } else if (value instanceof Float) {
+                return new EdgeFloatIndexIterable(this, key, (Float)value);
+            } else if (value instanceof Double) {
+                return new EdgeDoubleIndexIterable(this, key, (Double)value);
+            } else if (value instanceof Boolean) {
+                return new EdgeBooleanIndexIterable(this, key, (Boolean)value);
+            } else if (value instanceof Short) {
+                return new EdgeShortIndexIterable(this, key, (Short)value);
+            } else if (value instanceof Character) {
+                return new EdgeCharIndexIterable(this, key, (Character)value);
             } else {
                 throw new RuntimeException("Not yet implemented!");
             }
@@ -202,6 +271,18 @@ public class ThunderGraph implements TransactionalGraph, KeyIndexableGraph {
                 return new EdgeForKeyStringValueIterable(this, key, (String)value);
             } else if (value instanceof Integer) {
                 return new EdgeForKeyIntValueIterable(this, key, (Integer)value);
+            } else if (value instanceof Long) {
+                return new EdgeForKeyLongValueIterable(this, key, (Long)value);
+            } else if (value instanceof Float) {
+                return new EdgeForKeyFloatValueIterable(this, key, (Float)value);
+            } else if (value instanceof Double) {
+                return new EdgeForKeyDoubleValueIterable(this, key, (Double)value);
+            } else if (value instanceof Boolean) {
+                return new EdgeForKeyBooleanValueIterable(this, key, (Boolean)value);
+            } else if (value instanceof Short) {
+                return new EdgeForKeyShortValueIterable(this, key, (Short)value);
+            } else if (value instanceof Character) {
+                return new EdgeForKeyCharValueIterable(this, key, (Character)value);
             } else {
                 throw new RuntimeException("Not yet implemented!");
             }
@@ -265,11 +346,11 @@ public class ThunderGraph implements TransactionalGraph, KeyIndexableGraph {
         return this.currentTransaction.get() != null;
     }
 
-    TransactionAndCursor getReadOnlyTx() {
+    public TransactionAndCursor getReadOnlyTx() {
         return this.getTx(true);
     }
 
-    TransactionAndCursor getWriteTx() {
+    public TransactionAndCursor getWriteTx() {
         return this.getTx(false);
     }
 
@@ -367,8 +448,13 @@ public class ThunderGraph implements TransactionalGraph, KeyIndexableGraph {
         }
     }
 
-    Thunder getThunder() {
+    public Thunder getThunder() {
         return thunder;
+    }
+
+    public int getDbEntries(DbEnum dbEnum) {
+        TransactionAndCursor tc = this.getReadOnlyTx();
+        return this.thunder.getDbEntries(tc.getTxn(), dbEnum);
     }
 
     public void printDb(DbEnum dbEnum) {
