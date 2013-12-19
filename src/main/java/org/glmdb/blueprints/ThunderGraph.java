@@ -6,6 +6,10 @@ import org.glmdb.blueprints.iter._boolean.EdgeBooleanIndexIterable;
 import org.glmdb.blueprints.iter._boolean.EdgeForKeyBooleanValueIterable;
 import org.glmdb.blueprints.iter._boolean.VertexBooleanIndexIterable;
 import org.glmdb.blueprints.iter._boolean.VertexForKeyBooleanValueIterable;
+import org.glmdb.blueprints.iter._byte.EdgeByteIndexIterable;
+import org.glmdb.blueprints.iter._byte.EdgeForKeyByteValueIterable;
+import org.glmdb.blueprints.iter._byte.VertexByteIndexIterable;
+import org.glmdb.blueprints.iter._byte.VertexForKeyByteValueIterable;
 import org.glmdb.blueprints.iter._char.EdgeCharIndexIterable;
 import org.glmdb.blueprints.iter._char.EdgeForKeyCharValueIterable;
 import org.glmdb.blueprints.iter._char.VertexCharIndexIterable;
@@ -182,6 +186,8 @@ public class ThunderGraph implements TransactionalGraph, KeyIndexableGraph {
                 return new VertexShortIndexIterable(this, key, (Short)value);
             } else if (value instanceof Character) {
                 return new VertexCharIndexIterable(this, key, (Character)value);
+            } else if (value instanceof Byte) {
+                return new VertexByteIndexIterable(this, key, (Byte)value);
             } else {
                 throw new RuntimeException("Not yet implemented!");
             }
@@ -202,6 +208,8 @@ public class ThunderGraph implements TransactionalGraph, KeyIndexableGraph {
                 return new VertexForKeyShortValueIterable(this, key, (Short)value);
             } else if (value instanceof Character) {
                 return new VertexForKeyCharValueIterable(this, key, (Character)value);
+            } else if (value instanceof Byte) {
+                return new VertexForKeyByteValueIterable(this, key, (Byte)value);
             } else {
                 throw new RuntimeException("Not yet implemented!");
             }
@@ -263,6 +271,8 @@ public class ThunderGraph implements TransactionalGraph, KeyIndexableGraph {
                 return new EdgeShortIndexIterable(this, key, (Short)value);
             } else if (value instanceof Character) {
                 return new EdgeCharIndexIterable(this, key, (Character)value);
+            } else if (value instanceof Byte) {
+                return new EdgeByteIndexIterable(this, key, (Byte)value);
             } else {
                 throw new RuntimeException("Not yet implemented!");
             }
@@ -283,6 +293,8 @@ public class ThunderGraph implements TransactionalGraph, KeyIndexableGraph {
                 return new EdgeForKeyShortValueIterable(this, key, (Short)value);
             } else if (value instanceof Character) {
                 return new EdgeForKeyCharValueIterable(this, key, (Character)value);
+            } else if (value instanceof Byte) {
+                return new EdgeForKeyByteValueIterable(this, key, (Byte)value);
             } else {
                 throw new RuntimeException("Not yet implemented!");
             }

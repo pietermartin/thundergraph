@@ -53,14 +53,14 @@ test:	all
 	./mtest && ./mdb_stat testdb
 
 libglmdb_jni.a:	glmdb_jni.o thundergraph_string.o thundergraph_int.o thundergraph_long.o thundergraph_float.o \
-thundergraph_double.o thundergraph_boolean.o thundergraph_short.o thundergraph_char.o thundergraph_generic.o mdb.o midl.o
+thundergraph_double.o thundergraph_boolean.o thundergraph_short.o thundergraph_char.o thundergraph_byte.o thundergraph_generic.o mdb.o midl.o
 	ar rs $@ glmdb_jni.o thundergraph_string.o thundergraph_int.o thundergraph_long.o thundergraph_float.o thundergraph_double.o \
-	thundergraph_boolean.o thundergraph_short.o thundergraph_char.o thundergraph_generic.o mdb.o midl.o
+	thundergraph_boolean.o thundergraph_short.o thundergraph_char.o thundergraph_byte.o thundergraph_generic.o mdb.o midl.o
 
 libglmdb_jni.so:	glmdb_jni.o thundergraph_string.o thundergraph_int.o thundergraph_long.o thundergraph_float.o \
-thundergraph_double.o thundergraph_boolean.o thundergraph_short.o thundergraph_char.o thundergraph_generic.o mdb.o midl.o
+thundergraph_double.o thundergraph_boolean.o thundergraph_short.o thundergraph_char.o thundergraph_byte.o thundergraph_generic.o mdb.o midl.o
 	$(CC) $(LDFLAGS) -pthread -shared -o $@ glmdb_jni.o thundergraph_string.o thundergraph_int.o thundergraph_long.o \
-	thundergraph_float.o thundergraph_double.o thundergraph_boolean.o thundergraph_short.o thundergraph_char.o thundergraph_generic.o mdb.o midl.o $(SOLIBS)
+	thundergraph_float.o thundergraph_double.o thundergraph_boolean.o thundergraph_short.o thundergraph_char.o thundergraph_byte.o thundergraph_generic.o mdb.o midl.o $(SOLIBS)
 
 liblmdb.a:	mdb.o midl.o
 	ar rs $@ mdb.o midl.o
@@ -79,7 +79,7 @@ mtest_string_index_db:   mtest_string_index_db.o liblmdb.a
 glmdb_jni.o: glmdb_jni.c glmdb_jni.h thundergraph_structs.h thundergraph_string.c thundergraph_string.h \
 thundergraph_int.c thundergraph_int.h thundergraph_long.c thundergraph_long.h thundergraph_float.c thundergraph_float.h \
 thundergraph_double.c thundergraph_double.h thundergraph_boolean.c thundergraph_boolean.h thundergraph_short.c thundergraph_short.h \
-thundergraph_char.c thundergraph_char.h thundergraph_generic.c thundergraph_generic.h mdb.c lmdb.h midl.h
+thundergraph_char.c thundergraph_char.h thundergraph_byte.c thundergraph_byte.h thundergraph_generic.c thundergraph_generic.h mdb.c lmdb.h midl.h
 	$(CC) $(CFLAGS) -fPIC $(IFLAGS) $(CPPFLAGS) -c glmdb_jni.c
 
 thundergraph_string.o: thundergraph_string.c
@@ -102,6 +102,9 @@ thundergraph_short.o: thundergraph_short.c
 
 thundergraph_char.o: thundergraph_char.c
 	$(CC) $(CFLAGS) -fPIC $(IFLAGS) $(CPPFLAGS) -c thundergraph_char.c
+
+thundergraph_byte.o: thundergraph_byte.c
+	$(CC) $(CFLAGS) -fPIC $(IFLAGS) $(CPPFLAGS) -c thundergraph_byte.c
 
 thundergraph_float.o: thundergraph_float.c
 	$(CC) $(CFLAGS) -fPIC $(IFLAGS) $(CPPFLAGS) -c thundergraph_float.c

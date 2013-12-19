@@ -202,3 +202,9 @@ typedef struct CharIndexKeyStruct {
 	unsigned short value;
 } CharIndexKeyStruct;
 
+typedef struct ByteIndexKeyStruct {
+	jint propertyKeyId;
+	long long elementId;
+	signed char value;
+} ByteIndexKeyStruct;
+

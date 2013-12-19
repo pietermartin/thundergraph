@@ -1892,7 +1892,170 @@ public class Thunder extends NativeObject implements Closeable {
         }
     }
 
+    //byte
+    public boolean getFirstVertexForKeyByteValue(Cursor cursor, long vertexIdArray[], String key, byte value) {
+        PropertyKeyEnumAndId propertyKeyEnumAndId = this.vertexPropertyKeyToIdMap.get(key);
+        if (propertyKeyEnumAndId != null) {
+            if (propertyKeyEnumAndId.propertyTypeEnum == PropertyTypeEnum.BYTE) {
+                int rc = mdb_get_first_vertex_for_key_byte_value(cursor.pointer(), vertexIdArray, propertyKeyEnumAndId.id, value);
+                if (rc != MDB_NOTFOUND) {
+                    checkErrorCode(rc);
+                    return true;
+                } else {
+                    return false;
+                }
+            } else {
+                return false;
+            }
+        } else {
+            return false;
+        }
+    }
 
+    public boolean getNextVertexForKeyByteValue(Cursor cursor, long vertexIdArray[], String key, byte value) {
+        PropertyKeyEnumAndId propertyKeyEnumAndId = this.vertexPropertyKeyToIdMap.get(key);
+        if (propertyKeyEnumAndId != null) {
+            if (propertyKeyEnumAndId.propertyTypeEnum == PropertyTypeEnum.BYTE) {
+                int rc = mdb_get_next_vertex_for_key_byte_value(cursor.pointer(), vertexIdArray, propertyKeyEnumAndId.id, value);
+                if (rc != MDB_NOTFOUND) {
+                    checkErrorCode(rc);
+                    return true;
+                } else {
+                    return false;
+                }
+            } else {
+                return false;
+            }
+        } else {
+            return false;
+        }
+    }
+
+    public boolean getFirstVertexForKeyValueFromByteIndex(Cursor cursor, long vertexIdArray[], String key, byte value) {
+        PropertyKeyEnumAndId propertyKeyEnumAndId = this.vertexPropertyKeyToIdMap.get(key);
+        if (propertyKeyEnumAndId != null) {
+            //Make sure it is a string property
+            if (propertyKeyEnumAndId.propertyTypeEnum == PropertyTypeEnum.BYTE) {
+                int rc = mdb_get_first_vertex_for_key_value_from_byte_index(cursor.pointer(), vertexIdArray, propertyKeyEnumAndId.id, value);
+                if (rc != MDB_NOTFOUND) {
+                    checkErrorCode(rc);
+                    return true;
+                } else {
+                    return false;
+                }
+            } else {
+                return false;
+            }
+        } else {
+            return false;
+        }
+    }
+
+    public boolean getNextVertexForKeyValueFromByteIndex(Cursor cursor, long vertexIdArray[], String key, byte value) {
+        PropertyKeyEnumAndId propertyKeyEnumAndId = this.vertexPropertyKeyToIdMap.get(key);
+        if (propertyKeyEnumAndId != null) {
+            //Make sure it is a string property
+            if (propertyKeyEnumAndId.propertyTypeEnum == PropertyTypeEnum.BYTE) {
+                int rc = mdb_get_next_vertex_for_key_value_for_byte_index(cursor.pointer(), vertexIdArray, propertyKeyEnumAndId.id, value);
+                if (rc != MDB_NOTFOUND) {
+                    checkErrorCode(rc);
+                    return true;
+                } else {
+                    return false;
+                }
+            } else {
+                return false;
+            }
+        } else {
+            return false;
+        }
+    }
+
+    public boolean getFirstEdgeForKeyValueFromByteIndex(Cursor edgeStringIndexDbCursor, Cursor edgeDbCursor, String key, byte value, long edgeIdArray[], String labelArray[], long outVertexIdArray[], long inVertexIdArray[]) {
+        PropertyKeyEnumAndId propertyKeyEnumAndId = this.edgePropertyKeyToIdMap.get(key);
+        if (propertyKeyEnumAndId != null) {
+            //Make sure it is a string property
+            if (propertyKeyEnumAndId.propertyTypeEnum == PropertyTypeEnum.BYTE) {
+                int labelIdArray[] = new int[1];
+                int rc = mdb_get_first_edge_for_key_value_from_byte_index(edgeStringIndexDbCursor.pointer(), edgeDbCursor.pointer(), propertyKeyEnumAndId.id, value, edgeIdArray, labelIdArray, outVertexIdArray, inVertexIdArray);
+                if (rc != MDB_NOTFOUND) {
+                    checkErrorCode(rc);
+                    labelArray[0] = this.idToLabelMap.get(labelIdArray[0]);
+                    return true;
+                } else {
+                    return false;
+                }
+            } else {
+                return false;
+            }
+        } else {
+            return false;
+        }
+    }
+
+    public boolean getNextEdgeForKeyValueFromByteIndex(Cursor edgeStringIndexDbCursor, Cursor edgeDbCursor, String key, byte value, long edgeIdArray[], String labelArray[], long outVertexIdArray[], long inVertexIdArray[]) {
+        PropertyKeyEnumAndId propertyKeyEnumAndId = this.edgePropertyKeyToIdMap.get(key);
+        if (propertyKeyEnumAndId != null) {
+            //Make sure it is a string property
+            if (propertyKeyEnumAndId.propertyTypeEnum == PropertyTypeEnum.BYTE) {
+                int labelIdArray[] = new int[1];
+                int rc = mdb_get_next_edge_for_key_value_for_byte_index(edgeStringIndexDbCursor.pointer(), edgeDbCursor.pointer(), propertyKeyEnumAndId.id, value, edgeIdArray, labelIdArray, outVertexIdArray, inVertexIdArray);
+                if (rc != MDB_NOTFOUND) {
+                    checkErrorCode(rc);
+                    labelArray[0] = this.idToLabelMap.get(labelIdArray[0]);
+                    return true;
+                } else {
+                    return false;
+                }
+            } else {
+                return false;
+            }
+        } else {
+            return false;
+        }
+    }
+
+    public boolean getFirstEdgeForKeyByteValue(Cursor cursor, long edgeIdArray[], String labelArray[], long outVertexIdArray[], long inVertexIdArray[], String key, byte value) {
+        PropertyKeyEnumAndId propertyKeyEnumAndId = this.edgePropertyKeyToIdMap.get(key);
+        if (propertyKeyEnumAndId != null) {
+            if (propertyKeyEnumAndId.propertyTypeEnum == PropertyTypeEnum.BYTE) {
+                int labelIdArray[] = new int[1];
+                int rc = mdb_get_first_edge_for_key_byte_value(cursor.pointer(), edgeIdArray, labelIdArray, outVertexIdArray, inVertexIdArray, propertyKeyEnumAndId.id, value);
+                if (rc != MDB_NOTFOUND) {
+                    checkErrorCode(rc);
+                    labelArray[0] = this.idToLabelMap.get(labelIdArray[0]);
+                    return true;
+                } else {
+                    return false;
+                }
+            } else {
+                return false;
+            }
+        } else {
+            return false;
+        }
+    }
+
+    public boolean getNextEdgeForKeyByteValue(Cursor cursor, long edgeIdArray[], String labelArray[], long outVertexIdArray[], long inVertexIdArray[], String key, byte value) {
+        PropertyKeyEnumAndId propertyKeyEnumAndId = this.edgePropertyKeyToIdMap.get(key);
+        if (propertyKeyEnumAndId != null) {
+            if (propertyKeyEnumAndId.propertyTypeEnum == PropertyTypeEnum.BYTE) {
+                int labelIdArray[] = new int[1];
+                int rc = mdb_get_next_edge_for_key_byte_value(cursor.pointer(), edgeIdArray, labelIdArray, outVertexIdArray, inVertexIdArray, propertyKeyEnumAndId.id, value);
+                if (rc != MDB_NOTFOUND) {
+                    checkErrorCode(rc);
+                    labelArray[0] = this.idToLabelMap.get(labelIdArray[0]);
+                    return true;
+                } else {
+                    return false;
+                }
+            } else {
+                return false;
+            }
+        } else {
+            return false;
+        }
+    }
 
 
 }

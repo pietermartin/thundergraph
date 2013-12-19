@@ -350,6 +350,22 @@ public class ThunderJni {
 
     public static final native int mdb_get_next_edge_for_key_char_value(long cursor, long edgeIdResult[], int[] label, long[] outVertexId, long[] inVertexId, int key, char value);
 
+    //byte
+    public static final native int mdb_get_first_vertex_for_key_byte_value(long cursor, long vertexIdResult[], int key, byte value);
+
+    public static final native int mdb_get_next_vertex_for_key_byte_value(long cursor, long vertexIdResult[], int key, byte value);
+
+    public static final native int mdb_get_first_vertex_for_key_value_from_byte_index(long vertexByteIndexDbCursor, long vertexIdResult[], int key, byte value);
+
+    public static final native int mdb_get_next_vertex_for_key_value_for_byte_index(long vertexByteIndexDbCursor, long vertexIdResult[], int key, byte value);
+
+    public static final native int mdb_get_first_edge_for_key_value_from_byte_index(long edgeByteIndexDbCursor, long edgeDbCursor, int key, byte value, long edgeIdResult[], int[] label, long[] outVertexId, long[] inVertexId);
+
+    public static final native int mdb_get_next_edge_for_key_value_for_byte_index(long edgeByteIndexDbCursor, long edgeDbCursor, int key, byte value, long edgeIdResult[], int[] label, long[] outVertexId, long[] inVertexId);
+
+    public static final native int mdb_get_first_edge_for_key_byte_value(long cursor, long edgeIdResult[], int[] label, long[] outVertexId, long[] inVertexId, int key, byte value);
+
+    public static final native int mdb_get_next_edge_for_key_byte_value(long cursor, long edgeIdResult[], int[] label, long[] outVertexId, long[] inVertexId, int key, byte value);
 
 
 

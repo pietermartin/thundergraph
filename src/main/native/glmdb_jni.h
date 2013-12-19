@@ -11,6 +11,74 @@ extern "C" {
 
 	/*
 	 * Class:     org_glmdb_blueprints_jni_ThunderJni
+	 * Method:    mdb_get_first_vertex_for_key_byte_value
+	 * Signature: (J[JIB)I
+	 */
+	JNIEXPORT jint JNICALL Java_org_glmdb_blueprints_jni_ThunderJni_mdb_1get_1first_1vertex_1for_1key_1byte_1value(JNIEnv *env, jclass that,
+			jlong cursor, jlongArray vertexIdResult, jint propertyKeyId, jbyte value);
+
+	/*
+	 * Class:     org_glmdb_blueprints_jni_ThunderJni
+	 * Method:    mdb_get_next_vertex_for_key_byte_value
+	 * Signature: (J[JIB)I
+	 */
+	JNIEXPORT jint JNICALL Java_org_glmdb_blueprints_jni_ThunderJni_mdb_1get_1next_1vertex_1for_1key_1byte_1value(JNIEnv *env, jclass that,
+			jlong cursor, jlongArray vertexIdResult, jint propertyKeyId, jbyte value);
+
+	/*
+	 * Class:     org_glmdb_blueprints_jni_ThunderJni
+	 * Method:    mdb_get_first_vertex_for_key_value_from_byte_index
+	 * Signature: (J[JIB)I
+	 */
+	JNIEXPORT jint JNICALL Java_org_glmdb_blueprints_jni_ThunderJni_mdb_1get_1first_1vertex_1for_1key_1value_1from_1byte_1index(JNIEnv *env,
+			jclass that, jlong vertexByteIndexDbCursor, jlongArray vertexIdResult, jint propertyKeyId, jbyte value);
+
+	/*
+	 * Class:     org_glmdb_blueprints_jni_ThunderJni
+	 * Method:    mdb_get_next_vertex_for_key_value_for_byte_index
+	 * Signature: (J[JIB)I
+	 */
+	JNIEXPORT jint JNICALL Java_org_glmdb_blueprints_jni_ThunderJni_mdb_1get_1next_1vertex_1for_1key_1value_1for_1byte_1index(JNIEnv *env,
+			jclass that, jlong vertexByteIndexDbCursor, jlongArray vertexIdResult, jint propertyKeyId, jbyte value);
+
+	/*
+	 * Class:     org_glmdb_blueprints_jni_ThunderJni
+	 * Method:    mdb_get_first_edge_for_key_value_from_byte_index
+	 * Signature: (JJIB[J[I[J[J)I
+	 */
+	JNIEXPORT jint JNICALL Java_org_glmdb_blueprints_jni_ThunderJni_mdb_1get_1first_1edge_1for_1key_1value_1from_1byte_1index(JNIEnv *env,
+			jclass that, jlong edgeByteIndexDbCursor, jlong edgeDbCursor, jint propertyKeyId, jbyte value, jlongArray edgeIdResult,
+			jintArray label, jlongArray outVertexId, jlongArray inVertexId);
+
+	/*
+	 * Class:     org_glmdb_blueprints_jni_ThunderJni
+	 * Method:    mdb_get_next_edge_for_key_value_for_byte_index
+	 * Signature: (JJIB[J[I[J[J)I
+	 */
+	JNIEXPORT jint JNICALL Java_org_glmdb_blueprints_jni_ThunderJni_mdb_1get_1next_1edge_1for_1key_1value_1for_1byte_1index(JNIEnv *env,
+			jclass that, jlong edgeByteIndexDbCursor, jlong edgeDbCursor, jint propertyKeyId, jbyte value, jlongArray edgeIdResult,
+			jintArray label, jlongArray outVertexId, jlongArray inVertexId);
+
+	/*
+	 * Class:     org_glmdb_blueprints_jni_ThunderJni
+	 * Method:    mdb_get_first_edge_for_key_byte_value
+	 * Signature: (J[J[I[J[JIB)I
+	 */
+	JNIEXPORT jint JNICALL Java_org_glmdb_blueprints_jni_ThunderJni_mdb_1get_1first_1edge_1for_1key_1byte_1value(JNIEnv *env, jclass that,
+			jlong cursor, jlongArray edgeIdResult, jintArray label, jlongArray outVertexId, jlongArray inVertexId, jint propertyKeyId,
+			jbyte value);
+
+	/*
+	 * Class:     org_glmdb_blueprints_jni_ThunderJni
+	 * Method:    mdb_get_next_edge_for_key_byte_value
+	 * Signature: (J[J[I[J[JIB)I
+	 */
+	JNIEXPORT jint JNICALL Java_org_glmdb_blueprints_jni_ThunderJni_mdb_1get_1next_1edge_1for_1key_1byte_1value(JNIEnv *env, jclass that,
+			jlong cursor, jlongArray edgeIdResult, jintArray label, jlongArray outVertexId, jlongArray inVertexId, jint propertyKeyId,
+			jbyte value);
+
+	/*
+	 * Class:     org_glmdb_blueprints_jni_ThunderJni
 	 * Method:    mdb_get_first_vertex_for_key_char_value
 	 * Signature: (J[JIC)I
 	 */
