@@ -129,15 +129,11 @@ public class IndexCharTest extends BaseGlmdbGraphTest {
             v3.setProperty("name1", (char)1);
             thunderGraph.commit();
 
-            thunderGraph.printDb(DbEnum.VERTEX_CHAR_INDEX);
-
             Assert.assertEquals(3, count(thunderGraph.getVertices("name1", (char)1)));
             v1.setProperty("name1", (char)2);
             thunderGraph.commit();
 
-            thunderGraph.printDb(DbEnum.VERTEX_CHAR_INDEX);
-
-//            Assert.assertEquals(2, count(thunderGraph.getVertices("name1", (char)1)));
+            Assert.assertEquals(2, count(thunderGraph.getVertices("name1", (char)1)));
         } finally {
             thunderGraph.shutdown();
         }

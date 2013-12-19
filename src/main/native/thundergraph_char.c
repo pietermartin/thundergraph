@@ -50,8 +50,6 @@ int compareCharIndexDbId(const MDB_val *key1, const MDB_val *key2) {
 
 int getFirstElementForKeyValueFromCharIndex(MDB_cursor *cursor, int propertyKeyId, unsigned short value, long long int *vertexIdResultC) {
 
-	printf("getFirstElementForKeyValueFromCharIndex propertyKeyId = %i\n", propertyKeyId);
-
 	int rc;
 	MDB_val key, data;
 	CharIndexKeyStruct *charIndexKeyStruct = malloc(sizeof(CharIndexKeyStruct));
@@ -65,9 +63,6 @@ int getFirstElementForKeyValueFromCharIndex(MDB_cursor *cursor, int propertyKeyI
 
 		CharIndexKeyStruct *charIndexKeyStructTmp = (CharIndexKeyStruct *) (key.mv_data);
 		unsigned short value1 = charIndexKeyStructTmp->value;
-
-		printf("getFirstElementForKeyValueFromCharIndex value1 = %hu\n", value1);
-		printf("getFirstElementForKeyValueFromCharIndex value = %hu\n", value);
 
 		if (value == value1) {
 			*vertexIdResultC = *((long long *) data.mv_data);
@@ -190,7 +185,7 @@ int deleteEntryFromCharIndex(GLMDB_env *glmdb_env, MDB_txn *mdbTxn, MDB_cursor *
 		CharIndexKeyStruct *charIndexKeyStruct = malloc(sizeof(CharIndexKeyStruct));
 		charIndexKeyStruct->propertyKeyId = propertyKeyId;
 		charIndexKeyStruct->elementId = elementId;
-		charIndexKeyStruct->value = *((double *) oldData.mv_data);
+		charIndexKeyStruct->value = *((unsigned short *) oldData.mv_data);
 		key.mv_size = sizeof(CharIndexKeyStruct);
 		key.mv_data = charIndexKeyStruct;
 		rc = mdb_cursor_get(charIndexCursor, &key, &data, MDB_SET_KEY);
