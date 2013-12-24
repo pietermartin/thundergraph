@@ -137,6 +137,14 @@ JNIEXPORT jint JNICALL Java_org_glmdb_blueprints_jni_ThunderJni_mdb_1cursor_1ope
 
 /*
  * Class:     org_glmdb_blueprints_jni_ThunderJni
+ * Method:    mdb_cursor_open_and_position_on_edge_edge_db
+ * Signature: (JJJI[J)I
+ */
+JNIEXPORT jint JNICALL Java_org_glmdb_blueprints_jni_ThunderJni_mdb_1cursor_1open_1and_1position_1on_1edge_1edge_1db
+  (JNIEnv *, jclass, jlong, jlong, jlong, jint, jlongArray);
+
+/*
+ * Class:     org_glmdb_blueprints_jni_ThunderJni
  * Method:    mdb_add_vertex
  * Signature: (JJ[J)I
  */
@@ -961,6 +969,14 @@ JNIEXPORT jint JNICALL Java_org_glmdb_blueprints_jni_ThunderJni_mdb_1get_1next_1
 
 /*
  * Class:     org_glmdb_blueprints_jni_ThunderJni
+ * Method:    mdb_get_current_edge_from_vertex
+ * Signature: (JIIJ[J[J[J)I
+ */
+JNIEXPORT jint JNICALL Java_org_glmdb_blueprints_jni_ThunderJni_mdb_1get_1current_1edge_1from_1vertex
+  (JNIEnv *, jclass, jlong, jint, jint, jlong, jlongArray, jlongArray, jlongArray);
+
+/*
+ * Class:     org_glmdb_blueprints_jni_ThunderJni
  * Method:    mdb_get_first_edge_from_vertex_all_labels
  * Signature: (JIJ[I[J[J[J)I
  */
@@ -973,6 +989,14 @@ JNIEXPORT jint JNICALL Java_org_glmdb_blueprints_jni_ThunderJni_mdb_1get_1first_
  * Signature: (JIJ[I[J[J[J)I
  */
 JNIEXPORT jint JNICALL Java_org_glmdb_blueprints_jni_ThunderJni_mdb_1get_1next_1edge_1from_1vertex_1all_1labels
+  (JNIEnv *, jclass, jlong, jint, jlong, jintArray, jlongArray, jlongArray, jlongArray);
+
+/*
+ * Class:     org_glmdb_blueprints_jni_ThunderJni
+ * Method:    mdb_get_current_edge_from_vertex_all_labels
+ * Signature: (JIJ[I[J[J[J)I
+ */
+JNIEXPORT jint JNICALL Java_org_glmdb_blueprints_jni_ThunderJni_mdb_1get_1current_1edge_1from_1vertex_1all_1labels
   (JNIEnv *, jclass, jlong, jint, jlong, jintArray, jlongArray, jlongArray, jlongArray);
 
 /*

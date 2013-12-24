@@ -12,7 +12,7 @@ import java.util.NoSuchElementException;
  * Date: 2013/11/24
  * Time: 10:22 AM
  */
-public class AllEdgeIterable<T extends Edge> implements Iterable<ThunderEdge> {
+public class AllEdgeIterable<T extends Edge> extends BaseThunderIterable implements Iterable<ThunderEdge> {
 
     private final ThunderGraph thunderGraph;
     private final TransactionAndCursor tc;

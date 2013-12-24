@@ -8,6 +8,7 @@ import org.junit.Assert;
 import org.junit.Test;
 
 import java.util.ArrayList;
+import java.util.Iterator;
 import java.util.List;
 
 /**
@@ -149,5 +150,42 @@ public class IterateEdgesTest extends BaseGlmdbGraphTest  {
 
         thunderGraph.commit();
         thunderGraph.shutdown();
+    }
+
+    //Remove must test on a significant number of edges. i.e. > 100.
+    //Else they pass, something to do mdb page size me thinks
+    @Test
+    public void testRemove() {
+        ThunderGraph thunderGraph = new ThunderGraph(this.dbPath);
+        try {
+            Vertex v1 = thunderGraph.addVertex(null);
+            v1.setProperty("name", "name1");
+
+            for (int i = 0; i < 1000; i++) {
+
+                Vertex v2 = thunderGraph.addVertex(null);
+                v2.setProperty("name", "name2");
+
+                Edge e = thunderGraph.addEdge(null, v1, v2, "label1");
+                e.setProperty("name", "name1");
+
+            }
+
+            thunderGraph.commit();
+
+            Assert.assertEquals(1000, count(thunderGraph.getEdges()));
+            Assert.assertEquals(1000, count(thunderGraph.getEdges("name", "name1")));
+
+            Iterator<Edge> edgeIter = thunderGraph.getEdges().iterator();
+            while (edgeIter.hasNext()) {
+
+                Edge e = edgeIter.next();
+                edgeIter.remove();
+
+            }
+
+        } finally {
+            thunderGraph.shutdown();
+        }
     }
 }

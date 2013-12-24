@@ -4,9 +4,6 @@ import com.tinkerpop.blueprints.Direction;
 import com.tinkerpop.blueprints.Vertex;
 import org.glmdb.blueprints.ThunderGraph;
 import org.glmdb.blueprints.ThunderVertex;
-import org.glmdb.blueprints.TransactionAndCursor;
-import org.glmdb.blueprints.jni.Cursor;
-import org.glmdb.blueprints.jni.DbEnum;
 
 import java.util.*;
 
@@ -14,18 +11,13 @@ import java.util.*;
  * Date: 2013/11/24
  * Time: 10:22 AM
  */
-public class VertexesFromVertexIterable<T extends Vertex> implements Iterable<ThunderVertex> {
+public class VertexesFromVertexIterable<T extends Vertex> extends BaseThunderIterable implements Iterable<ThunderVertex> {
 
-    private final ThunderGraph thunderGraph;
-    private TransactionAndCursor tc;
-    private final long vertexId;
     private final Direction direction;
     private final List<String> labels;
 
     public VertexesFromVertexIterable(ThunderGraph thunderGraph, long vertexId, Direction direction, String[] labels) {
-        this.thunderGraph = thunderGraph;
-        this.tc = this.thunderGraph.getReadOnlyTx();
-        this.vertexId = vertexId;
+        super(thunderGraph, vertexId);
         this.direction = direction;
         this.labels = new ArrayList<String>(Arrays.asList(labels));
     }
@@ -39,68 +31,29 @@ public class VertexesFromVertexIterable<T extends Vertex> implements Iterable<Th
         }
     }
 
-    private class VertexesIteratorForLabel implements Iterator<ThunderVertex> {
+    private class VertexesIteratorForLabel extends BaseThunderIterator<ThunderVertex> implements Iterator {
 
-        private Cursor cursor;
-        private boolean cursorIsReadOnly;
-        private ThunderVertex internalNext;
-        private ThunderVertex next;
-        private boolean goToFirst = true;
-        private String currentLabel;
-        private long currentEdgeOutVertexId;
         private Iterator<String> labelIterator;
 
         private VertexesIteratorForLabel() {
+            super();
             this.labelIterator = VertexesFromVertexIterable.this.labels.iterator();
             //No need to check hasNext as Iterator<ThunderEdge> iterator() ensures there is at least one label.
             this.currentLabel = this.labelIterator.next();
-            this.cursorIsReadOnly = VertexesFromVertexIterable.this.tc.isReadOnly();
-            this.cursor = VertexesFromVertexIterable.this.thunderGraph.getThunder().openCursor(VertexesFromVertexIterable.this.tc.getTxn(), DbEnum.VERTEX_DB);
-            VertexesFromVertexIterable.this.tc.addIteratorCursor(this.cursor);
         }
 
         @Override
-        public boolean hasNext() {
-            if (this.next == null) {
-                this.next = internalNext();
-                this.internalNext = this.next;
-            }
-            return this.next != null;
+        VertexesFromVertexIterable getParentIterable() {
+            return VertexesFromVertexIterable.this;
         }
 
         @Override
-        public ThunderVertex next() {
-            if (this.next == null) {
-                this.next = internalNext();
-                if (this.next == null) {
-                    throw new NoSuchElementException();
-                }
-                this.internalNext = this.next;
-            }
-            ThunderVertex result = this.next;
-            this.next = null;
-            return result;
+        protected void internalRemove() {
+            this.getParentIterable().thunderGraph.getThunder().removeVertex(this.getParentIterable().tc.getTxn(), this.internalNext.getInternalId());
         }
 
         @Override
-        public void remove() {
-            if (this.cursorIsReadOnly) {
-                //Upgrade transaction to a writable one.
-                //Replace the current cursor with a new one from the writable transaction
-                VertexesFromVertexIterable.this.tc = VertexesFromVertexIterable.this.thunderGraph.getWriteTx();
-                this.cursorIsReadOnly = false;
-                this.cursor = VertexesFromVertexIterable.this.thunderGraph.getThunder().openAndPositionCursorOnEdgeInVertexDb(
-                        VertexesFromVertexIterable.this.tc.getTxn(),
-                        VertexesFromVertexIterable.this.vertexId,
-                        (this.currentEdgeOutVertexId == VertexesFromVertexIterable.this.vertexId ? Direction.OUT : Direction.IN),
-                        this.currentLabel,
-                        this.internalNext.getInternalId()
-                );
-            }
-            VertexesFromVertexIterable.this.thunderGraph.getThunder().removeVertex(VertexesFromVertexIterable.this.tc.getTxn(), this.internalNext.getInternalId());
-        }
-
-        private ThunderVertex internalNext() {
+        protected ThunderVertex internalNext() {
 
             long edgeIdArray[] = new long[1];
             long outVertexIdArray[] = new long[1];
@@ -109,27 +62,17 @@ public class VertexesFromVertexIterable<T extends Vertex> implements Iterable<Th
             while (this.currentLabel != null) {
                 if (this.goToFirst) {
                     this.goToFirst = false;
+
+                    //Check if cursor needs reopening. This happens if a read only transaction is upgraded to a write transaction
+                    //after the iterator was instantiated.
+                    if (isRefresh()) {
+                        refreshFirst();
+                    }
+
                     if (VertexesFromVertexIterable.this.thunderGraph.getThunder().getFirstEdgeFromVertex(
                             this.cursor, VertexesFromVertexIterable.this.direction, currentLabel, VertexesFromVertexIterable.this.vertexId, edgeIdArray, outVertexIdArray, inVertexIdArray)) {
                         this.currentEdgeOutVertexId = outVertexIdArray[0];
-                        //Return the vertex that is not the from vertex.
-                        if (outVertexIdArray[0] == VertexesFromVertexIterable.this.vertexId) {
-                            return new ThunderVertex(VertexesFromVertexIterable.this.thunderGraph, inVertexIdArray[0]);
-                        } else {
-                            return new ThunderVertex(VertexesFromVertexIterable.this.thunderGraph, outVertexIdArray[0]);
-                        }
-                    } else {
-                         if (this.labelIterator.hasNext()) {
-                             this.currentLabel = this.labelIterator.next();
-                             this.goToFirst = true;
-                         } else {
-                             this.currentLabel = null;
-                         }
-                    }
-                } else {
-                    if (VertexesFromVertexIterable.this.thunderGraph.getThunder().getNextEdgeFromVertex(
-                            this.cursor, VertexesFromVertexIterable.this.direction, currentLabel, VertexesFromVertexIterable.this.vertexId, edgeIdArray, outVertexIdArray, inVertexIdArray)) {
-                        this.currentEdgeOutVertexId = outVertexIdArray[0];
+                        this.edgeId = edgeIdArray[0];
                         //Return the vertex that is not the from vertex.
                         if (outVertexIdArray[0] == VertexesFromVertexIterable.this.vertexId) {
                             return new ThunderVertex(VertexesFromVertexIterable.this.thunderGraph, inVertexIdArray[0]);
@@ -144,96 +87,190 @@ public class VertexesFromVertexIterable<T extends Vertex> implements Iterable<Th
                             this.currentLabel = null;
                         }
                     }
+                } else {
+                    //Check if cursor needs reopening. This happens if a read only transaction is upgraded to a write transaction
+                    //after the iterator was instantiated.
+                    if (isRefresh()) {
+                        refreshNext();
+                        if (this.cursor != null && VertexesFromVertexIterable.this.thunderGraph.getThunder().getCurrentEdgeFromVertex(
+                                this.cursor, VertexesFromVertexIterable.this.direction, currentLabel, VertexesFromVertexIterable.this.vertexId, edgeIdArray, outVertexIdArray, inVertexIdArray)) {
+
+                            //Check if the current is really the current.
+                            //If the current has been removed then current is in fact the next
+                            //if it is already next then do nothing, else get the next
+                            if (this.edgeId == edgeIdArray[0]) {
+                                if (VertexesFromVertexIterable.this.thunderGraph.getThunder().getNextEdgeFromVertex(
+                                        this.cursor, VertexesFromVertexIterable.this.direction, currentLabel, VertexesFromVertexIterable.this.vertexId, edgeIdArray, outVertexIdArray, inVertexIdArray)) {
+
+                                    this.currentEdgeOutVertexId = outVertexIdArray[0];
+                                    this.edgeId = edgeIdArray[0];
+                                    //Return the vertex that is not the from vertex.
+                                    if (outVertexIdArray[0] == VertexesFromVertexIterable.this.vertexId) {
+                                        return new ThunderVertex(VertexesFromVertexIterable.this.thunderGraph, inVertexIdArray[0]);
+                                    } else {
+                                        return new ThunderVertex(VertexesFromVertexIterable.this.thunderGraph, outVertexIdArray[0]);
+                                    }
+
+                                } else {
+                                    return null;
+                                }
+                            } else {
+
+                                this.currentEdgeOutVertexId = outVertexIdArray[0];
+                                this.edgeId = edgeIdArray[0];
+                                //Return the vertex that is not the from vertex.
+                                if (outVertexIdArray[0] == VertexesFromVertexIterable.this.vertexId) {
+                                    return new ThunderVertex(VertexesFromVertexIterable.this.thunderGraph, inVertexIdArray[0]);
+                                } else {
+                                    return new ThunderVertex(VertexesFromVertexIterable.this.thunderGraph, outVertexIdArray[0]);
+                                }
+                            }
+
+                        } else {
+                            return null;
+                        }
+
+                    } else {
+                        if (VertexesFromVertexIterable.this.thunderGraph.getThunder().getNextEdgeFromVertex(
+                                this.cursor, VertexesFromVertexIterable.this.direction, currentLabel, VertexesFromVertexIterable.this.vertexId, edgeIdArray, outVertexIdArray, inVertexIdArray)) {
+
+                            this.currentEdgeOutVertexId = outVertexIdArray[0];
+                            this.edgeId = edgeIdArray[0];
+                            //Return the vertex that is not the from vertex.
+                            if (outVertexIdArray[0] == VertexesFromVertexIterable.this.vertexId) {
+                                return new ThunderVertex(VertexesFromVertexIterable.this.thunderGraph, inVertexIdArray[0]);
+                            } else {
+                                return new ThunderVertex(VertexesFromVertexIterable.this.thunderGraph, outVertexIdArray[0]);
+                            }
+                        } else {
+                            if (this.labelIterator.hasNext()) {
+                                this.currentLabel = this.labelIterator.next();
+                                this.goToFirst = true;
+                            } else {
+                                this.currentLabel = null;
+                            }
+                        }
+                    }
                 }
             }
             return null;
         }
     }
 
-    private class VertexesIterator implements Iterator<ThunderVertex> {
-
-        private Cursor cursor;
-        private boolean cursorIsReadOnly;
-        private ThunderVertex next;
-        private ThunderVertex internalNext;
-        private boolean goToFirst = true;
-        private String currentLabel;
-        private long currentEdgeOutVertexId;
+    private class VertexesIterator extends BaseThunderIterator<ThunderVertex> implements Iterator {
 
         private VertexesIterator() {
-            this.cursorIsReadOnly = VertexesFromVertexIterable.this.tc.isReadOnly();
-            this.cursor = VertexesFromVertexIterable.this.thunderGraph.getThunder().openCursor(VertexesFromVertexIterable.this.tc.getTxn(), DbEnum.VERTEX_DB);
-            VertexesFromVertexIterable.this.tc.addIteratorCursor(this.cursor);
+            super();
         }
 
         @Override
-        public boolean hasNext() {
-            if (this.next == null) {
-                this.next = internalNext();
-                this.internalNext = this.next;
-            }
-            return this.next != null;
+        VertexesFromVertexIterable getParentIterable() {
+            return VertexesFromVertexIterable.this;
         }
 
         @Override
-        public ThunderVertex next() {
-            if (this.next == null) {
-                this.next = internalNext();
-                if (this.next == null) {
-                    throw new NoSuchElementException();
-                }
-                this.internalNext = this.next;
-            }
-            ThunderVertex result = this.next;
-            this.next = null;
-            return result;
+        protected void internalRemove() {
+            this.getParentIterable().thunderGraph.getThunder().removeVertex(this.getParentIterable().tc.getTxn(), this.internalNext.getInternalId());
         }
 
         @Override
-        public void remove() {
-            if (this.cursorIsReadOnly) {
-                //Upgrade transaction to a writable one.
-                //Replace the current cursor with a new one from the writable transaction
-                VertexesFromVertexIterable.this.tc = VertexesFromVertexIterable.this.thunderGraph.getWriteTx();
-                this.cursorIsReadOnly = false;
-                this.cursor = VertexesFromVertexIterable.this.thunderGraph.getThunder().openAndPositionCursorOnEdgeInVertexDb(
-                        VertexesFromVertexIterable.this.tc.getTxn(),
-                        VertexesFromVertexIterable.this.vertexId,
-                        (this.currentEdgeOutVertexId == VertexesFromVertexIterable.this.vertexId ? Direction.OUT : Direction.IN),
-                        this.currentLabel,
-                        this.internalNext.getInternalId()
-                );
-            }
-            VertexesFromVertexIterable.this.thunderGraph.getThunder().removeVertex(VertexesFromVertexIterable.this.tc.getTxn(), this.internalNext.getInternalId());
-        }
-
-        private ThunderVertex internalNext() {
+        protected ThunderVertex internalNext() {
 
             String labelArray[] = new String[1];
             long edgeIdArray[] = new long[1];
             long outVertexIdArray[] = new long[1];
             long inVertexIdArray[] = new long[1];
 
+
             if (this.goToFirst) {
                 this.goToFirst = false;
-                if (VertexesFromVertexIterable.this.thunderGraph.getThunder().getFirstEdgeFromVertex(
+
+                //Check if cursor needs reopening. This happens if a read only transaction is upgraded to a write transaction
+                //after the iterator was instantiated.
+                if (isRefresh()) {
+                    refreshFirst();
+                }
+
+                if (this.cursor != null && VertexesFromVertexIterable.this.thunderGraph.getThunder().getFirstEdgeFromVertexAllLabels(
                         this.cursor, VertexesFromVertexIterable.this.direction, VertexesFromVertexIterable.this.vertexId, labelArray, edgeIdArray, outVertexIdArray, inVertexIdArray)) {
                     this.currentLabel = labelArray[0];
                     this.currentEdgeOutVertexId = outVertexIdArray[0];
-                    return new ThunderVertex(VertexesFromVertexIterable.this.thunderGraph, inVertexIdArray[0]);
+                    this.edgeId = edgeIdArray[0];
+                    //Return the vertex that is not the from vertex.
+                    if (outVertexIdArray[0] == VertexesFromVertexIterable.this.vertexId) {
+                        return new ThunderVertex(VertexesFromVertexIterable.this.thunderGraph, inVertexIdArray[0]);
+                    } else {
+                        return new ThunderVertex(VertexesFromVertexIterable.this.thunderGraph, outVertexIdArray[0]);
+                    }
                 } else {
                     return null;
                 }
             } else {
-                if (VertexesFromVertexIterable.this.thunderGraph.getThunder().getNextEdgeFromVertex(
-                        this.cursor, VertexesFromVertexIterable.this.direction, VertexesFromVertexIterable.this.vertexId, labelArray, edgeIdArray, outVertexIdArray, inVertexIdArray)) {
-                    this.currentLabel = labelArray[0];
-                    this.currentEdgeOutVertexId = outVertexIdArray[0];
-                    return new ThunderVertex(VertexesFromVertexIterable.this.thunderGraph, inVertexIdArray[0]);
+
+                //Check if cursor needs reopening. This happens if a read only transaction is upgraded to a write transaction
+                //after the iterator was instantiated.
+                if (isRefresh()) {
+                    refreshNext();
+                    if (this.cursor != null && VertexesFromVertexIterable.this.thunderGraph.getThunder().getCurrentEdgeFromVertexAllLabels(
+                            this.cursor, VertexesFromVertexIterable.this.direction, VertexesFromVertexIterable.this.vertexId, labelArray, edgeIdArray, outVertexIdArray, inVertexIdArray)) {
+
+
+                        //Check if the current is really the current.
+                        //If the current has been removed then current is in fact the next
+                        //if it is already next then do nothing, else get the next
+                        if (this.edgeId == edgeIdArray[0]) {
+                            if (VertexesFromVertexIterable.this.thunderGraph.getThunder().getNextEdgeFromVertex(
+                                    this.cursor, VertexesFromVertexIterable.this.direction, currentLabel, VertexesFromVertexIterable.this.vertexId, edgeIdArray, outVertexIdArray, inVertexIdArray)) {
+
+                                this.currentLabel = labelArray[0];
+                                this.currentEdgeOutVertexId = outVertexIdArray[0];
+                                this.edgeId = edgeIdArray[0];
+                                //Return the vertex that is not the from vertex.
+                                if (outVertexIdArray[0] == VertexesFromVertexIterable.this.vertexId) {
+                                    return new ThunderVertex(VertexesFromVertexIterable.this.thunderGraph, inVertexIdArray[0]);
+                                } else {
+                                    return new ThunderVertex(VertexesFromVertexIterable.this.thunderGraph, outVertexIdArray[0]);
+                                }
+
+                            } else {
+                                return null;
+                            }
+                        } else {
+
+                            this.currentLabel = labelArray[0];
+                            this.currentEdgeOutVertexId = outVertexIdArray[0];
+                            this.edgeId = edgeIdArray[0];
+                            //Return the vertex that is not the from vertex.
+                            if (outVertexIdArray[0] == VertexesFromVertexIterable.this.vertexId) {
+                                return new ThunderVertex(VertexesFromVertexIterable.this.thunderGraph, inVertexIdArray[0]);
+                            } else {
+                                return new ThunderVertex(VertexesFromVertexIterable.this.thunderGraph, outVertexIdArray[0]);
+                            }
+                        }
+
+                    } else {
+                        return null;
+                    }
+
                 } else {
-                    return null;
+                    if (VertexesFromVertexIterable.this.thunderGraph.getThunder().getNextEdgeFromVertexAllLabels(
+                            this.cursor, VertexesFromVertexIterable.this.direction, VertexesFromVertexIterable.this.vertexId, labelArray, edgeIdArray, outVertexIdArray, inVertexIdArray)) {
+                        this.currentLabel = labelArray[0];
+                        this.currentEdgeOutVertexId = outVertexIdArray[0];
+                        this.edgeId = edgeIdArray[0];
+                        //Return the vertex that is not the from vertex.
+                        if (outVertexIdArray[0] == VertexesFromVertexIterable.this.vertexId) {
+                            return new ThunderVertex(VertexesFromVertexIterable.this.thunderGraph, inVertexIdArray[0]);
+                        } else {
+                            return new ThunderVertex(VertexesFromVertexIterable.this.thunderGraph, outVertexIdArray[0]);
+                        }
+                    } else {
+                        return null;
+                    }
                 }
+
             }
+
         }
     }
 

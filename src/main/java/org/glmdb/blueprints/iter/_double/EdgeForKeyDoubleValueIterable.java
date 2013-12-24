@@ -4,6 +4,7 @@ import com.tinkerpop.blueprints.Edge;
 import org.glmdb.blueprints.ThunderEdge;
 import org.glmdb.blueprints.ThunderGraph;
 import org.glmdb.blueprints.TransactionAndCursor;
+import org.glmdb.blueprints.iter.BaseThunderIterable;
 
 import java.util.Iterator;
 import java.util.NoSuchElementException;
@@ -12,7 +13,7 @@ import java.util.NoSuchElementException;
  * Date: 2013/11/24
  * Time: 10:22 AM
  */
-public class EdgeForKeyDoubleValueIterable<T extends Edge> implements Iterable<ThunderEdge> {
+public class EdgeForKeyDoubleValueIterable<T extends Edge> extends BaseThunderIterable implements Iterable<ThunderEdge> {
 
     private final ThunderGraph thunderGraph;
     private final TransactionAndCursor tc;

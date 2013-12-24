@@ -4,6 +4,7 @@ import com.tinkerpop.blueprints.Vertex;
 import org.glmdb.blueprints.ThunderEdge;
 import org.glmdb.blueprints.ThunderGraph;
 import org.glmdb.blueprints.TransactionAndCursor;
+import org.glmdb.blueprints.iter.BaseThunderIterable;
 import org.glmdb.blueprints.jni.Cursor;
 import org.glmdb.blueprints.jni.DbEnum;
 
@@ -14,7 +15,7 @@ import java.util.NoSuchElementException;
  * Date: 2013/11/24
  * Time: 10:22 AM
  */
-public class EdgeByteIndexIterable<T extends Vertex> implements Iterable<ThunderEdge> {
+public class EdgeByteIndexIterable<T extends Vertex> extends BaseThunderIterable implements Iterable<ThunderEdge> {
 
     private final ThunderGraph thunderGraph;
     private final TransactionAndCursor tc;
@@ -44,9 +45,9 @@ public class EdgeByteIndexIterable<T extends Vertex> implements Iterable<Thunder
         public EdgeByteIndexIterator() {
             this.cursorIsReadOnly = EdgeByteIndexIterable.this.tc.isReadOnly();
             this.edgeStringIndexDbCursor = EdgeByteIndexIterable.this.thunderGraph.getThunder().openCursor(EdgeByteIndexIterable.this.tc.getTxn(), DbEnum.EDGE_BYTE_INDEX);
-            EdgeByteIndexIterable.this.tc.addIteratorCursor(this.edgeStringIndexDbCursor);
+            EdgeByteIndexIterable.this.tc.addIteratorCursor(EdgeByteIndexIterable.this, this.edgeStringIndexDbCursor);
             this.edgeDbCursor = EdgeByteIndexIterable.this.thunderGraph.getThunder().openCursor(EdgeByteIndexIterable.this.tc.getTxn(), DbEnum.EDGE_DB);
-            EdgeByteIndexIterable.this.tc.addIteratorCursor(this.edgeDbCursor);
+            EdgeByteIndexIterable.this.tc.addIteratorCursor(EdgeByteIndexIterable.this, this.edgeDbCursor);
         }
 
         @Override

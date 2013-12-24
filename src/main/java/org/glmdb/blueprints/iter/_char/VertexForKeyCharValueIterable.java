@@ -4,6 +4,7 @@ import com.tinkerpop.blueprints.Vertex;
 import org.glmdb.blueprints.ThunderGraph;
 import org.glmdb.blueprints.ThunderVertex;
 import org.glmdb.blueprints.TransactionAndCursor;
+import org.glmdb.blueprints.iter.BaseThunderIterable;
 
 import java.util.Iterator;
 import java.util.NoSuchElementException;
@@ -12,7 +13,7 @@ import java.util.NoSuchElementException;
  * Date: 2013/11/24
  * Time: 10:22 AM
  */
-public class VertexForKeyCharValueIterable<T extends Vertex> implements Iterable<ThunderVertex> {
+public class VertexForKeyCharValueIterable<T extends Vertex> extends BaseThunderIterable implements Iterable<ThunderVertex> {
 
     private final ThunderGraph thunderGraph;
     private final TransactionAndCursor tc;

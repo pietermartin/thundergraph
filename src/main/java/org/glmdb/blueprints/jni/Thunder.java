@@ -81,7 +81,20 @@ public class Thunder extends NativeObject implements Closeable {
     public Cursor openAndPositionCursorOnEdgeInVertexDb(Transaction tx, long vertexId, Direction direction, String label, long edgeId) {
         Integer labelId = this.getOrPutLabel(tx, label);
         long cursor[] = new long[1];
-        checkErrorCode(mdb_cursor_open_and_position_on_edge_vertex_db(tx.pointer(), pointer(), vertexId, direction.ordinal(), labelId, edgeId, cursor));
+        //this calls mdb_cursor_get with MDB_SET_RANGE
+        int rc = mdb_cursor_open_and_position_on_edge_vertex_db(tx.pointer(), pointer(), vertexId, direction.ordinal(), labelId, edgeId, cursor);
+        if (rc == MDB_NOTFOUND) {
+            return null;
+        } else {
+            checkErrorCode(rc);
+            return new Cursor(this, cursor[0]);
+        }
+    }
+
+    public Cursor openAndPositionCursorOnEdgePropertyInEdgeDb(Transaction tx, long edgeId, String propertyKey) {
+        long cursor[] = new long[1];
+        PropertyKeyEnumAndId propertyKeyEnumAndId = this.edgePropertyKeyToIdMap.get(propertyKey);
+        checkErrorCode(mdb_cursor_open_and_position_on_edge_edge_db(tx.pointer(), pointer(), edgeId, propertyKeyEnumAndId.id, cursor));
         return new Cursor(this, cursor[0]);
     }
 
@@ -164,14 +177,21 @@ public class Thunder extends NativeObject implements Closeable {
         }
     }
 
-    public void getEdge(Cursor cursor, long edgeId, String labelArray[], long outVertexIdArray[], long inVertexIdArray[]) {
+    public long getEdge(Cursor cursor, long edgeId, String labelArray[], long outVertexIdArray[], long inVertexIdArray[]) {
         long edgeIdArray[] = new long[1];
         int labelIdArray[] = new int[1];
-        checkErrorCode(mdb_get_edge(cursor.pointer(), edgeId, edgeIdArray, labelIdArray, outVertexIdArray, inVertexIdArray));
-        if (edgeIdArray[0] != edgeId) {
-            throw new IllegalStateException("Edge id from db is not the same as passed in. This is a bug!!!");
+        int rc = mdb_get_edge(cursor.pointer(), edgeId, edgeIdArray, labelIdArray, outVertexIdArray, inVertexIdArray);
+
+        if (rc == MDB_NOTFOUND) {
+            return -1;
+        } else {
+            checkErrorCode(rc);
+            if (edgeIdArray[0] != edgeId) {
+                throw new IllegalStateException("Edge id from db is not the same as passed in. This is a bug!!!");
+            }
         }
         labelArray[0] = this.idToLabelMap.get(labelIdArray[0]);
+        return edgeId;
     }
 
     public void removeEdge(Transaction tx, long edgeId) {
@@ -245,11 +265,6 @@ public class Thunder extends NativeObject implements Closeable {
     }
 
 
-
-
-
-
-
     public boolean getFirstEdgeFromVertex(Cursor cursor, Direction direction, String label, long fromVertexId, long edgeIdArray[], long outVertexIdArray[], long inVertexIdArray[]) {
         Integer labelId = this.labelToIdMap.get(label);
         if (labelId != null) {
@@ -280,7 +295,24 @@ public class Thunder extends NativeObject implements Closeable {
         }
     }
 
-    public boolean getFirstEdgeFromVertex(Cursor cursor, Direction direction, long fromVertexId, String labelArray[], long edgeIdArray[], long outVertexIdArray[], long inVertexIdArray[]) {
+    public boolean getCurrentEdgeFromVertex(Cursor cursor, Direction direction, String label, long fromVertexId, long edgeIdArray[], long outVertexIdArray[], long inVertexIdArray[]) {
+        Integer labelId = this.labelToIdMap.get(label);
+        if (labelId != null) {
+            //this calls mdb_cursor_get with MDB_GET_CURRENT
+            //if the first call finds nothing the it calls MDB_GET_NEXT
+            int rc = mdb_get_current_edge_from_vertex(cursor.pointer(), direction.ordinal(), labelId, fromVertexId, edgeIdArray, outVertexIdArray, inVertexIdArray);
+            if (rc == MDB_NOTFOUND || rc == GLMDB_END_OF_EDGES) {
+                return false;
+            } else {
+                checkErrorCode(rc);
+                return true;
+            }
+        } else {
+            return false;
+        }
+    }
+
+    public boolean getFirstEdgeFromVertexAllLabels(Cursor cursor, Direction direction, long fromVertexId, String labelArray[], long edgeIdArray[], long outVertexIdArray[], long inVertexIdArray[]) {
         int labelIdArray[] = new int[1];
         int rc = mdb_get_first_edge_from_vertex_all_labels(cursor.pointer(), direction.ordinal(), fromVertexId, labelIdArray, edgeIdArray, outVertexIdArray, inVertexIdArray);
         if (rc == MDB_NOTFOUND || rc == GLMDB_END_OF_EDGES) {
@@ -292,9 +324,21 @@ public class Thunder extends NativeObject implements Closeable {
         }
     }
 
-    public boolean getNextEdgeFromVertex(Cursor cursor, Direction direction, long fromVertexId, String labelArray[], long edgeIdArray[], long outVertexIdArray[], long inVertexIdArray[]) {
+    public boolean getNextEdgeFromVertexAllLabels(Cursor cursor, Direction direction, long fromVertexId, String labelArray[], long edgeIdArray[], long outVertexIdArray[], long inVertexIdArray[]) {
         int labelIdArray[] = new int[1];
         int rc = mdb_get_next_edge_from_vertex_all_labels(cursor.pointer(), direction.ordinal(), fromVertexId, labelIdArray, edgeIdArray, outVertexIdArray, inVertexIdArray);
+        if (rc == MDB_NOTFOUND || rc == GLMDB_END_OF_EDGES) {
+            return false;
+        } else {
+            checkErrorCode(rc);
+            labelArray[0] = this.idToLabelMap.get(labelIdArray[0]);
+            return true;
+        }
+    }
+
+    public boolean getCurrentEdgeFromVertexAllLabels(Cursor cursor, Direction direction, long fromVertexId, String labelArray[], long edgeIdArray[], long outVertexIdArray[], long inVertexIdArray[]) {
+        int labelIdArray[] = new int[1];
+        int rc = mdb_get_current_edge_from_vertex_all_labels(cursor.pointer(), direction.ordinal(), fromVertexId, labelIdArray, edgeIdArray, outVertexIdArray, inVertexIdArray);
         if (rc == MDB_NOTFOUND || rc == GLMDB_END_OF_EDGES) {
             return false;
         } else {

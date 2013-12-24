@@ -79,7 +79,6 @@ public class RemoveEdgeTest extends BaseGlmdbGraphTest {
         }
 
         graph.commit();
-//        graph.printVertexDb();
 
         Random random = new Random();
         int counter = 0;
@@ -101,6 +100,8 @@ public class RemoveEdgeTest extends BaseGlmdbGraphTest {
         }
         graph.shutdown();
     }
+
+
 
     private int countVertices(ThunderGraph thunderGraph) {
         int result = 0;

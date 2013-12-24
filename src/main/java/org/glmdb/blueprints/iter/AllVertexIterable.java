@@ -14,7 +14,7 @@ import java.util.NoSuchElementException;
  * Date: 2013/11/24
  * Time: 10:22 AM
  */
-public class AllVertexIterable<T extends Vertex> implements Iterable<ThunderVertex> {
+public class AllVertexIterable<T extends Vertex> extends BaseThunderIterable implements Iterable<ThunderVertex> {
 
     private final ThunderGraph thunderGraph;
     private final TransactionAndCursor tc;
@@ -40,7 +40,7 @@ public class AllVertexIterable<T extends Vertex> implements Iterable<ThunderVert
         private AllVertexIterator() {
             this.cursorIsReadOnly = AllVertexIterable.this.tc.isReadOnly();
             this.cursor = AllVertexIterable.this.thunderGraph.getThunder().openCursor(AllVertexIterable.this.tc.getTxn(), DbEnum.VERTEX_DB);
-            AllVertexIterable.this.tc.addIteratorCursor(this.cursor);
+            AllVertexIterable.this.tc.addIteratorCursor(AllVertexIterable.this, this.cursor);
         }
 
         @Override

@@ -42,6 +42,7 @@ import org.glmdb.blueprints.jni.Cursor;
 import org.glmdb.blueprints.jni.DbEnum;
 import org.glmdb.blueprints.jni.Thunder;
 import org.glmdb.blueprints.jni.Transaction;
+import org.glmdb.blueprints.util.Pair;
 
 import java.io.File;
 import java.util.Set;
@@ -243,8 +244,16 @@ public class ThunderGraph implements TransactionalGraph, KeyIndexableGraph {
         String labelArray[] = new String[1];
         long outVertexIdArray[] = new long[1];
         long inVertexIdArray[] = new long[1];
-        this.thunder.getEdge(tc.getEdgeCursor(), edgeId, labelArray, outVertexIdArray, inVertexIdArray);
-        return new ThunderEdge(this, edgeId, labelArray[0], outVertexIdArray[0], inVertexIdArray[0]);
+
+        long edgeIdResult = this.thunder.getEdge(tc.getEdgeCursor(), edgeId, labelArray, outVertexIdArray, inVertexIdArray);
+        if (edgeIdResult != -1 && edgeIdResult != edgeId) {
+            throw new IllegalStateException("db returned a vertex with a different id! This is a bug, should never happen");
+        }
+        if (edgeIdResult != -1) {
+            return new ThunderEdge(this, edgeId, labelArray[0], outVertexIdArray[0], inVertexIdArray[0]);
+        } else {
+            return null;
+        }
     }
 
     @Override
@@ -382,6 +391,8 @@ public class ThunderGraph implements TransactionalGraph, KeyIndexableGraph {
         }
         //If a write txn is needed and a read only is current then commit the read only txn and open a write txn
         if (!readOnly && tc.isReadOnly()) {
+            //Copy the current open iterator cursors to the new TransactionAndCursor
+            Set<Pair<BaseThunderIterable, Cursor>> iteratorCursors = tc.getCopyOfIteratorCursorsCopy();
             this.rollback();
             //Only one thread is allowed to write at a time
             synchronized (this.thunder) {
@@ -400,6 +411,7 @@ public class ThunderGraph implements TransactionalGraph, KeyIndexableGraph {
                 Cursor vertexCursor = this.thunder.openCursor(t, DbEnum.VERTEX_DB);
                 Cursor edgeCursor = this.thunder.openCursor(t, DbEnum.EDGE_DB);
                 tc = new TransactionAndCursor(t, vertexCursor, edgeCursor, readOnly);
+                tc.setIteratorCursors(iteratorCursors);
                 this.currentTransaction.set(tc);
             }
         }

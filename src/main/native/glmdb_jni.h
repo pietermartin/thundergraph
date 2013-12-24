@@ -584,6 +584,14 @@ extern "C" {
 			jclass that, jlong txn, jlong glmdb_env, jlong vertexId, jint direction, jint labelId, jlong edgeId, jlongArray cursorArray);
 
 	/*
+	 * Class:     org_glmdb_blueprints_jni_ThunderJni
+	 * Method:    mdb_cursor_open_and_position_on_edge_edge_db
+	 * Signature: (JJJI[J)I
+	 */
+	JNIEXPORT jint JNICALL Java_org_glmdb_blueprints_jni_ThunderJni_mdb_1cursor_1open_1and_1position_1on_1edge_1edge_1db(JNIEnv *env,
+			jclass that, jlong txn, jlong glmdb_env, jlong edgeId, jint propertykeyId, jlongArray cursor);
+
+	/*
 	 * Class:     org_glmdb_blueprints_jni_GlmdbJniint
 	 * Method:    mdb_cursor_close
 	 * Signature: (J)V
@@ -977,6 +985,15 @@ extern "C" {
 			jlongArray inVertexId);
 
 	/*
+	 * Class:     org_glmdb_blueprints_jni_ThunderJni
+	 * Method:    mdb_get_current_edge_from_vertex
+	 * Signature: (JIIJ[J[J[J)I
+	 */
+	JNIEXPORT jint JNICALL Java_org_glmdb_blueprints_jni_ThunderJni_mdb_1get_1current_1edge_1from_1vertex(JNIEnv *env, jclass that,
+			jlong cursor, jint direction, jint labelId, jlong fromVertexId, jlongArray edgeIdResult, jlongArray outVertexId,
+			jlongArray inVertexId);
+
+	/*
 	 * Class:     org_glmdb_blueprints_jni_GlmdbJni
 	 * Method:    mdb_get_first_edge_from_vertex_all_labels
 	 * Signature: (JIJ[I[J[J[J)I
@@ -991,6 +1008,15 @@ extern "C" {
 	 * Signature: (JIJ[I[J[J[J)I
 	 */
 	JNIEXPORT jint JNICALL Java_org_glmdb_blueprints_jni_ThunderJni_mdb_1get_1next_1edge_1from_1vertex_1all_1labels(JNIEnv *env,
+			jclass that, jlong cursor, jint direction, jlong fromVertexId, jintArray labelIdResult, jlongArray edgeIdResult,
+			jlongArray outVertexId, jlongArray inVertexId);
+
+	/*
+	 * Class:     org_glmdb_blueprints_jni_ThunderJni
+	 * Method:    mdb_get_current_edge_from_vertex_all_labels
+	 * Signature: (JIJ[I[J[J[J)I
+	 */
+	JNIEXPORT jint JNICALL Java_org_glmdb_blueprints_jni_ThunderJni_mdb_1get_1current_1edge_1from_1vertex_1all_1labels(JNIEnv *env,
 			jclass that, jlong cursor, jint direction, jlong fromVertexId, jintArray labelIdResult, jlongArray edgeIdResult,
 			jlongArray outVertexId, jlongArray inVertexId);
 
@@ -1066,17 +1092,12 @@ extern "C" {
 	JNIEXPORT jint JNICALL Java_org_glmdb_blueprints_jni_ThunderJni_mdb_1get_1next_1edge_1for_1key_1int_1value(JNIEnv *env, jclass that,
 			jlong cursor, jlongArray edgeIdResult, jintArray label, jlongArray outVertexId, jlongArray inVertexId, jint key, jint value);
 
-	void printVertexRecord(MDB_val key, MDB_val data);
 	void printEdgeRecord(MDB_val key, MDB_val data);
 	void printKey(MDB_val key);
 	void printPropertyKeyDbRecord(MDB_val key, MDB_val data);
 	void printPropertyKeyInverseDbRecord(MDB_val key, MDB_val data);
 	void printLabelDbRecord(MDB_val key, MDB_val data);
 	int printConfigDbRecord(MDB_val key, MDB_val data);
-
-	void initVertexDbId(VertexDbId *vertexDbId);
-	void initEdgeDbId(EdgeDbId *edgeDbId);
-	void initEdgeData(EdgeData *edgeData);
 
 	int openGraph(GLMDB_env **genv, const char *path);
 	int thundergraph_commit(GLMDB_env * glmdb_env, MDB_txn *txn);
@@ -1085,26 +1106,21 @@ extern "C" {
 	int createDb(MDB_env *env, char *name, unsigned int flags, MDB_dbi *db, MDB_cmp_func *cmp);
 	void closeGraph(GLMDB_env *genv);
 	int addVertex(MDB_cursor *cursor, MDB_dbi vertexDb, jlong vertexId, MDB_val *vertexKey);
-	int removeVertex(MDB_txn *txn, GLMDB_env *genv, jlong vertexId);
-	int internalDeleteVertex(MDB_cursor *vertexCursor, MDB_cursor *inverseCursor, MDB_cursor *edgeCursor, VertexDbId vertexDbId,
-			VertexDbId inverseId, MDB_val inverseKey, MDB_val data, MDB_val inverseData);
 	int getVertex(MDB_cursor *cursor, jlong vertexId, MDB_val *vertexKey);
 	int getFirstEdgefromVertex(MDB_cursor *cursor, jint direction, jint labelId, jlong fromVertexId, jlong *edgeIdResultC,
 			jlong *outVertexIdC, jlong *inVertexIdC);
 	int getNextEdgefromVertex(MDB_cursor *cursor, jint direction, jint labelId, jlong fromVertexId, jlong *edgeIdResultC,
 			jlong *outVertexIdC, jlong *inVertexIdC);
+	int getCurrentEdgefromVertex(MDB_cursor *cursor, jint direction, jint labelId, jlong fromVertexId, jlong *edgeIdResultC, jlong *outVertexIdC,
+			jlong *inVertexIdC);
 	int getFirstEdgefromVertexAllLabels(MDB_cursor *cursor, jint direction, jlong fromVertexId, jint *labelIdResultC, jlong *edgeIdResultC,
 			jlong *outVertexIdC, jlong *inVertexIdC);
 	int getNextEdgefromVertexAllLabels(MDB_cursor *cursor, jint direction, jlong fromVertexId, jint *labelIdResultC, jlong *edgeIdResultC,
 			jlong *outVertexIdC, jlong *inVertexIdC);
+	int getCurrentEdgefromVertexAllLabels(MDB_cursor *cursor, jint direction, jlong fromVertexId, jint *labelIdResultC,
+			jlong *edgeIdResultC, jlong *outVertexIdC, jlong *inVertexIdC);
 
 	int addEdge(MDB_txn *txn, MDB_dbi vertexDb, MDB_dbi edgeDb, jlong edgeId, jint labelId, jlong vertexOutId, jlong vertexInId);
-	int removeEdge(MDB_txn *txn, GLMDB_env *genv, jlong edgeId);
-	/**
-	 * This only removes the edge from the edge db, not the related edges in the vertexDb
-	 */
-	int internalRemoveEdge(MDB_cursor *cursor, jlong edgeId);
-	int getEdge(MDB_cursor *cursor, jlong edgeId, MDB_val *edgeKey, MDB_val *edgeData);
 	int addEdgeToEdgeDb(MDB_txn *txn, MDB_dbi edgeDb, jlong edgeId, jint labelId, jlong vertexOutId, jlong vertexInId);
 	int addEdgeToVertexDb(MDB_txn *txn, MDB_dbi vertexDb, jlong edgeId, jint labelId, jlong vertexOutId, jlong vertexInId);
 
@@ -1150,6 +1166,7 @@ extern "C" {
 	int traverseConfigDb(GLMDB_env * glmdb_env, MDB_txn *txn);
 
 	void buffer_copy(const void *source, size_t source_pos, void *dest, size_t dest_pos, size_t length);
+
 #ifdef __cplusplus
 }
 #endif

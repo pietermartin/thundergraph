@@ -4,6 +4,7 @@ import com.tinkerpop.blueprints.Vertex;
 import org.glmdb.blueprints.ThunderGraph;
 import org.glmdb.blueprints.ThunderVertex;
 import org.glmdb.blueprints.TransactionAndCursor;
+import org.glmdb.blueprints.iter.BaseThunderIterable;
 import org.glmdb.blueprints.jni.Cursor;
 import org.glmdb.blueprints.jni.DbEnum;
 
@@ -14,7 +15,7 @@ import java.util.NoSuchElementException;
  * Date: 2013/11/24
  * Time: 10:22 AM
  */
-public class VertexBooleanIndexIterable<T extends Vertex> implements Iterable<ThunderVertex> {
+public class VertexBooleanIndexIterable<T extends Vertex> extends BaseThunderIterable implements Iterable<ThunderVertex> {
 
     private final ThunderGraph thunderGraph;
     private final TransactionAndCursor tc;
@@ -43,7 +44,7 @@ public class VertexBooleanIndexIterable<T extends Vertex> implements Iterable<Th
         public VertexBooleanIndexIterator() {
             this.cursorIsReadOnly = VertexBooleanIndexIterable.this.tc.isReadOnly();
             this.cursor = VertexBooleanIndexIterable.this.thunderGraph.getThunder().openCursor(VertexBooleanIndexIterable.this.tc.getTxn(), DbEnum.VERTEX_BOOLEAN_INDEX);
-            VertexBooleanIndexIterable.this.tc.addIteratorCursor(this.cursor);
+            VertexBooleanIndexIterable.this.tc.addIteratorCursor(VertexBooleanIndexIterable.this, this.cursor);
         }
 
         @Override

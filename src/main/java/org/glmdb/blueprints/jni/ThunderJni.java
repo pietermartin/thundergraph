@@ -155,6 +155,8 @@ public class ThunderJni {
     //Direction here must be OUT or IN, not both as it represent the direction of the current edge
     public static final native int mdb_cursor_open_and_position_on_edge_vertex_db(long txn, long glmdb_env, long vertexId, int direction, int labelId, long edgeId, long[] cursor);
 
+    public static final native int mdb_cursor_open_and_position_on_edge_edge_db(long txn, long glmdb_env, long edgeId, int propertyKeyId, long[] cursor);
+
     public static final native int mdb_add_vertex(long glmdb_env, long cursor, long vertexId[]);
 
     public static final native int mdb_add_edge(long glmdb_env, long txn, long outVertexId, long inVertexId, int labelId, long edgeId[]);
@@ -377,7 +379,6 @@ public class ThunderJni {
 
     public static final native int mdb_get_next_edge(long cursor, long previousEdgeId, long edgeIdResult[], int[] label, long[] outVertexId, long[] inVertexId);
 
-
     public static final native int mdb_get_first_edge_for_key_string_value(long cursor, long edgeIdResult[], int[] label, long[] outVertexId, long[] inVertexId, int key, String value);
 
     public static final native int mdb_get_next_edge_for_key_string_value(long cursor, long edgeIdResult[], int[] label, long[] outVertexId, long[] inVertexId, int key, String value);
@@ -388,9 +389,13 @@ public class ThunderJni {
 
     public static final native int mdb_get_next_edge_from_vertex(long cursor, int direction, int labelId, long fromVertexId, long edgeIdResult[], long[] outVertexId, long[] inVertexId);
 
+    public static final native int mdb_get_current_edge_from_vertex(long cursor, int direction, int labelId, long fromVertexId, long edgeIdResult[], long[] outVertexId, long[] inVertexId);
+
     public static final native int mdb_get_first_edge_from_vertex_all_labels(long cursor, int direction, long fromVertexId, int labelId[], long edgeIdResult[], long[] outVertexId, long[] inVertexId);
 
     public static final native int mdb_get_next_edge_from_vertex_all_labels(long cursor, int direction, long fromVertexId, int labelId[], long edgeIdResult[], long[] outVertexId, long[] inVertexId);
+
+    public static final native int mdb_get_current_edge_from_vertex_all_labels(long cursor, int direction, long fromVertexId, int labelId[], long edgeIdResult[], long[] outVertexId, long[] inVertexId);
 
     public static final native int mdb_delete_index(long glmdb_env, long txn, int propertyKeyId, boolean vertex, int propertyTypeEnum);
 

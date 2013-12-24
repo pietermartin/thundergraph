@@ -21,7 +21,7 @@ public class SpeedTest extends BaseGlmdbGraphTest {
         Vertex one = g.addVertex(null);
         one.setProperty("one", "1");
         long previousSplitTime = 0;
-        for (int i = 0; i < 10000; i++) {
+        for (int i = 0; i < 100; i++) {
             Vertex many = g.addVertex(null);
             many.setProperty("many", "2");
             g.addEdge(null, one, many, "toMany");

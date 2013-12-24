@@ -17,6 +17,7 @@
 #define GLMDB_INVALID_SEQUENCE	(-30593)
 #define GLMDB_INVALID_DB	(-30592)
 #define GLMDB_PROPERTY_KEY_NOT_FOUND	(-30591)
+#define GLMDB_INVALID_STRING	(-30590)
 
 typedef struct GLMDB_env {
 	MDB_env *env;
@@ -101,11 +102,11 @@ enum EdgeCoreOrPropertyEnum {
 };
 
 typedef struct VertexDbId {
-	jlong vertexId;
+	long long vertexId;
 	enum VertexCoreOrPropertyEnum coreOrPropertyEnum;
-	jint propertykeyId;
-	jint labelId;
-	jlong edgeId;
+	int propertykeyId;
+	int labelId;
+	long long edgeId;
 } VertexDbId;
 
 typedef struct EdgeDbId {
