@@ -5,6 +5,7 @@ import org.glmdb.blueprints.ThunderGraph;
 import org.glmdb.blueprints.ThunderVertex;
 import org.glmdb.blueprints.TransactionAndCursor;
 import org.glmdb.blueprints.iter.BaseThunderIterable;
+import org.glmdb.blueprints.iter.BaseThunderIterator;
 import org.glmdb.blueprints.jni.Cursor;
 import org.glmdb.blueprints.jni.DbEnum;
 
@@ -17,14 +18,11 @@ import java.util.NoSuchElementException;
  */
 public class VertexStringIndexIterable<T extends Vertex> extends BaseThunderIterable implements Iterable<ThunderVertex> {
 
-    private final ThunderGraph thunderGraph;
-    private final TransactionAndCursor tc;
     private String key;
     private String value;
 
     public VertexStringIndexIterable(ThunderGraph thunderGraph, String key, String value) {
-        this.thunderGraph = thunderGraph;
-        this.tc = this.thunderGraph.getReadOnlyTx();
+        super(thunderGraph);
         this.key = key;
         this.value = value;
     }
@@ -34,38 +32,22 @@ public class VertexStringIndexIterable<T extends Vertex> extends BaseThunderIter
         return new VertexStringIndexIterator();
     }
 
-    private final class VertexStringIndexIterator implements Iterator<ThunderVertex> {
+    private final class VertexStringIndexIterator extends BaseThunderIterator<ThunderVertex> implements Iterator {
 
-        private ThunderVertex next;
         private boolean goToFirst = true;
-        private Cursor cursor;
-        private boolean cursorIsReadOnly;
 
         public VertexStringIndexIterator() {
-            this.cursorIsReadOnly = VertexStringIndexIterable.this.tc.isReadOnly();
-            this.cursor = VertexStringIndexIterable.this.thunderGraph.getThunder().openCursor(VertexStringIndexIterable.this.tc.getTxn(), DbEnum.VERTEX_STRING_INDEX);
-            VertexStringIndexIterable.this.tc.addIteratorCursor(VertexStringIndexIterable.this, this.cursor);
+            super(VertexStringIndexIterable.this.tc);
         }
 
         @Override
-        public boolean hasNext() {
-            if (this.next == null) {
-                this.next = internalNext();
-            }
-            return this.next != null;
+        protected VertexStringIndexIterable getParentIterable() {
+            return VertexStringIndexIterable.this;
         }
 
         @Override
-        public ThunderVertex next() {
-            if (this.next == null) {
-                this.next = internalNext();
-                if (this.next == null) {
-                    throw new NoSuchElementException();
-                }
-            }
-            ThunderVertex result = this.next;
-            this.next = null;
-            return result;
+        protected DbEnum getDbEnum() {
+            return DbEnum.VERTEX_STRING_INDEX;
         }
 
         @Override
@@ -73,7 +55,8 @@ public class VertexStringIndexIterable<T extends Vertex> extends BaseThunderIter
             throw new RuntimeException("Not yet implemented!");
         }
 
-        private ThunderVertex internalNext() {
+        @Override
+        protected ThunderVertex internalNext() {
             long elementIdArray[] = new long[1];
             if (this.goToFirst) {
                 this.goToFirst = false;

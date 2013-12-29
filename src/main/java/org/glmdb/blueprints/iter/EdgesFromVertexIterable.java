@@ -4,6 +4,8 @@ import com.tinkerpop.blueprints.Direction;
 import com.tinkerpop.blueprints.Edge;
 import org.glmdb.blueprints.ThunderEdge;
 import org.glmdb.blueprints.ThunderGraph;
+import org.glmdb.blueprints.TransactionAndCursor;
+import org.glmdb.blueprints.jni.DbEnum;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -34,25 +36,31 @@ public class EdgesFromVertexIterable<T extends Edge> extends BaseThunderIterable
         }
     }
 
-    private class EdgesIteratorForLabel extends BaseThunderIterator<ThunderEdge> implements Iterator {
+    private class EdgesIteratorForLabel extends BaseFromVertexIterator<ThunderEdge> implements Iterator {
 
         private Iterator<String> labelIterator;
 
         private EdgesIteratorForLabel() {
-            super();
+            super(EdgesFromVertexIterable.this.tc);
             this.labelIterator = EdgesFromVertexIterable.this.labels.iterator();
             //No need to check hasNext as Iterator<ThunderEdge> iterator() ensures there is at least one label.
             this.currentLabel = this.labelIterator.next();
         }
 
         @Override
-        EdgesFromVertexIterable getParentIterable() {
+        protected DbEnum getDbEnum() {
+            return DbEnum.VERTEX_DB;
+        }
+
+
+        @Override
+        protected EdgesFromVertexIterable getParentIterable() {
             return EdgesFromVertexIterable.this;
         }
 
         @Override
         protected void internalRemove() {
-            EdgesFromVertexIterable.this.thunderGraph.getThunder().removeEdge(EdgesFromVertexIterable.this.tc.getTxn(), this.internalNext.getInternalId());
+            EdgesFromVertexIterable.this.thunderGraph.getThunder().removeEdge(this.tc.getTxn(), this.internalNext.getInternalId());
         }
 
         @Override
@@ -68,8 +76,8 @@ public class EdgesFromVertexIterable<T extends Edge> extends BaseThunderIterable
 
                     //Check if cursor needs reopening. This happens if a read only transaction is upgraded to a write transaction
                     //after the iterator was instantiated.
-                    if (isRefresh()) {
-                        refreshFirst();
+                    if (this.cursor == null || !this.cursor.isAllocated()) {
+                        refreshForFirst();
                     }
 
                     if (EdgesFromVertexIterable.this.thunderGraph.getThunder().getFirstEdgeFromVertex(
@@ -88,8 +96,8 @@ public class EdgesFromVertexIterable<T extends Edge> extends BaseThunderIterable
                 } else {
                     //Check if cursor needs reopening. This happens if a read only transaction is upgraded to a write transaction
                     //after the iterator was instantiated.
-                    if (isRefresh()) {
-                        refreshNext();
+                    if (this.cursor == null || !this.cursor.isAllocated()) {
+                        refreshForNext();
                         if (this.cursor != null && EdgesFromVertexIterable.this.thunderGraph.getThunder().getCurrentEdgeFromVertex(
                                 this.cursor, EdgesFromVertexIterable.this.direction, currentLabel, EdgesFromVertexIterable.this.vertexId, edgeIdArray, outVertexIdArray, inVertexIdArray)) {
 
@@ -140,20 +148,25 @@ public class EdgesFromVertexIterable<T extends Edge> extends BaseThunderIterable
         }
     }
 
-    private class EdgesIterator extends BaseThunderIterator<ThunderEdge> implements Iterator {
+    private class EdgesIterator extends BaseFromVertexIterator<ThunderEdge> implements Iterator {
 
         private EdgesIterator() {
-            super();
+            super(EdgesFromVertexIterable.this.tc);
         }
 
         @Override
-        EdgesFromVertexIterable getParentIterable() {
+        protected DbEnum getDbEnum() {
+            return DbEnum.VERTEX_DB;
+        }
+
+        @Override
+        protected EdgesFromVertexIterable getParentIterable() {
             return EdgesFromVertexIterable.this;
         }
 
         @Override
         protected void internalRemove() {
-            EdgesFromVertexIterable.this.thunderGraph.getThunder().removeEdge(EdgesFromVertexIterable.this.tc.getTxn(), this.internalNext.getInternalId());
+            EdgesFromVertexIterable.this.thunderGraph.getThunder().removeEdge(this.tc.getTxn(), this.internalNext.getInternalId());
         }
 
         @Override
@@ -170,8 +183,8 @@ public class EdgesFromVertexIterable<T extends Edge> extends BaseThunderIterable
 
                 //Check if cursor needs reopening. This happens if a read only transaction is upgraded to a write transaction
                 //after the iterator was instantiated.
-                if (isRefresh()) {
-                    refreshFirst();
+                if (this.cursor == null || !this.cursor.isAllocated()) {
+                    refreshForFirst();
                 }
 
                 if (this.cursor != null && EdgesFromVertexIterable.this.thunderGraph.getThunder().getFirstEdgeFromVertexAllLabels(
@@ -187,8 +200,8 @@ public class EdgesFromVertexIterable<T extends Edge> extends BaseThunderIterable
 
                 //Check if cursor needs reopening. This happens if a read only transaction is upgraded to a write transaction
                 //after the iterator was instantiated.
-                if (isRefresh()) {
-                    refreshNext();
+                if (this.cursor == null || !this.cursor.isAllocated()) {
+                    refreshForNext();
                     if (this.cursor != null && EdgesFromVertexIterable.this.thunderGraph.getThunder().getCurrentEdgeFromVertexAllLabels(
                             this.cursor, EdgesFromVertexIterable.this.direction, EdgesFromVertexIterable.this.vertexId, labelArray, edgeIdArray, outVertexIdArray, inVertexIdArray)) {
 

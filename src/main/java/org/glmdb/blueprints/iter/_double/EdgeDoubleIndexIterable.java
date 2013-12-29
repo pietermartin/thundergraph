@@ -5,6 +5,7 @@ import org.glmdb.blueprints.ThunderEdge;
 import org.glmdb.blueprints.ThunderGraph;
 import org.glmdb.blueprints.TransactionAndCursor;
 import org.glmdb.blueprints.iter.BaseThunderIterable;
+import org.glmdb.blueprints.iter.BaseThunderIterator;
 import org.glmdb.blueprints.jni.Cursor;
 import org.glmdb.blueprints.jni.DbEnum;
 
@@ -17,14 +18,11 @@ import java.util.NoSuchElementException;
  */
 public class EdgeDoubleIndexIterable<T extends Vertex> extends BaseThunderIterable implements Iterable<ThunderEdge> {
 
-    private final ThunderGraph thunderGraph;
-    private final TransactionAndCursor tc;
     private String key;
     private double value;
 
     public EdgeDoubleIndexIterable(ThunderGraph thunderGraph, String key, double value) {
-        this.thunderGraph = thunderGraph;
-        this.tc = this.thunderGraph.getReadOnlyTx();
+        super(thunderGraph);
         this.key = key;
         this.value = value;
     }
@@ -34,41 +32,25 @@ public class EdgeDoubleIndexIterable<T extends Vertex> extends BaseThunderIterab
         return new EdgeDoubleIndexIterator();
     }
 
-    private final class EdgeDoubleIndexIterator implements Iterator<ThunderEdge> {
+    private final class EdgeDoubleIndexIterator extends BaseThunderIterator<ThunderEdge> implements Iterator {
 
-        private ThunderEdge next;
         private boolean goToFirst = true;
-        private Cursor edgeStringIndexDbCursor;
         private Cursor edgeDbCursor;
-        private boolean cursorIsReadOnly;
 
         public EdgeDoubleIndexIterator() {
-            this.cursorIsReadOnly = EdgeDoubleIndexIterable.this.tc.isReadOnly();
-            this.edgeStringIndexDbCursor = EdgeDoubleIndexIterable.this.thunderGraph.getThunder().openCursor(EdgeDoubleIndexIterable.this.tc.getTxn(), DbEnum.EDGE_DOUBLE_INDEX);
-            EdgeDoubleIndexIterable.this.tc.addIteratorCursor(EdgeDoubleIndexIterable.this, this.edgeStringIndexDbCursor);
-            this.edgeDbCursor = EdgeDoubleIndexIterable.this.thunderGraph.getThunder().openCursor(EdgeDoubleIndexIterable.this.tc.getTxn(), DbEnum.EDGE_DB);
-            EdgeDoubleIndexIterable.this.tc.addIteratorCursor(EdgeDoubleIndexIterable.this, this.edgeDbCursor);
+            super(EdgeDoubleIndexIterable.this.tc);
+            this.edgeDbCursor = EdgeDoubleIndexIterable.this.thunderGraph.getThunder().openCursor(this.tc.getTxn(), DbEnum.EDGE_DB);
+            this.tc.addOpenCursor(this.edgeDbCursor);
         }
 
         @Override
-        public boolean hasNext() {
-            if (this.next == null) {
-                this.next = internalNext();
-            }
-            return this.next != null;
+        protected DbEnum getDbEnum() {
+            return DbEnum.EDGE_DOUBLE_INDEX;
         }
 
         @Override
-        public ThunderEdge next() {
-            if (this.next == null) {
-                this.next = internalNext();
-                if (this.next == null) {
-                    throw new NoSuchElementException();
-                }
-            }
-            ThunderEdge result = this.next;
-            this.next = null;
-            return result;
+        protected EdgeDoubleIndexIterable getParentIterable() {
+            return EdgeDoubleIndexIterable.this;
         }
 
         @Override
@@ -76,7 +58,8 @@ public class EdgeDoubleIndexIterable<T extends Vertex> extends BaseThunderIterab
             throw new RuntimeException("Not yet implemented!");
         }
 
-        private ThunderEdge internalNext() {
+        @Override
+        protected ThunderEdge internalNext() {
             long edgeIdArray[] = new long[1];
             String labelArray[] = new String[1];
             long outVertexIdArray[] = new long[1];
@@ -84,13 +67,13 @@ public class EdgeDoubleIndexIterable<T extends Vertex> extends BaseThunderIterab
 
             if (this.goToFirst) {
                 this.goToFirst = false;
-                if (EdgeDoubleIndexIterable.this.thunderGraph.getThunder().getFirstEdgeForKeyValueFromDoubleIndex(this.edgeStringIndexDbCursor, this.edgeDbCursor, EdgeDoubleIndexIterable.this.key, EdgeDoubleIndexIterable.this.value, edgeIdArray, labelArray, outVertexIdArray, inVertexIdArray)) {
+                if (EdgeDoubleIndexIterable.this.thunderGraph.getThunder().getFirstEdgeForKeyValueFromDoubleIndex(this.cursor, this.edgeDbCursor, EdgeDoubleIndexIterable.this.key, EdgeDoubleIndexIterable.this.value, edgeIdArray, labelArray, outVertexIdArray, inVertexIdArray)) {
                     return new ThunderEdge(EdgeDoubleIndexIterable.this.thunderGraph, edgeIdArray[0], labelArray[0], outVertexIdArray[0], inVertexIdArray[0]);
                 } else {
                     return null;
                 }
             } else {
-                if (EdgeDoubleIndexIterable.this.thunderGraph.getThunder().getNextEdgeForKeyValueFromDoubleIndex(this.edgeStringIndexDbCursor, this.edgeDbCursor, EdgeDoubleIndexIterable.this.key, EdgeDoubleIndexIterable.this.value, edgeIdArray, labelArray, outVertexIdArray, inVertexIdArray)) {
+                if (EdgeDoubleIndexIterable.this.thunderGraph.getThunder().getNextEdgeForKeyValueFromDoubleIndex(this.cursor, this.edgeDbCursor, EdgeDoubleIndexIterable.this.key, EdgeDoubleIndexIterable.this.value, edgeIdArray, labelArray, outVertexIdArray, inVertexIdArray)) {
                     return new ThunderEdge(EdgeDoubleIndexIterable.this.thunderGraph, edgeIdArray[0], labelArray[0], outVertexIdArray[0], inVertexIdArray[0]);
                 } else {
                     return null;

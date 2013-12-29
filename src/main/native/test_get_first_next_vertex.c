@@ -131,35 +131,6 @@ int main(int argc, char * argv[]) {
 		}
 	}
 
-//	long long j;
-//	for (j = 1; j < 1101; j++) {
-//
-//		MDB_val vertexKeyT, dataT;
-//		VertexDbId id;
-//		id.vertexId = j;
-//		id.coreOrPropertyEnum = VCORE;
-//		id.labelId = -1;
-//		id.edgeId = -1LL;
-//		id.propertykeyId = -1;
-//		vertexKeyT.mv_size = sizeof(VertexDbId);
-//		vertexKeyT.mv_data = &id;
-//
-//		rc = mdb_cursor_get(cursor, &vertexKeyT, &dataT, MDB_SET_KEY);
-//		printf("mdb_cursor_get index = %llu, result = %i\n", j, rc);
-//
-//		rc = removeVertex(txn, genv, j);
-//		if (rc != 0) {
-//			printf("removeVertex failure %i\n", rc);
-//			goto fail;
-//		}
-//		rc = mdb_cursor_get(cursor, &vertexKeyT, &dataT, MDB_FIRST);
-//		if (rc != 0) {
-//			printf("mdb_cursor_get MDB_CURRENT failure %i\n", rc);
-//			goto fail;
-//		}
-//
-//	}
-
 	mdb_cursor_close(cursor);
 	traverseVertexDb(genv, txn);
 	mdb_txn_commit(txn);

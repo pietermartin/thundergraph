@@ -5,6 +5,7 @@ import org.glmdb.blueprints.ThunderGraph;
 import org.glmdb.blueprints.ThunderVertex;
 import org.glmdb.blueprints.TransactionAndCursor;
 import org.glmdb.blueprints.iter.BaseThunderIterable;
+import org.glmdb.blueprints.iter.BaseThunderIterator;
 import org.glmdb.blueprints.jni.Cursor;
 import org.glmdb.blueprints.jni.DbEnum;
 
@@ -17,14 +18,11 @@ import java.util.NoSuchElementException;
  */
 public class VertexByteIndexIterable<T extends Vertex> extends BaseThunderIterable implements Iterable<ThunderVertex> {
 
-    private final ThunderGraph thunderGraph;
-    private final TransactionAndCursor tc;
     private String key;
     private byte value;
 
     public VertexByteIndexIterable(ThunderGraph thunderGraph, String key, byte value) {
-        this.thunderGraph = thunderGraph;
-        this.tc = this.thunderGraph.getReadOnlyTx();
+        super(thunderGraph);
         this.key = key;
         this.value = value;
     }
@@ -34,38 +32,22 @@ public class VertexByteIndexIterable<T extends Vertex> extends BaseThunderIterab
         return new VertexByteIndexIterator();
     }
 
-    private final class VertexByteIndexIterator implements Iterator<ThunderVertex> {
+    private final class VertexByteIndexIterator extends BaseThunderIterator<ThunderVertex> implements Iterator {
 
-        private ThunderVertex next;
         private boolean goToFirst = true;
-        private Cursor cursor;
-        private boolean cursorIsReadOnly;
 
         public VertexByteIndexIterator() {
-            this.cursorIsReadOnly = VertexByteIndexIterable.this.tc.isReadOnly();
-            this.cursor = VertexByteIndexIterable.this.thunderGraph.getThunder().openCursor(VertexByteIndexIterable.this.tc.getTxn(), DbEnum.VERTEX_BYTE_INDEX);
-            VertexByteIndexIterable.this.tc.addIteratorCursor(VertexByteIndexIterable.this, this.cursor);
+            super(VertexByteIndexIterable.this.tc);
         }
 
         @Override
-        public boolean hasNext() {
-            if (this.next == null) {
-                this.next = internalNext();
-            }
-            return this.next != null;
+        protected VertexByteIndexIterable getParentIterable() {
+            return VertexByteIndexIterable.this;
         }
 
         @Override
-        public ThunderVertex next() {
-            if (this.next == null) {
-                this.next = internalNext();
-                if (this.next == null) {
-                    throw new NoSuchElementException();
-                }
-            }
-            ThunderVertex result = this.next;
-            this.next = null;
-            return result;
+        protected DbEnum getDbEnum() {
+            return DbEnum.VERTEX_BYTE_INDEX;
         }
 
         @Override
@@ -73,18 +55,19 @@ public class VertexByteIndexIterable<T extends Vertex> extends BaseThunderIterab
             throw new RuntimeException("Not yet implemented!");
         }
 
-        private ThunderVertex internalNext() {
-            long elementIdArray[] = new long[1];
+        @Override
+        protected ThunderVertex internalNext() {
+            long vertexIdArray[] = new long[1];
             if (this.goToFirst) {
                 this.goToFirst = false;
-                if (VertexByteIndexIterable.this.thunderGraph.getThunder().getFirstVertexForKeyValueFromByteIndex(this.cursor, elementIdArray, VertexByteIndexIterable.this.key, VertexByteIndexIterable.this.value)) {
-                    return new ThunderVertex(VertexByteIndexIterable.this.thunderGraph, elementIdArray[0]);
+                if (VertexByteIndexIterable.this.thunderGraph.getThunder().getFirstVertexForKeyValueFromByteIndex(this.cursor, vertexIdArray, VertexByteIndexIterable.this.key, VertexByteIndexIterable.this.value)) {
+                    return new ThunderVertex(VertexByteIndexIterable.this.thunderGraph, vertexIdArray[0]);
                 } else {
                     return null;
                 }
             } else {
-                if (VertexByteIndexIterable.this.thunderGraph.getThunder().getNextVertexForKeyValueFromByteIndex(this.cursor, elementIdArray, VertexByteIndexIterable.this.key, VertexByteIndexIterable.this.value)) {
-                    return new ThunderVertex(VertexByteIndexIterable.this.thunderGraph, elementIdArray[0]);
+                if (VertexByteIndexIterable.this.thunderGraph.getThunder().getNextVertexForKeyValueFromByteIndex(this.cursor, vertexIdArray, VertexByteIndexIterable.this.key, VertexByteIndexIterable.this.value)) {
+                    return new ThunderVertex(VertexByteIndexIterable.this.thunderGraph, vertexIdArray[0]);
                 } else {
                     return null;
                 }

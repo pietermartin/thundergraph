@@ -39,14 +39,14 @@ public class IndexFloatTest extends BaseGlmdbGraphTest {
             Assert.assertTrue(indexedKeys.contains("name2"));
 
             Iterable<Vertex> name11s = thunderGraph.getVertices("name1", 11F);
-            Assert.assertEquals(1, countIter(name11s.iterator()));
+            Assert.assertEquals(1, count(name11s.iterator()));
             Iterable<Vertex> name21s = thunderGraph.getVertices("name1", 21F);
-            Assert.assertEquals(1, countIter(name21s.iterator()));
+            Assert.assertEquals(1, count(name21s.iterator()));
 
             name11s = thunderGraph.getVertices("name1", 12F);
             Assert.assertEquals(0, countIter(name11s.iterator()));
             name21s = thunderGraph.getVertices("name1", 22F);
-            Assert.assertEquals(0, countIter(name21s.iterator()));
+            Assert.assertEquals(0, count(name21s.iterator()));
 
         } finally {
             thunderGraph.shutdown();

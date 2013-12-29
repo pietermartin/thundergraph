@@ -204,26 +204,6 @@ public class VertexesTest extends BaseGlmdbGraphTest {
         }
     }
 
-
-    @Test
-    public void testVerticesByKeyValue() {
-        ThunderGraph thunderGraph = new ThunderGraph(this.dbPath);
-        try {
-            Vertex v1 = thunderGraph.addVertex(null);
-            v1.setProperty("name1", 1);
-            Vertex v2 = thunderGraph.addVertex(null);
-            v2.setProperty("name1", 1);
-            Vertex v3 = thunderGraph.addVertex(null);
-            v3.setProperty("name1", 1);
-            thunderGraph.commit();
-
-            Assert.assertEquals(3, count(thunderGraph.getVertices("name1", 1)));
-
-        } finally {
-            thunderGraph.shutdown();
-        }
-    }
-
     @Test
     public void testAddVertexPropertyLong() {
         ThunderGraph thunderGraph = new ThunderGraph(this.dbPath);

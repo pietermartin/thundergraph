@@ -16,6 +16,7 @@ import java.util.List;
  * Date: 2013/11/26
  * Time: 9:52 PM
  */
+//This class is responsible to test 100% code coverage of EdgesFromVertexIterable
 public class EdgesFromVertexTest extends BaseGlmdbGraphTest {
 
     @Test
@@ -423,6 +424,7 @@ public class EdgesFromVertexTest extends BaseGlmdbGraphTest {
                 e.remove();
             }
             Assert.assertEquals(0, count(v.getVertices(Direction.OUT)));
+            Assert.assertEquals(0, count(v.getEdges(Direction.OUT)));
             thunderGraph.commit();
         } finally {
             thunderGraph.shutdown();

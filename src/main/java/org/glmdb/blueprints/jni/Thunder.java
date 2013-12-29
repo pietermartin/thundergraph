@@ -4,6 +4,7 @@ import com.tinkerpop.blueprints.Direction;
 import com.tinkerpop.blueprints.Element;
 
 import java.io.Closeable;
+import java.nio.ByteBuffer;
 import java.util.*;
 
 import static org.glmdb.blueprints.jni.ThunderJni.*;
@@ -83,6 +84,18 @@ public class Thunder extends NativeObject implements Closeable {
         long cursor[] = new long[1];
         //this calls mdb_cursor_get with MDB_SET_RANGE
         int rc = mdb_cursor_open_and_position_on_edge_vertex_db(tx.pointer(), pointer(), vertexId, direction.ordinal(), labelId, edgeId, cursor);
+        if (rc == MDB_NOTFOUND) {
+            return null;
+        } else {
+            checkErrorCode(rc);
+            return new Cursor(this, cursor[0]);
+        }
+    }
+
+    public Cursor openAndPositionCursorOnVertexInVertexDb(Transaction tx, long vertexId) {
+        long cursor[] = new long[1];
+        //this calls mdb_cursor_get with MDB_SET_RANGE
+        int rc = mdb_cursor_open_and_position_on_vertex_vertex_db(tx.pointer(), pointer(), vertexId, cursor);
         if (rc == MDB_NOTFOUND) {
             return null;
         } else {

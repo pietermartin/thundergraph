@@ -12,23 +12,19 @@ public abstract class BaseThunderIterable {
     protected ThunderGraph thunderGraph;
     protected TransactionAndCursor tc;
     protected long vertexId;
-    private boolean refresh;
 
     public BaseThunderIterable() {
 
     }
 
-    BaseThunderIterable(ThunderGraph thunderGraph, long vertexId) {
-        this.thunderGraph = thunderGraph;
-        this.tc = this.thunderGraph.getReadOnlyTx();
+    protected BaseThunderIterable(ThunderGraph thunderGraph, long vertexId) {
+        this(thunderGraph);
         this.vertexId = vertexId;
     }
 
-    public boolean isRefresh() {
-        return refresh;
+    protected BaseThunderIterable(ThunderGraph thunderGraph) {
+        this.thunderGraph = thunderGraph;
+        this.tc = this.thunderGraph.getReadOnlyTx();
     }
 
-    public void setRefresh(boolean refresh) {
-        this.refresh = refresh;
-    }
 }

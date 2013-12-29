@@ -1,8 +1,8 @@
 package org.glmdb.blueprints.iter;
 
 import com.tinkerpop.blueprints.Direction;
-import com.tinkerpop.blueprints.Vertex;
 import org.glmdb.blueprints.ThunderElement;
+import org.glmdb.blueprints.TransactionAndCursor;
 import org.glmdb.blueprints.jni.Cursor;
 import org.glmdb.blueprints.jni.DbEnum;
 
@@ -13,45 +13,35 @@ import java.util.NoSuchElementException;
  * Date: 2013/12/24
  * Time: 7:03 PM
  */
-abstract class BaseThunderIterator<E extends ThunderElement> implements Iterator  {
+public abstract class BaseThunderIterator<E extends ThunderElement> implements Iterator  {
 
+    protected TransactionAndCursor tc;
     protected Cursor cursor;
     protected boolean cursorIsReadOnly;
     protected long edgeId;
     protected boolean goToFirst = true;
     protected String currentLabel;
     protected long currentEdgeOutVertexId;
-
-    private E next;
+//    protected boolean refresh;
+    protected E next;
     //This is needed as a cache for the remove method.
     //Remove is called after a call to next however next sets next to null for the hasNext logic;
     protected E internalNext;
 
-    BaseThunderIterator() {
-        this.cursorIsReadOnly = this.getParentIterable().tc.isReadOnly();
-        this.cursor = this.getParentIterable().thunderGraph.getThunder().openCursor(this.getParentIterable().tc.getTxn(), DbEnum.VERTEX_DB);
-        this.getParentIterable().tc.addIteratorCursor(this.getParentIterable(), this.cursor);
-    }
-
-    @Override
-    public void remove() {
-        if (this.cursorIsReadOnly) {
-            //Upgrade transaction to a writable one.
-            //Replace the current cursor with a new one from the writable transaction
-            this.getParentIterable().tc = this.getParentIterable().thunderGraph.getWriteTx();
-            this.cursorIsReadOnly = false;
-            this.cursor = this.getParentIterable().thunderGraph.getThunder().openAndPositionCursorOnEdgeInVertexDb(
-                    this.getParentIterable().tc.getTxn(),
-                    this.getParentIterable().vertexId,
-                    (this.currentEdgeOutVertexId == this.getParentIterable().vertexId ? Direction.OUT : Direction.IN),
-                    this.currentLabel,
-                    this.edgeId
-            );
+    protected BaseThunderIterator(TransactionAndCursor tc) {
+        this.tc = tc;
+        this.cursorIsReadOnly = this.tc.isReadOnly();
+        if (this.tc.hasAvailableCursors(this.getDbEnum())) {
+            this.cursor = this.tc.getAndRemoveAvailableCursor(this.getDbEnum());
+        } else {
+            this.cursor = this.getParentIterable().thunderGraph.getThunder().openCursor(this.tc.getTxn(), this.getDbEnum());
         }
-        this.internalRemove();
+        if (this.cursor != null) {
+            this.tc.addOpenCursor(this.cursor);
+        }
     }
 
-    protected abstract void internalRemove();
+    protected abstract DbEnum getDbEnum();
 
     @Override
     public boolean hasNext() {
@@ -59,7 +49,11 @@ abstract class BaseThunderIterator<E extends ThunderElement> implements Iterator
             this.next = internalNext();
             this.internalNext = this.next;
         }
-        return this.next != null;
+        boolean result = this.next != null;
+        if (!result) {
+            this.tc.closeAndRemoveCursor(this, this.getDbEnum(), this.cursor);
+        }
+        return result;
     }
 
     @Override
@@ -76,31 +70,48 @@ abstract class BaseThunderIterator<E extends ThunderElement> implements Iterator
         return result;
     }
 
-    protected void refreshFirst() {
-        this.getParentIterable().tc = this.getParentIterable().thunderGraph.getReadOnlyTx();
-        this.cursor = this.getParentIterable().thunderGraph.getThunder().openCursor(this.getParentIterable().tc.getTxn(), DbEnum.VERTEX_DB);
-        this.cursorIsReadOnly = this.getParentIterable().tc.isReadOnly();
-        this.getParentIterable().setRefresh(false);
+    protected void refreshForFirst() {
+        this.tc = this.getParentIterable().thunderGraph.getReadOnlyTx();
+        if (this.tc.hasAvailableCursors(this.getDbEnum())) {
+            this.cursor = this.tc.getAndRemoveAvailableCursor(this.getDbEnum());
+        } else {
+            this.cursor = this.getParentIterable().thunderGraph.getThunder().openCursor(this.tc.getTxn(), this.getDbEnum());
+        }
+        if (this.cursor != null) {
+            this.tc.addOpenCursor(this.cursor);
+        }
+        this.cursorIsReadOnly = this.tc.isReadOnly();
+//        this.refresh = false;
     }
 
-    protected void refreshNext() {
-        this.getParentIterable().tc = this.getParentIterable().thunderGraph.getReadOnlyTx();
-        this.cursor = this.getParentIterable().thunderGraph.getThunder().openAndPositionCursorOnEdgeInVertexDb(
-                this.getParentIterable().tc.getTxn(),
-                this.getParentIterable().vertexId,
-                (this.currentEdgeOutVertexId == this.getParentIterable().vertexId ? Direction.OUT : Direction.IN),
-                this.currentLabel,
-                this.edgeId
-        );
+    protected void refreshForNext() {
+        this.tc = this.getParentIterable().thunderGraph.getReadOnlyTx();
+
+        if (this.tc.hasAvailableCursors(this.getDbEnum())) {
+            this.cursor = this.tc.getAndRemoveAvailableCursor(this.getDbEnum());
+        } else {
+            this.cursor = this.getParentIterable().thunderGraph.getThunder().openAndPositionCursorOnEdgeInVertexDb(
+                    this.tc.getTxn(),
+                    this.getParentIterable().vertexId,
+                    (this.currentEdgeOutVertexId == this.getParentIterable().vertexId ? Direction.OUT : Direction.IN),
+                    this.currentLabel,
+                    this.edgeId
+            );
+        }
         if (this.cursor != null) {
-            this.cursorIsReadOnly = this.getParentIterable().tc.isReadOnly();
+            this.tc.addOpenCursor(this.cursor);
+            this.cursorIsReadOnly = this.tc.isReadOnly();
         } else {
             this.cursorIsReadOnly = true;
         }
-        this.getParentIterable().setRefresh(false);
+//        this.refresh = false;
     }
 
+//    public void setRefresh(boolean refresh) {
+//        this.refresh = refresh;
+//    }
+
     protected abstract E internalNext();
-    abstract BaseThunderIterable getParentIterable();
+    protected abstract BaseThunderIterable getParentIterable();
 
 }

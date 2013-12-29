@@ -5,6 +5,8 @@ import org.glmdb.blueprints.ThunderEdge;
 import org.glmdb.blueprints.ThunderGraph;
 import org.glmdb.blueprints.TransactionAndCursor;
 import org.glmdb.blueprints.iter.BaseThunderIterable;
+import org.glmdb.blueprints.iter.BaseThunderIterator;
+import org.glmdb.blueprints.jni.DbEnum;
 
 import java.util.Iterator;
 import java.util.NoSuchElementException;
@@ -15,14 +17,11 @@ import java.util.NoSuchElementException;
  */
 public class EdgeForKeyBooleanValueIterable<T extends Edge> extends BaseThunderIterable implements Iterable<ThunderEdge> {
 
-    private final ThunderGraph thunderGraph;
-    private final TransactionAndCursor tc;
     private String key;
     private boolean value;
 
     public EdgeForKeyBooleanValueIterable(ThunderGraph thunderGraph, String key, boolean value) {
-        this.thunderGraph = thunderGraph;
-        this.tc = this.thunderGraph.getReadOnlyTx();
+        super(thunderGraph);
         this.key = key;
         this.value = value;
     }
@@ -32,51 +31,55 @@ public class EdgeForKeyBooleanValueIterable<T extends Edge> extends BaseThunderI
         return new EdgeForKeyBooleanValueIterator();
     }
 
-    private final class EdgeForKeyBooleanValueIterator implements Iterator<ThunderEdge>  {
+    private final class EdgeForKeyBooleanValueIterator extends BaseThunderIterator<ThunderEdge> implements Iterator  {
 
-        private ThunderEdge next;
         private boolean goToFirst = true;
 
-        @Override
-        public boolean hasNext() {
-            if (this.next == null) {
-                this.next = internalNext();
-            }
-            return this.next != null;
+        private EdgeForKeyBooleanValueIterator() {
+            super(EdgeForKeyBooleanValueIterable.this.tc);
         }
 
         @Override
-        public ThunderEdge next() {
-            if (this.next == null) {
-                this.next = internalNext();
-                if (this.next == null) {
-                    throw new NoSuchElementException();
-                }
-            }
-            ThunderEdge result = this.next;
-            this.next = null;
-            return result;
+        protected DbEnum getDbEnum() {
+            return DbEnum.EDGE_DB;
+        }
+
+        @Override
+        protected EdgeForKeyBooleanValueIterable getParentIterable() {
+            return EdgeForKeyBooleanValueIterable.this;
         }
 
         @Override
         public void remove() {
-            throw new RuntimeException("Not yet implemented!");
+            if (this.cursorIsReadOnly) {
+                //Upgrade transaction to a writable one.
+                //Replace the current cursor with a new one from the writable transaction
+                this.tc = EdgeForKeyBooleanValueIterable.this.thunderGraph.getWriteTx();
+                this.cursorIsReadOnly = false;
+                this.cursor = EdgeForKeyBooleanValueIterable.this.thunderGraph.getThunder().openAndPositionCursorOnEdgePropertyInEdgeDb(
+                        this.tc.getTxn(),
+                        this.next.getInternalId(),
+                        EdgeForKeyBooleanValueIterable.this.key
+                );
+            }
+            EdgeForKeyBooleanValueIterable.this.thunderGraph.getThunder().removeEdge(this.tc.getTxn(), this.internalNext.getInternalId());
         }
 
-        private ThunderEdge internalNext() {
+        @Override
+        protected ThunderEdge internalNext() {
             long edgeIdArray[] = new long[1];
             String labelArray[] = new String[1];
             long outVertexIdArray[] = new long[1];
             long inVertexIdArray[] = new long[1];
             if (this.goToFirst) {
                 this.goToFirst = false;
-                if (EdgeForKeyBooleanValueIterable.this.thunderGraph.getThunder().getFirstEdgeForKeyBooleanValue(tc.getEdgeCursor(), edgeIdArray, labelArray, outVertexIdArray, inVertexIdArray, EdgeForKeyBooleanValueIterable.this.key, EdgeForKeyBooleanValueIterable.this.value)) {
+                if (EdgeForKeyBooleanValueIterable.this.thunderGraph.getThunder().getFirstEdgeForKeyBooleanValue(this.tc.getEdgeCursor(), edgeIdArray, labelArray, outVertexIdArray, inVertexIdArray, EdgeForKeyBooleanValueIterable.this.key, EdgeForKeyBooleanValueIterable.this.value)) {
                     return new ThunderEdge(EdgeForKeyBooleanValueIterable.this.thunderGraph, edgeIdArray[0], labelArray[0], outVertexIdArray[0], inVertexIdArray[0]);
                 } else {
                     return null;
                 }
             } else {
-                if (EdgeForKeyBooleanValueIterable.this.thunderGraph.getThunder().getNextEdgeForKeyBooleanValue(tc.getEdgeCursor(), edgeIdArray, labelArray, outVertexIdArray, inVertexIdArray, EdgeForKeyBooleanValueIterable.this.key, EdgeForKeyBooleanValueIterable.this.value)) {
+                if (EdgeForKeyBooleanValueIterable.this.thunderGraph.getThunder().getNextEdgeForKeyBooleanValue(this.tc.getEdgeCursor(), edgeIdArray, labelArray, outVertexIdArray, inVertexIdArray, EdgeForKeyBooleanValueIterable.this.key, EdgeForKeyBooleanValueIterable.this.value)) {
                     return new ThunderEdge(EdgeForKeyBooleanValueIterable.this.thunderGraph, edgeIdArray[0], labelArray[0], outVertexIdArray[0], inVertexIdArray[0]);
                 } else {
                     return null;

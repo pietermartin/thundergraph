@@ -5,6 +5,7 @@ import org.glmdb.blueprints.ThunderGraph;
 import org.glmdb.blueprints.ThunderVertex;
 import org.glmdb.blueprints.TransactionAndCursor;
 import org.glmdb.blueprints.iter.BaseThunderIterable;
+import org.glmdb.blueprints.iter.BaseThunderIterator;
 import org.glmdb.blueprints.jni.Cursor;
 import org.glmdb.blueprints.jni.DbEnum;
 
@@ -17,14 +18,11 @@ import java.util.NoSuchElementException;
  */
 public class VertexBooleanIndexIterable<T extends Vertex> extends BaseThunderIterable implements Iterable<ThunderVertex> {
 
-    private final ThunderGraph thunderGraph;
-    private final TransactionAndCursor tc;
     private String key;
     private boolean value;
 
     public VertexBooleanIndexIterable(ThunderGraph thunderGraph, String key, boolean value) {
-        this.thunderGraph = thunderGraph;
-        this.tc = this.thunderGraph.getReadOnlyTx();
+        super(thunderGraph);
         this.key = key;
         this.value = value;
     }
@@ -34,38 +32,22 @@ public class VertexBooleanIndexIterable<T extends Vertex> extends BaseThunderIte
         return new VertexBooleanIndexIterator();
     }
 
-    private final class VertexBooleanIndexIterator implements Iterator<ThunderVertex> {
+    private final class VertexBooleanIndexIterator extends BaseThunderIterator<ThunderVertex> implements Iterator {
 
-        private ThunderVertex next;
         private boolean goToFirst = true;
-        private Cursor cursor;
-        private boolean cursorIsReadOnly;
 
         public VertexBooleanIndexIterator() {
-            this.cursorIsReadOnly = VertexBooleanIndexIterable.this.tc.isReadOnly();
-            this.cursor = VertexBooleanIndexIterable.this.thunderGraph.getThunder().openCursor(VertexBooleanIndexIterable.this.tc.getTxn(), DbEnum.VERTEX_BOOLEAN_INDEX);
-            VertexBooleanIndexIterable.this.tc.addIteratorCursor(VertexBooleanIndexIterable.this, this.cursor);
+            super(VertexBooleanIndexIterable.this.tc);
         }
 
         @Override
-        public boolean hasNext() {
-            if (this.next == null) {
-                this.next = internalNext();
-            }
-            return this.next != null;
+        protected VertexBooleanIndexIterable getParentIterable() {
+            return VertexBooleanIndexIterable.this;
         }
 
         @Override
-        public ThunderVertex next() {
-            if (this.next == null) {
-                this.next = internalNext();
-                if (this.next == null) {
-                    throw new NoSuchElementException();
-                }
-            }
-            ThunderVertex result = this.next;
-            this.next = null;
-            return result;
+        protected DbEnum getDbEnum() {
+            return DbEnum.VERTEX_BOOLEAN_INDEX;
         }
 
         @Override
@@ -73,18 +55,19 @@ public class VertexBooleanIndexIterable<T extends Vertex> extends BaseThunderIte
             throw new RuntimeException("Not yet implemented!");
         }
 
-        private ThunderVertex internalNext() {
-            long elementIdArray[] = new long[1];
+        @Override
+        protected ThunderVertex internalNext() {
+            long vertexIdArray[] = new long[1];
             if (this.goToFirst) {
                 this.goToFirst = false;
-                if (VertexBooleanIndexIterable.this.thunderGraph.getThunder().getFirstVertexForKeyValueFromBooleanIndex(this.cursor, elementIdArray, VertexBooleanIndexIterable.this.key, VertexBooleanIndexIterable.this.value)) {
-                    return new ThunderVertex(VertexBooleanIndexIterable.this.thunderGraph, elementIdArray[0]);
+                if (VertexBooleanIndexIterable.this.thunderGraph.getThunder().getFirstVertexForKeyValueFromBooleanIndex(this.cursor, vertexIdArray, VertexBooleanIndexIterable.this.key, VertexBooleanIndexIterable.this.value)) {
+                    return new ThunderVertex(VertexBooleanIndexIterable.this.thunderGraph, vertexIdArray[0]);
                 } else {
                     return null;
                 }
             } else {
-                if (VertexBooleanIndexIterable.this.thunderGraph.getThunder().getNextVertexForKeyValueFromBooleanIndex(this.cursor, elementIdArray, VertexBooleanIndexIterable.this.key, VertexBooleanIndexIterable.this.value)) {
-                    return new ThunderVertex(VertexBooleanIndexIterable.this.thunderGraph, elementIdArray[0]);
+                if (VertexBooleanIndexIterable.this.thunderGraph.getThunder().getNextVertexForKeyValueFromBooleanIndex(this.cursor, vertexIdArray, VertexBooleanIndexIterable.this.key, VertexBooleanIndexIterable.this.value)) {
+                    return new ThunderVertex(VertexBooleanIndexIterable.this.thunderGraph, vertexIdArray[0]);
                 } else {
                     return null;
                 }

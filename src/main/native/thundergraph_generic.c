@@ -90,7 +90,7 @@ int getNextVertex(MDB_cursor *cursor, long long previousVertexId, long long *ver
 //	id.coreOrPropertyEnum = VCORE;
 	vertexKey.mv_size = sizeof(VertexDbId);
 	vertexKey.mv_data = &id;
-	rc = mdb_cursor_get(cursor, &vertexKey, &data, MDB_SET);
+	rc = mdb_cursor_get(cursor, &vertexKey, &data, MDB_SET_RANGE);
 	if (rc == 0) {
 		VertexDbId vertexDbId = *((VertexDbId *) (vertexKey.mv_data));
 
@@ -479,7 +479,14 @@ int removeEdge(MDB_txn *txn, GLMDB_env *genv, jlong edgeId) {
 	}
 
 //delete the edge
-	rc = mdb_cursor_del((MDB_cursor *) (long) edgeCursor, 0);
+	MDB_val edgeKeyToDelete, edgeDataToDelete;
+	EdgeDbId edgeDbIdToDelete;
+	edgeDbIdToDelete.edgeId = edgeId;
+	edgeDbIdToDelete.coreOrPropertyEnum = ECORE;
+	edgeDbIdToDelete.propertykeyId = -1;
+	edgeKeyToDelete.mv_size = sizeof(EdgeDbId);
+	edgeKeyToDelete.mv_data = &edgeDbIdToDelete;
+	rc = mdb_del(txn, genv->edgeDb, &edgeKeyToDelete, &edgeDataToDelete);
 	if (rc != 0) {
 		rc = GLMDB_DB_CORRUPT;
 		goto fail;
@@ -488,7 +495,8 @@ int removeEdge(MDB_txn *txn, GLMDB_env *genv, jlong edgeId) {
 	while ((rc = mdb_cursor_get((MDB_cursor *) (long) edgeCursor, &edgeKey, &data, MDB_NEXT)) == 0) {
 		EdgeDbId edgeDbId = *((EdgeDbId *) (edgeKey.mv_data));
 		if (edgeDbId.edgeId == edgeId) {
-			rc = mdb_cursor_del((MDB_cursor *) (long) edgeCursor, 0);
+			rc = mdb_del(txn, genv->edgeDb, &edgeKey, &data);
+//			rc = mdb_cursor_del((MDB_cursor *) (long) edgeCursor, 0);
 			if (rc == MDB_NOTFOUND) {
 				//This happens at the end of the keys when it iterates forever on the last record.
 				//When we delete what is already deleted it returns MDB_NOTFOUND

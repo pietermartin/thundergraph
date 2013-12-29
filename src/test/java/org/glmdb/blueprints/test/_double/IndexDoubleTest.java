@@ -39,14 +39,14 @@ public class IndexDoubleTest extends BaseGlmdbGraphTest {
             Assert.assertTrue(indexedKeys.contains("name2"));
 
             Iterable<Vertex> name11s = thunderGraph.getVertices("name1", 11D);
-            Assert.assertEquals(1, countIter(name11s.iterator()));
+            Assert.assertEquals(1, count(name11s.iterator()));
             Iterable<Vertex> name21s = thunderGraph.getVertices("name1", 21D);
-            Assert.assertEquals(1, countIter(name21s.iterator()));
+            Assert.assertEquals(1, count(name21s.iterator()));
 
             name11s = thunderGraph.getVertices("name1", 12D);
-            Assert.assertEquals(0, countIter(name11s.iterator()));
+            Assert.assertEquals(0, count(name11s.iterator()));
             name21s = thunderGraph.getVertices("name1", 22D);
-            Assert.assertEquals(0, countIter(name21s.iterator()));
+            Assert.assertEquals(0, count(name21s.iterator()));
 
         } finally {
             thunderGraph.shutdown();
@@ -106,6 +106,7 @@ public class IndexDoubleTest extends BaseGlmdbGraphTest {
             //Still finds it just not via the index
             Assert.assertEquals(0, thunderGraph.getDbEntries(DbEnum.VERTEX_DOUBLE_INDEX));
             Assert.assertEquals(3, count(thunderGraph.getVertices("name1", 1D)));
+
         } finally {
             thunderGraph.shutdown();
         }

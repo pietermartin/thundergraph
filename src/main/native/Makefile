@@ -30,7 +30,7 @@ IFLAGS  = -I/usr/lib/jvm/java-7-openjdk-amd64/include
 
 IHDRS	= lmdb.h
 ILIBS	= libglmdb_jni.a libglmdb_jni.so
-IPROGS	= mdb_stat mdb_copy mtest3 mtest4
+IPROGS	= mdb_stat mdb_copy mtest4 delete_edge_test test_get_first_next_vertex test_get_firstedge_nextedge_for_label_vertex
 #mtest
 #mtest2 mtest3 mtest4 mtest_persist_sequence mtest_property_key_db mtest2_property_key_db
 IDOCS	= mdb_stat.1 mdb_copy.1
@@ -74,8 +74,10 @@ mdb_copy: mdb_copy.o liblmdb.a
 #mtest_persist_sequence:  mtest_persist_sequence.o liblmdb.a 
 #mtest_property_key_db:   mtest_property_key_db.o liblmdb.a
 #mtest2_property_key_db:  mtest2_property_key_db.o liblmdb.a
-mtest3:   mtest3.o libglmdb_jni.a liblmdb.a
 mtest4:   mtest4.o libglmdb_jni.a liblmdb.a
+delete_edge_test:	delete_edge_test.o libglmdb_jni.a liblmdb.a
+test_get_first_next_vertex:   test_get_first_next_vertex.o libglmdb_jni.a liblmdb.a
+test_get_firstedge_nextedge_for_label_vertex: test_get_firstedge_nextedge_for_label_vertex.o libglmdb_jni.a liblmdb.a
 
 glmdb_jni.o: glmdb_jni.c glmdb_jni.h thundergraph_structs.h thundergraph_string.c thundergraph_string.h \
 thundergraph_int.c thundergraph_int.h thundergraph_long.c thundergraph_long.h thundergraph_float.c thundergraph_float.h \

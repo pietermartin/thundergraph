@@ -1,5 +1,7 @@
 package org.glmdb.blueprints.jni;
 
+import java.nio.ByteBuffer;
+
 /**
  * Date: 2013/11/17
  * Time: 4:28 PM
@@ -155,6 +157,8 @@ public class ThunderJni {
     //Direction here must be OUT or IN, not both as it represent the direction of the current edge
     public static final native int mdb_cursor_open_and_position_on_edge_vertex_db(long txn, long glmdb_env, long vertexId, int direction, int labelId, long edgeId, long[] cursor);
 
+    public static final native int mdb_cursor_open_and_position_on_vertex_vertex_db(long txn, long glmdb_env, long vertexId, long[] cursor);
+
     public static final native int mdb_cursor_open_and_position_on_edge_edge_db(long txn, long glmdb_env, long edgeId, int propertyKeyId, long[] cursor);
 
     public static final native int mdb_add_vertex(long glmdb_env, long cursor, long vertexId[]);
@@ -182,9 +186,6 @@ public class ThunderJni {
     public static final native int mdb_set_property_double(long glmdb_env, long txn, long cursor, long elementId, int propertykeyId, double value, boolean vertexProperty, boolean indexed);
 
     public static final native int mdb_set_property_char(long glmdb_env, long txn, long cursor, long elementId, int propertykeyId, char value, boolean vertexProperty, boolean indexed);
-
-
-
 
 
     public static final native int mdb_get_property_array(long cursor, long elementId, int propertyKeyId, byte[][] value, boolean vertexProperty);

@@ -1,7 +1,8 @@
 package org.glmdb.blueprints;
 
 import com.tinkerpop.blueprints.*;
-import org.glmdb.blueprints.iter.*;
+import org.glmdb.blueprints.iter.AllEdgeIterable;
+import org.glmdb.blueprints.iter.AllVertexIterable;
 import org.glmdb.blueprints.iter._boolean.EdgeBooleanIndexIterable;
 import org.glmdb.blueprints.iter._boolean.EdgeForKeyBooleanValueIterable;
 import org.glmdb.blueprints.iter._boolean.VertexBooleanIndexIterable;
@@ -42,7 +43,6 @@ import org.glmdb.blueprints.jni.Cursor;
 import org.glmdb.blueprints.jni.DbEnum;
 import org.glmdb.blueprints.jni.Thunder;
 import org.glmdb.blueprints.jni.Transaction;
-import org.glmdb.blueprints.util.Pair;
 
 import java.io.File;
 import java.util.Set;
@@ -391,27 +391,16 @@ public class ThunderGraph implements TransactionalGraph, KeyIndexableGraph {
         }
         //If a write txn is needed and a read only is current then commit the read only txn and open a write txn
         if (!readOnly && tc.isReadOnly()) {
-            //Copy the current open iterator cursors to the new TransactionAndCursor
-            Set<Pair<BaseThunderIterable, Cursor>> iteratorCursors = tc.getCopyOfIteratorCursorsCopy();
+//            //Copy the current open iterator cursors to the new TransactionAndCursor
+//            Set<Pair<BaseThunderIterable, Cursor>> iteratorCursors = tc.getCopyOfIteratorCursorsCopy();
             this.rollback();
             //Only one thread is allowed to write at a time
             synchronized (this.thunder) {
                 Transaction t = this.thunder.createWriteTransaction();
-
-                //All current iterator cursors need to be upgraded
-//                this.cursor = EdgesFromVertexIterable.this.thunderGraph.getThunder().openAndPositionCursorOnEdgeInVertexDb(
-//                        EdgesFromVertexIterable.this.tc.getTxn(),
-//                        EdgesFromVertexIterable.this.vertexId,
-//                        (this.internalNext.getOutVertexId() == EdgesFromVertexIterable.this.vertexId ? Direction.OUT : Direction.IN),
-//                        this.internalNext.getLabel(),
-//                        this.internalNext.id
-//                );
-
-
                 Cursor vertexCursor = this.thunder.openCursor(t, DbEnum.VERTEX_DB);
                 Cursor edgeCursor = this.thunder.openCursor(t, DbEnum.EDGE_DB);
                 tc = new TransactionAndCursor(t, vertexCursor, edgeCursor, readOnly);
-                tc.setIteratorCursors(iteratorCursors);
+//                tc.setIteratorCursors(iteratorCursors);
                 this.currentTransaction.set(tc);
             }
         }

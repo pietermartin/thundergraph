@@ -3816,6 +3816,50 @@ JNIEXPORT jint JNICALL Java_org_glmdb_blueprints_jni_ThunderJni_mdb_1cursor_1ope
 
 /*
  * Class:     org_glmdb_blueprints_jni_ThunderJni
+ * Method:    mdb_cursor_open_and_position_on_vertex_vertex_db
+ * Signature: (JJJ[J)I
+ */
+JNIEXPORT jint JNICALL Java_org_glmdb_blueprints_jni_ThunderJni_mdb_1cursor_1open_1and_1position_1on_1vertex_1vertex_1db(JNIEnv *env,
+		jclass that, jlong txn, jlong glmdbEnv, jlong vertexId, jlongArray cursorArray) {
+
+	MDB_cursor *mdbCursor;
+	jlong *cursor = NULL;
+	jint rc = 0;
+	GLMDB_env * glmdb_env = (GLMDB_env *) (long) glmdbEnv;
+	if (cursorArray) {
+		if ((cursor = (*env)->GetLongArrayElements(env, cursorArray, NULL)) == NULL) {
+			goto fail;
+		}
+	}
+	rc = (jint) mdb_cursor_open((MDB_txn *) (long) txn, glmdb_env->vertexDb, (MDB_cursor **) cursor);
+
+	mdbCursor = (MDB_cursor *) *cursor;
+
+	if (rc != 0) {
+		goto fail;
+	}
+	MDB_val key, data;
+	VertexDbId vertexDbId;
+	vertexDbId.vertexId = vertexId;
+	vertexDbId.coreOrPropertyEnum = VCORE;
+	vertexDbId.propertykeyId = -1;
+	vertexDbId.labelId = -1;
+	vertexDbId.edgeId = -1LL;
+
+	key.mv_size = sizeof(VertexDbId);
+	key.mv_data = &vertexDbId;
+	rc = mdb_cursor_get((MDB_cursor *) mdbCursor, &key, &data, MDB_SET_RANGE);
+
+	fail: if (cursorArray && cursor) {
+		(*env)->ReleaseLongArrayElements(env, cursorArray, cursor, 0);
+	}
+
+	return rc;
+
+}
+
+/*
+ * Class:     org_glmdb_blueprints_jni_ThunderJni
  * Method:    mdb_cursor_open_and_position_on_edge_edge_db
  * Signature: (JJJI[J)I
  */
@@ -4326,7 +4370,6 @@ JNIEXPORT jint JNICALL Java_org_glmdb_blueprints_jni_ThunderJni_mdb_1set_1proper
 
 	}
 
-	fail:
 	(*env)->ReleaseStringUTFChars(env, value, inCStr);
 	return rc;
 
@@ -5663,6 +5706,8 @@ JNIEXPORT jint JNICALL Java_org_glmdb_blueprints_jni_ThunderJni_mdb_1get_1first_
 			foundEdge = 0;
 			break;
 		default:
+			printf("mdb_get_first_edge edgeDbId.coreOrPropertyEnum = %i\n", edgeDbId.coreOrPropertyEnum);
+			printf("mdb_get_first_edge = %i\n", rc);
 			rc = GLMDB_DB_CORRUPT;
 			break;
 		}
@@ -5973,42 +6018,77 @@ JNIEXPORT jint JNICALL Java_org_glmdb_blueprints_jni_ThunderJni_mdb_1get_1next_1
 	jlong *outVertexIdC = NULL;
 	jlong *inVertexIdC = NULL;
 
+//	(*env)->GetPrimitiveArrayCritical(env, labelIdResult, NULL)
 	if (labelIdResult) {
-		if ((labelIdResultC = (*env)->GetIntArrayElements(env, labelIdResult, NULL)) == NULL) {
+		if ((labelIdResultC = (*env)->GetPrimitiveArrayCritical(env, labelIdResult, NULL)) == NULL) {
 			goto fail;
 		}
 	}
 	if (edgeIdResult) {
-		if ((edgeIdResultC = (*env)->GetLongArrayElements(env, edgeIdResult, NULL)) == NULL) {
+		if ((edgeIdResultC = (*env)->GetPrimitiveArrayCritical(env, edgeIdResult, NULL)) == NULL) {
 			goto fail;
 		}
 	}
 	if (outVertexId) {
-		if ((outVertexIdC = (*env)->GetLongArrayElements(env, outVertexId, NULL)) == NULL) {
+		if ((outVertexIdC = (*env)->GetPrimitiveArrayCritical(env, outVertexId, NULL)) == NULL) {
 			goto fail;
 		}
 	}
 	if (inVertexId) {
-		if ((inVertexIdC = (*env)->GetLongArrayElements(env, inVertexId, NULL)) == NULL) {
+		if ((inVertexIdC = (*env)->GetPrimitiveArrayCritical(env, inVertexId, NULL)) == NULL) {
 			goto fail;
 		}
 	}
+
+//	if (labelIdResult) {
+//		if ((labelIdResultC = (*env)->GetIntArrayElements(env, labelIdResult, NULL)) == NULL) {
+//			goto fail;
+//		}
+//	}
+//	if (edgeIdResult) {
+//		if ((edgeIdResultC = (*env)->GetLongArrayElements(env, edgeIdResult, NULL)) == NULL) {
+//			goto fail;
+//		}
+//	}
+//	if (outVertexId) {
+//		if ((outVertexIdC = (*env)->GetLongArrayElements(env, outVertexId, NULL)) == NULL) {
+//			goto fail;
+//		}
+//	}
+//	if (inVertexId) {
+//		if ((inVertexIdC = (*env)->GetLongArrayElements(env, inVertexId, NULL)) == NULL) {
+//			goto fail;
+//		}
+//	}
 
 	rc = getNextEdgefromVertexAllLabels((MDB_cursor *) (long) cursor, direction, fromVertexId, labelIdResultC, edgeIdResultC, outVertexIdC,
 			inVertexIdC);
 
 	fail: if (labelIdResult && labelIdResultC) {
-		(*env)->ReleaseIntArrayElements(env, labelIdResult, labelIdResultC, 0);
+		(*env)->ReleasePrimitiveArrayCritical(env, labelIdResult, labelIdResultC, 0);
 	}
 	if (edgeIdResult && edgeIdResultC) {
-		(*env)->ReleaseLongArrayElements(env, edgeIdResult, edgeIdResultC, 0);
+		(*env)->ReleasePrimitiveArrayCritical(env, edgeIdResult, edgeIdResultC, 0);
 	}
 	if (outVertexId && outVertexIdC) {
-		(*env)->ReleaseLongArrayElements(env, outVertexId, outVertexIdC, 0);
+		(*env)->ReleasePrimitiveArrayCritical(env, outVertexId, outVertexIdC, 0);
 	}
 	if (inVertexId && inVertexIdC) {
-		(*env)->ReleaseLongArrayElements(env, inVertexId, inVertexIdC, 0);
+		(*env)->ReleasePrimitiveArrayCritical(env, inVertexId, inVertexIdC, 0);
 	}
+
+//	if (labelIdResult && labelIdResultC) {
+//		(*env)->ReleaseIntArrayElements(env, labelIdResult, labelIdResultC, 0);
+//	}
+//	if (edgeIdResult && edgeIdResultC) {
+//		(*env)->ReleaseLongArrayElements(env, edgeIdResult, edgeIdResultC, 0);
+//	}
+//	if (outVertexId && outVertexIdC) {
+//		(*env)->ReleaseLongArrayElements(env, outVertexId, outVertexIdC, 0);
+//	}
+//	if (inVertexId && inVertexIdC) {
+//		(*env)->ReleaseLongArrayElements(env, inVertexId, inVertexIdC, 0);
+//	}
 	return rc;
 
 }
@@ -6722,6 +6802,12 @@ int openGraph(GLMDB_env **genv, const char *path) {
 	if (rc != 0) {
 		return rc;
 	}
+
+	rc = mdb_env_set_maxreaders(env, 1100);
+	if (rc != 0) {
+		return rc;
+	}
+
 	rc = mdb_env_set_mapsize(env, 107374182400); //100G
 	if (rc != 0) {
 		return rc;
@@ -6731,6 +6817,7 @@ int openGraph(GLMDB_env **genv, const char *path) {
 		return rc;
 	}
 	rc = mdb_env_open(env, path, MDB_NOSYNC, 0664);
+//	rc = mdb_env_open(env, path, 0, 0664);
 	if (rc != 0) {
 		return rc;
 	}
@@ -7398,11 +7485,14 @@ int getFirstEdgefromVertexAllLabels(MDB_cursor *cursor, jint direction, jlong fr
 int getNextEdgefromVertexAllLabels(MDB_cursor *cursor, jint direction, jlong fromVertexId, jint *labelIdResultC, jlong *edgeIdResultC,
 		jlong *outVertexIdC, jlong *inVertexIdC) {
 
+//	printf("getNextEdgefromVertexAllLabels start\n");
 	int rc = 0;
 	VertexDbId id;
 	initVertexDbId(&id);
 	MDB_val key, data;
 	while ((rc = mdb_cursor_get((MDB_cursor *) (long) cursor, &key, &data, MDB_NEXT)) == 0) {
+
+//		printVertexRecord(key, data);
 
 		VertexDbId vertexDbId = *((VertexDbId *) (key.mv_data));
 		if (fromVertexId == vertexDbId.vertexId) {
@@ -7440,9 +7530,12 @@ int getNextEdgefromVertexAllLabels(MDB_cursor *cursor, jint direction, jlong fro
 			}
 		} else {
 			rc = GLMDB_END_OF_EDGES;
+			goto fail;
 		}
 	}
-	fail: return rc;
+	fail:
+//	printf("getNextEdgefromVertexAllLabels end\n");
+	return rc;
 }
 
 int getCurrentEdgefromVertexAllLabels(MDB_cursor *cursor, jint direction, jlong fromVertexId, jint *labelIdResultC, jlong *edgeIdResultC,

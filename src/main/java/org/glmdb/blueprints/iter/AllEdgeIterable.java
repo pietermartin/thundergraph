@@ -3,7 +3,9 @@ package org.glmdb.blueprints.iter;
 import com.tinkerpop.blueprints.Edge;
 import org.glmdb.blueprints.ThunderEdge;
 import org.glmdb.blueprints.ThunderGraph;
+import org.glmdb.blueprints.ThunderVertex;
 import org.glmdb.blueprints.TransactionAndCursor;
+import org.glmdb.blueprints.jni.DbEnum;
 
 import java.util.Iterator;
 import java.util.NoSuchElementException;
@@ -14,12 +16,9 @@ import java.util.NoSuchElementException;
  */
 public class AllEdgeIterable<T extends Edge> extends BaseThunderIterable implements Iterable<ThunderEdge> {
 
-    private final ThunderGraph thunderGraph;
-    private final TransactionAndCursor tc;
 
     public AllEdgeIterable(ThunderGraph thunderGraph) {
-        this.thunderGraph = thunderGraph;
-        this.tc = this.thunderGraph.getReadOnlyTx();
+        super(thunderGraph);
     }
 
     @Override
@@ -27,53 +26,61 @@ public class AllEdgeIterable<T extends Edge> extends BaseThunderIterable impleme
         return new EdgesIterator();
     }
 
-    private class EdgesIterator implements Iterator<ThunderEdge> {
+    private final class EdgesIterator extends BaseThunderIterator<ThunderEdge> implements Iterator {
 
-        private ThunderEdge next;
         private boolean goToFirst = true;
         private long previousEdgeId;
 
-        @Override
-        public boolean hasNext() {
-            if (this.next == null) {
-                this.next = internalNext();
-            }
-            return this.next != null;
+        private EdgesIterator() {
+            super(AllEdgeIterable.this.tc);
         }
 
         @Override
-        public ThunderEdge next() {
-            if (this.next == null) {
-                this.next = internalNext();
-                if (this.next == null) {
-                    throw new NoSuchElementException();
-                }
-            }
-            ThunderEdge result = this.next;
-            this.next = null;
-            return result;
+        protected AllEdgeIterable getParentIterable() {
+            return AllEdgeIterable.this;
+        }
+
+        @Override
+        protected DbEnum getDbEnum() {
+            return DbEnum.EDGE_DB;
         }
 
         @Override
         public void remove() {
-            throw new RuntimeException("Not yet implemented!");
+            if (this.cursorIsReadOnly) {
+                //Upgrade transaction to a writable one.
+                //Replace the current cursor with a new one from the writable transaction
+                AllEdgeIterable.this.tc = this.getParentIterable().thunderGraph.getWriteTx();
+                refreshForFirst();
+            }
+            AllEdgeIterable.this.thunderGraph.getThunder().removeEdge(this.tc.getTxn(), this.internalNext.getInternalId());
         }
 
-        private ThunderEdge internalNext() {
+        @Override
+        protected ThunderEdge internalNext() {
             long edgeIdArray[] = new long[1];
             String labelArray[] = new String[1];
             long outVertexIdArray[] = new long[1];
             long inVertexIdArray[] = new long[1];
             if (this.goToFirst) {
                 this.goToFirst = false;
-                if (AllEdgeIterable.this.thunderGraph.getThunder().getFirstEdge(tc.getEdgeCursor(), edgeIdArray, labelArray, outVertexIdArray, inVertexIdArray)) {
+                if (this.cursor == null || !this.cursor.isAllocated()) {
+                    refreshForFirst();
+                }
+                if (AllEdgeIterable.this.thunderGraph.getThunder().getFirstEdge(this.cursor, edgeIdArray, labelArray, outVertexIdArray, inVertexIdArray)) {
                     this.previousEdgeId = edgeIdArray[0];
                     return new ThunderEdge(AllEdgeIterable.this.thunderGraph, edgeIdArray[0], labelArray[0], outVertexIdArray[0], inVertexIdArray[0]);
                 } else {
                     return null;
                 }
             } else {
-                if (AllEdgeIterable.this.thunderGraph.getThunder().getNextEdge(tc.getEdgeCursor(), this.previousEdgeId, edgeIdArray, labelArray, outVertexIdArray, inVertexIdArray)) {
+                //Check if cursor needs reopening. This happens if a read only transaction is upgraded to a write transaction
+                //after the iterator was instantiated.
+                if (this.cursor == null || !this.cursor.isAllocated()) {
+                    //This can be a refreshForFirst as getNextVertex does a range query
+                    refreshForFirst();
+                }
+                if (AllEdgeIterable.this.thunderGraph.getThunder().getNextEdge(this.cursor, this.previousEdgeId, edgeIdArray, labelArray, outVertexIdArray, inVertexIdArray)) {
                     this.previousEdgeId = edgeIdArray[0];
                     return new ThunderEdge(AllEdgeIterable.this.thunderGraph, edgeIdArray[0], labelArray[0], outVertexIdArray[0], inVertexIdArray[0]);
                 } else {

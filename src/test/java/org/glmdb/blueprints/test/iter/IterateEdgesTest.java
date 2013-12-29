@@ -1,9 +1,10 @@
-package org.glmdb.blueprints.test;
+package org.glmdb.blueprints.test.iter;
 
 import com.tinkerpop.blueprints.Direction;
 import com.tinkerpop.blueprints.Edge;
 import com.tinkerpop.blueprints.Vertex;
 import org.glmdb.blueprints.ThunderGraph;
+import org.glmdb.blueprints.test.BaseGlmdbGraphTest;
 import org.junit.Assert;
 import org.junit.Test;
 
@@ -15,7 +16,7 @@ import java.util.List;
  * Date: 2013/11/24
  * Time: 11:01 AM
  */
-public class IterateEdgesTest extends BaseGlmdbGraphTest  {
+public class IterateEdgesTest extends BaseGlmdbGraphTest {
 
 
     @Test

@@ -18,6 +18,7 @@ import java.util.List;
  * Date: 2013/11/26
  * Time: 9:52 PM
  */
+//This class is responsible to test 100% code coverage of VertexesFromVertexIterable
 public class VertexesFromVertexTest extends BaseGlmdbGraphTest {
 
     @Test
@@ -677,6 +678,7 @@ public class VertexesFromVertexTest extends BaseGlmdbGraphTest {
         try {
             Vertex v1 = thunderGraph.addVertex(null);
             v1.setProperty("number", -1);
+//            Assert.assertEquals(-1, v1.getProperty("number"));
             for (int i = 0; i < 1000; i++) {
                 Vertex v2 = thunderGraph.addVertex(null);
                 v1.setProperty("number", i);
@@ -705,6 +707,46 @@ public class VertexesFromVertexTest extends BaseGlmdbGraphTest {
             System.out.println(stopWatch.toString());
             thunderGraph.shutdown();
         }
+    }
+
+    @Test
+    public void testNextAfterRemoveIsCorrect() {
+        ThunderGraph thunderGraph = new ThunderGraph(this.dbPath);
+        try {
+            Vertex v1 = thunderGraph.addVertex(null);
+            v1.setProperty("number", -1);
+            for (int i = 0; i < 1000; i++) {
+                Vertex v2 = thunderGraph.addVertex(null);
+                v2.setProperty("number", i);
+                thunderGraph.addEdge(null, v2, v1, "test1");
+                thunderGraph.addEdge(null, v2, v1, "test2");
+            }
+
+            thunderGraph.commit();
+
+            Iterator<Vertex> iter = thunderGraph.getVertex(0L).getVertices(Direction.IN, "test1").iterator();
+            Assert.assertTrue(iter.hasNext());
+            Assert.assertEquals(0, iter.next().getProperty("number"));
+            Assert.assertTrue(iter.hasNext());
+            Assert.assertEquals(1, iter.next().getProperty("number"));
+            Assert.assertTrue(iter.hasNext());
+            Assert.assertEquals(2, iter.next().getProperty("number"));
+            Assert.assertTrue(iter.hasNext());
+            Assert.assertEquals(3, iter.next().getProperty("number"));
+
+            thunderGraph.commit();
+            Assert.assertTrue(iter.hasNext());
+            thunderGraph.commit();
+            iter.next().setProperty("new", "new");
+            iter.remove();
+
+            Assert.assertTrue(iter.hasNext());
+            Assert.assertEquals(5, iter.next().getProperty("number"));
+
+        } finally {
+            thunderGraph.shutdown();
+        }
+
     }
 
 }

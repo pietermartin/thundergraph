@@ -227,11 +227,11 @@ public class IndexCharTest extends BaseGlmdbGraphTest {
             thunderGraph.commit();
 
             Assert.assertEquals(3, count(thunderGraph.getEdges("name1", (char)1)));
-            thunderGraph.printDb(DbEnum.EDGE_SHORT_INDEX);
+            thunderGraph.printDb(DbEnum.EDGE_CHAR_INDEX);
 
             thunderGraph.createKeyIndex("name1", Edge.class);
             Assert.assertEquals(3, count(thunderGraph.getEdges("name1", (char)1)));
-            thunderGraph.printDb(DbEnum.EDGE_SHORT_INDEX);
+            thunderGraph.printDb(DbEnum.EDGE_CHAR_INDEX);
 
         } finally {
             thunderGraph.shutdown();
