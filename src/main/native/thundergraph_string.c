@@ -89,8 +89,64 @@ int getFirstElementForKeyValueFromStringIndex(MDB_cursor *cursor, int propertyKe
 		}
 
 	}
+	free(stringIndexKeyStruct);
 	return rc;
 }
+
+int placeCursorOnKeyValueStringIndex(MDB_cursor *cursor, long long vertexId, int propertyKeyId, int propertyValueLength, char *value) {
+
+	int rc;
+	MDB_val key, data;
+	StringIndexKeyStruct *stringIndexKeyStruct = malloc(sizeof(StringIndexKeyStruct) + propertyValueLength);
+	stringIndexKeyStruct->propertyKeyId = (int) propertyKeyId;
+	stringIndexKeyStruct->elementId = -1LL;
+	stringIndexKeyStruct->elementId = vertexId;
+	memcpy(stringIndexKeyStruct->value, value, propertyValueLength);
+	key.mv_size = propertyValueLength + sizeof(StringIndexKeyStruct);
+	key.mv_data = stringIndexKeyStruct;
+	rc = mdb_cursor_get(cursor, &key, &data, MDB_SET_RANGE);
+	if (rc == 0) {
+
+		int propertyKeySize = (size_t) key.mv_size;
+		int propertyKeyInIndexValueSize = propertyKeySize - sizeof(StringIndexKeyStruct);
+
+		if (propertyKeyInIndexValueSize == propertyValueLength) {
+
+			StringIndexKeyStruct *stringIndexKeyStructTmp = (StringIndexKeyStruct *) (key.mv_data);
+			char *value1 = stringIndexKeyStructTmp->value;
+			int compare = strncmp(value1, value, propertyValueLength);
+			if (compare != 0) {
+				rc = MDB_NOTFOUND;
+			}
+
+		} else {
+			rc = MDB_NOTFOUND;
+		}
+
+	}
+
+	free(stringIndexKeyStruct);
+	return rc;
+
+}
+
+int getCurrentVertexfromVertexStringIndexDb(MDB_cursor *cursor, jlong *vertexIdC, int propertyKeyId, int propertyValueLength, char *value) {
+
+	int rc = 0;
+	MDB_val key, data;
+	rc = mdb_cursor_get(cursor, &key, &data, MDB_GET_CURRENT);
+	printStringIndexDbRecord(key, data);
+
+	if (rc == MDB_NOTFOUND) {
+		printf("getCurrentVertexfromVertexStringIndexDb going to next\n");
+		rc = getNextElementForKeyValueFromStringIndex(cursor, propertyKeyId, propertyValueLength, value, (long long int *)vertexIdC);
+	} else {
+		*vertexIdC = *((long long *) data.mv_data);
+	}
+
+	return rc;
+}
+
 
 int getNextElementForKeyValueFromStringIndex(MDB_cursor *cursor, int propertyKeyId, int propertyValueLength, char *value,
 		long long int *vertexIdResultC) {

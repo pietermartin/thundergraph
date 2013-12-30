@@ -264,3 +264,45 @@ int deleteFloatIndex(GLMDB_env * glmdb_env, MDB_txn * mdbTxn, int propertyKeyId,
 	return rc;
 
 }
+
+int placeCursorOnKeyValueFloatIndex(MDB_cursor *cursor, long long vertexId, int propertyKeyId, jfloat value) {
+
+	int rc;
+	MDB_val key, data;
+	FloatIndexKeyStruct *floatIndexKeyStruct = malloc(sizeof(FloatIndexKeyStruct));
+	floatIndexKeyStruct->propertyKeyId = (int) propertyKeyId;
+	floatIndexKeyStruct->elementId = -1LL;
+	floatIndexKeyStruct->elementId = vertexId;
+	floatIndexKeyStruct->value = value;
+	key.mv_size = sizeof(FloatIndexKeyStruct);
+	key.mv_data = floatIndexKeyStruct;
+	rc = mdb_cursor_get(cursor, &key, &data, MDB_SET_RANGE);
+	if (rc == 0) {
+
+		FloatIndexKeyStruct *floatIndexKeyStructTmp = (FloatIndexKeyStruct *) (key.mv_data);
+		float value1 = floatIndexKeyStructTmp->value;
+		if (value1 != value) {
+			rc = MDB_NOTFOUND;
+		}
+
+	}
+
+	free(floatIndexKeyStruct);
+	return rc;
+
+}
+
+int getCurrentVertexfromVertexFloatIndexDb(MDB_cursor *cursor, jlong *vertexIdC, int propertyKeyId, jfloat value) {
+
+	int rc = 0;
+	MDB_val key, data;
+	rc = mdb_cursor_get(cursor, &key, &data, MDB_GET_CURRENT);
+
+	if (rc == MDB_NOTFOUND) {
+		rc = getNextElementForKeyValueFromFloatIndex(cursor, propertyKeyId, value, (long long int *)vertexIdC);
+	} else {
+		*vertexIdC = *((long long *) data.mv_data);
+	}
+
+	return rc;
+}

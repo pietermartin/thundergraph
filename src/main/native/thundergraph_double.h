@@ -27,3 +27,5 @@ int setEdgePropertyDouble(MDB_cursor *cursor, jlong edgeId, jint propertyKeyId, 
 int deleteDoubleIndex(GLMDB_env * glmdb_env, MDB_txn * mdbTxn, int propertyKeyId, unsigned char vertex);
 
 void printDoubleIndexDbRecord(MDB_val key, MDB_val data);
+int placeCursorOnKeyValueDoubleIndex(MDB_cursor *cursor, long long vertexId, int propertyKeyId, jdouble value);
+int getCurrentVertexfromVertexDoubleIndexDb(MDB_cursor *cursor, jlong *vertexIdC, int propertyKeyId, jdouble value);

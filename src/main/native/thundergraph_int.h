@@ -27,3 +27,5 @@ int setEdgePropertyInt(MDB_cursor *cursor, jlong edgeId, jint propertyKeyId, jin
 int deleteIntIndex(GLMDB_env * glmdb_env, MDB_txn * mdbTxn, int propertyKeyId, unsigned char vertex);
 
 void printIntIndexDbRecord(MDB_val key, MDB_val data);
+int placeCursorOnKeyValueIntIndex(MDB_cursor *cursor, long long vertexId, int propertyKeyId, jint value);
+int getCurrentVertexfromVertexIntIndexDb(MDB_cursor *cursor, jlong *vertexIdC, int propertyKeyId, jint value);

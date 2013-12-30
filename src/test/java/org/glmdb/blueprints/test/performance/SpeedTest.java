@@ -1,4 +1,4 @@
-package org.glmdb.blueprints.test;
+package org.glmdb.blueprints.test.performance;
 
 import com.tinkerpop.blueprints.Direction;
 import com.tinkerpop.blueprints.Vertex;
@@ -6,6 +6,7 @@ import junit.framework.Assert;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang.time.StopWatch;
 import org.glmdb.blueprints.ThunderGraph;
+import org.glmdb.blueprints.test.BaseGlmdbGraphTest;
 import org.junit.Test;
 
 import java.io.File;
@@ -69,7 +70,7 @@ public class SpeedTest extends BaseGlmdbGraphTest {
         }
     }
 
-    @Test
+//    @Test
     public void testSpeedDude2() throws IOException {
         ThunderGraph g = new ThunderGraph(this.dbPath);
         try {
@@ -147,7 +148,7 @@ public class SpeedTest extends BaseGlmdbGraphTest {
         }
     }
 
-    @Test
+//    @Test
     public void testSpeedLinkedList() {
         ThunderGraph g = new ThunderGraph(this.dbPath);
         try {

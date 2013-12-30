@@ -259,3 +259,45 @@ int deleteLongIndex(GLMDB_env * glmdb_env, MDB_txn * mdbTxn, int propertyKeyId, 
 	return rc;
 
 }
+
+int placeCursorOnKeyValueLongIndex(MDB_cursor *cursor, long long vertexId, int propertyKeyId, jlong value) {
+
+	int rc;
+	MDB_val key, data;
+	LongIndexKeyStruct *longIndexKeyStruct = malloc(sizeof(LongIndexKeyStruct));
+	longIndexKeyStruct->propertyKeyId = (int) propertyKeyId;
+	longIndexKeyStruct->elementId = -1LL;
+	longIndexKeyStruct->elementId = vertexId;
+	longIndexKeyStruct->value = value;
+	key.mv_size = sizeof(LongIndexKeyStruct);
+	key.mv_data = longIndexKeyStruct;
+	rc = mdb_cursor_get(cursor, &key, &data, MDB_SET_RANGE);
+	if (rc == 0) {
+
+		LongIndexKeyStruct *longIndexKeyStructTmp = (LongIndexKeyStruct *) (key.mv_data);
+		long long value1 = longIndexKeyStructTmp->value;
+		if (value1 != value) {
+			rc = MDB_NOTFOUND;
+		}
+
+	}
+
+	free(longIndexKeyStruct);
+	return rc;
+
+}
+
+int getCurrentVertexfromVertexLongIndexDb(MDB_cursor *cursor, jlong *vertexIdC, int propertyKeyId, jlong value) {
+
+	int rc = 0;
+	MDB_val key, data;
+	rc = mdb_cursor_get(cursor, &key, &data, MDB_GET_CURRENT);
+
+	if (rc == MDB_NOTFOUND) {
+		rc = getNextElementForKeyValueFromLongIndex(cursor, propertyKeyId, value, (long long int *)vertexIdC);
+	} else {
+		*vertexIdC = *((long long *) data.mv_data);
+	}
+
+	return rc;
+}

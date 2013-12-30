@@ -1,10 +1,11 @@
-package org.glmdb.blueprints.test;
+package org.glmdb.blueprints.test.performance;
 
 import com.tinkerpop.blueprints.Direction;
 import com.tinkerpop.blueprints.Edge;
 import com.tinkerpop.blueprints.Vertex;
 import org.apache.commons.io.FileUtils;
 import org.glmdb.blueprints.ThunderGraph;
+import org.glmdb.blueprints.test.BaseGlmdbGraphTest;
 import org.junit.After;
 import org.junit.Assert;
 import org.junit.Before;

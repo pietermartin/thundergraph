@@ -27,3 +27,5 @@ int setEdgePropertyFloat(MDB_cursor *cursor, jlong edgeId, jint propertyKeyId, j
 int deleteFloatIndex(GLMDB_env * glmdb_env, MDB_txn * mdbTxn, int propertyKeyId, unsigned char vertex);
 
 void printFloatIndexDbRecord(MDB_val key, MDB_val data);
+int placeCursorOnKeyValueFloatIndex(MDB_cursor *cursor, long long vertexId, int propertyKeyId, jfloat value);
+int getCurrentVertexfromVertexFloatIndexDb(MDB_cursor *cursor, jlong *vertexIdC, int propertyKeyId, jfloat value);

@@ -18,6 +18,8 @@ int getFirstElementForKeyValueFromStringIndex(MDB_cursor *cursor, int propertyKe
 		long long int *vertexIdResultC);
 int getNextElementForKeyValueFromStringIndex(MDB_cursor *cursor, int propertyKeyId, int propertyValueLength, char *value,
 		long long int *vertexIdResultC);
+int placeCursorOnKeyValueStringIndex(MDB_cursor *cursor, long long vertexId, int propertyKeyId, int propertyValueLength, char *value);
+int getCurrentVertexfromVertexStringIndexDb(MDB_cursor *cursor, jlong *vertexIdC, int propertyKeyId, int propertyValueLength, char *value);
 int traverseStringIndexDb(GLMDB_env * glmdb_env, MDB_txn *txn, MDB_dbi dbi);
 int setStringIndex(MDB_cursor *indexCursor, long long vertexId, int propertyKeyId, int propertyValueLength, char propertyValue[]);
 int removeStringIndex(MDB_cursor *indexCursor, long long elementId, int propertyKeyId, int propertyValueLength, char propertyValue[]);

@@ -92,6 +92,186 @@ public class Thunder extends NativeObject implements Closeable {
         }
     }
 
+    public Cursor openAndPositionCursorOnKeyValueInVertexStringIndexDb(Transaction tx, long vertexId, String key, String value) {
+        PropertyKeyEnumAndId propertyKeyEnumAndId = this.vertexPropertyKeyToIdMap.get(key);
+        if (propertyKeyEnumAndId != null) {
+            if (propertyKeyEnumAndId.propertyTypeEnum == PropertyTypeEnum.STRING) {
+                long cursor[] = new long[1];
+                int rc = mdb_cursor_open_and_position_on_key_value_vertex_string_index_db(tx.pointer(), pointer(), vertexId, propertyKeyEnumAndId.id, value, cursor);
+                if (rc == MDB_NOTFOUND) {
+                    return null;
+                } else {
+                    checkErrorCode(rc);
+                    return new Cursor(this, cursor[0]);
+                }
+            } else {
+                return null;
+            }
+        } else {
+            return null;
+        }
+    }
+
+    public Cursor openAndPositionCursorOnKeyValueInVertexShortIndexDb(Transaction tx, long vertexId, String key, short value) {
+        PropertyKeyEnumAndId propertyKeyEnumAndId = this.vertexPropertyKeyToIdMap.get(key);
+        if (propertyKeyEnumAndId != null) {
+            if (propertyKeyEnumAndId.propertyTypeEnum == PropertyTypeEnum.SHORT) {
+                long cursor[] = new long[1];
+                int rc = mdb_cursor_open_and_position_on_key_value_vertex_short_index_db(tx.pointer(), pointer(), vertexId, propertyKeyEnumAndId.id, value, cursor);
+                if (rc == MDB_NOTFOUND) {
+                    return null;
+                } else {
+                    checkErrorCode(rc);
+                    return new Cursor(this, cursor[0]);
+                }
+            } else {
+                return null;
+            }
+        } else {
+            return null;
+        }
+    }
+
+    public Cursor openAndPositionCursorOnKeyValueInVertexLongIndexDb(Transaction tx, long vertexId, String key, long value) {
+        PropertyKeyEnumAndId propertyKeyEnumAndId = this.vertexPropertyKeyToIdMap.get(key);
+        if (propertyKeyEnumAndId != null) {
+            if (propertyKeyEnumAndId.propertyTypeEnum == PropertyTypeEnum.LONG) {
+                long cursor[] = new long[1];
+                int rc = mdb_cursor_open_and_position_on_key_value_vertex_long_index_db(tx.pointer(), pointer(), vertexId, propertyKeyEnumAndId.id, value, cursor);
+                if (rc == MDB_NOTFOUND) {
+                    return null;
+                } else {
+                    checkErrorCode(rc);
+                    return new Cursor(this, cursor[0]);
+                }
+            } else {
+                return null;
+            }
+        } else {
+            return null;
+        }
+    }
+
+    public Cursor openAndPositionCursorOnKeyValueInVertexIntIndexDb(Transaction tx, long vertexId, String key, int value) {
+        PropertyKeyEnumAndId propertyKeyEnumAndId = this.vertexPropertyKeyToIdMap.get(key);
+        if (propertyKeyEnumAndId != null) {
+            if (propertyKeyEnumAndId.propertyTypeEnum == PropertyTypeEnum.INT) {
+                long cursor[] = new long[1];
+                int rc = mdb_cursor_open_and_position_on_key_value_vertex_int_index_db(tx.pointer(), pointer(), vertexId, propertyKeyEnumAndId.id, value, cursor);
+                if (rc == MDB_NOTFOUND) {
+                    return null;
+                } else {
+                    checkErrorCode(rc);
+                    return new Cursor(this, cursor[0]);
+                }
+            } else {
+                return null;
+            }
+        } else {
+            return null;
+        }
+    }
+
+    public Cursor openAndPositionCursorOnKeyValueInVertexFloatIndexDb(Transaction tx, long vertexId, String key, float value) {
+        PropertyKeyEnumAndId propertyKeyEnumAndId = this.vertexPropertyKeyToIdMap.get(key);
+        if (propertyKeyEnumAndId != null) {
+            if (propertyKeyEnumAndId.propertyTypeEnum == PropertyTypeEnum.FLOAT) {
+                long cursor[] = new long[1];
+                int rc = mdb_cursor_open_and_position_on_key_value_vertex_float_index_db(tx.pointer(), pointer(), vertexId, propertyKeyEnumAndId.id, value, cursor);
+                if (rc == MDB_NOTFOUND) {
+                    return null;
+                } else {
+                    checkErrorCode(rc);
+                    return new Cursor(this, cursor[0]);
+                }
+            } else {
+                return null;
+            }
+        } else {
+            return null;
+        }
+    }
+
+    public Cursor openAndPositionCursorOnKeyValueInVertexDoubleIndexDb(Transaction tx, long vertexId, String key, double value) {
+        PropertyKeyEnumAndId propertyKeyEnumAndId = this.vertexPropertyKeyToIdMap.get(key);
+        if (propertyKeyEnumAndId != null) {
+            if (propertyKeyEnumAndId.propertyTypeEnum == PropertyTypeEnum.DOUBLE) {
+                long cursor[] = new long[1];
+                int rc = mdb_cursor_open_and_position_on_key_value_vertex_double_index_db(tx.pointer(), pointer(), vertexId, propertyKeyEnumAndId.id, value, cursor);
+                if (rc == MDB_NOTFOUND) {
+                    return null;
+                } else {
+                    checkErrorCode(rc);
+                    return new Cursor(this, cursor[0]);
+                }
+            } else {
+                return null;
+            }
+        } else {
+            return null;
+        }
+    }
+
+    public Cursor openAndPositionCursorOnKeyValueInVertexCharIndexDb(Transaction tx, long vertexId, String key, char value) {
+        PropertyKeyEnumAndId propertyKeyEnumAndId = this.vertexPropertyKeyToIdMap.get(key);
+        if (propertyKeyEnumAndId != null) {
+            if (propertyKeyEnumAndId.propertyTypeEnum == PropertyTypeEnum.CHAR) {
+                long cursor[] = new long[1];
+                int rc = mdb_cursor_open_and_position_on_key_value_vertex_char_index_db(tx.pointer(), pointer(), vertexId, propertyKeyEnumAndId.id, value, cursor);
+                if (rc == MDB_NOTFOUND) {
+                    return null;
+                } else {
+                    checkErrorCode(rc);
+                    return new Cursor(this, cursor[0]);
+                }
+            } else {
+                return null;
+            }
+        } else {
+            return null;
+        }
+    }
+
+    public Cursor openAndPositionCursorOnKeyValueInVertexByteIndexDb(Transaction tx, long vertexId, String key, byte value) {
+        PropertyKeyEnumAndId propertyKeyEnumAndId = this.vertexPropertyKeyToIdMap.get(key);
+        if (propertyKeyEnumAndId != null) {
+            if (propertyKeyEnumAndId.propertyTypeEnum == PropertyTypeEnum.BYTE) {
+                long cursor[] = new long[1];
+                int rc = mdb_cursor_open_and_position_on_key_value_vertex_byte_index_db(tx.pointer(), pointer(), vertexId, propertyKeyEnumAndId.id, value, cursor);
+                if (rc == MDB_NOTFOUND) {
+                    return null;
+                } else {
+                    checkErrorCode(rc);
+                    return new Cursor(this, cursor[0]);
+                }
+            } else {
+                return null;
+            }
+        } else {
+            return null;
+        }
+    }
+
+    public Cursor openAndPositionCursorOnKeyValueInVertexBooleanIndexDb(Transaction tx, long vertexId, String key, boolean value) {
+        PropertyKeyEnumAndId propertyKeyEnumAndId = this.vertexPropertyKeyToIdMap.get(key);
+        if (propertyKeyEnumAndId != null) {
+            if (propertyKeyEnumAndId.propertyTypeEnum == PropertyTypeEnum.BOOLEAN) {
+                long cursor[] = new long[1];
+                int rc = mdb_cursor_open_and_position_on_key_value_vertex_boolean_index_db(tx.pointer(), pointer(), vertexId, propertyKeyEnumAndId.id, value, cursor);
+                if (rc == MDB_NOTFOUND) {
+                    return null;
+                } else {
+                    checkErrorCode(rc);
+                    return new Cursor(this, cursor[0]);
+                }
+            } else {
+                return null;
+            }
+        } else {
+            return null;
+        }
+    }
+
     public Cursor openAndPositionCursorOnVertexInVertexDb(Transaction tx, long vertexId) {
         long cursor[] = new long[1];
         //this calls mdb_cursor_get with MDB_SET_RANGE
@@ -319,6 +499,204 @@ public class Thunder extends NativeObject implements Closeable {
             } else {
                 checkErrorCode(rc);
                 return true;
+            }
+        } else {
+            return false;
+        }
+    }
+
+    public boolean getCurrentVertexFromVertexStringIndexDb(Cursor cursor, long vertexIdArray[], String key, String value) {
+        PropertyKeyEnumAndId propertyKeyEnumAndId = this.vertexPropertyKeyToIdMap.get(key);
+        if (propertyKeyEnumAndId != null) {
+            //Make sure it is a string property
+            if (propertyKeyEnumAndId.propertyTypeEnum == PropertyTypeEnum.STRING) {
+                //this calls mdb_cursor_get with MDB_GET_CURRENT
+                //if the first call finds nothing the it calls MDB_GET_NEXT
+                int rc = mdb_get_current_vertex_from_vertex_string_index_db(cursor.pointer(), vertexIdArray, propertyKeyEnumAndId.id, value);
+                if (rc == MDB_NOTFOUND) {
+                    return false;
+                } else {
+                    checkErrorCode(rc);
+                    return true;
+                }
+            } else {
+                return false;
+            }
+        } else {
+            return false;
+        }
+    }
+
+    public boolean getCurrentVertexFromVertexShortIndexDb(Cursor cursor, long vertexIdArray[], String key, short value) {
+        PropertyKeyEnumAndId propertyKeyEnumAndId = this.vertexPropertyKeyToIdMap.get(key);
+        if (propertyKeyEnumAndId != null) {
+            //Make sure it is a string property
+            if (propertyKeyEnumAndId.propertyTypeEnum == PropertyTypeEnum.SHORT) {
+                //this calls mdb_cursor_get with MDB_GET_CURRENT
+                //if the first call finds nothing the it calls MDB_GET_NEXT
+                int rc = mdb_get_current_vertex_from_vertex_short_index_db(cursor.pointer(), vertexIdArray, propertyKeyEnumAndId.id, value);
+                if (rc == MDB_NOTFOUND) {
+                    return false;
+                } else {
+                    checkErrorCode(rc);
+                    return true;
+                }
+            } else {
+                return false;
+            }
+        } else {
+            return false;
+        }
+    }
+
+    public boolean getCurrentVertexFromVertexLongIndexDb(Cursor cursor, long vertexIdArray[], String key, long value) {
+        PropertyKeyEnumAndId propertyKeyEnumAndId = this.vertexPropertyKeyToIdMap.get(key);
+        if (propertyKeyEnumAndId != null) {
+            //Make sure it is a string property
+            if (propertyKeyEnumAndId.propertyTypeEnum == PropertyTypeEnum.LONG) {
+                //this calls mdb_cursor_get with MDB_GET_CURRENT
+                //if the first call finds nothing the it calls MDB_GET_NEXT
+                int rc = mdb_get_current_vertex_from_vertex_long_index_db(cursor.pointer(), vertexIdArray, propertyKeyEnumAndId.id, value);
+                if (rc == MDB_NOTFOUND) {
+                    return false;
+                } else {
+                    checkErrorCode(rc);
+                    return true;
+                }
+            } else {
+                return false;
+            }
+        } else {
+            return false;
+        }
+    }
+
+    public boolean getCurrentVertexFromVertexIntIndexDb(Cursor cursor, long vertexIdArray[], String key, int value) {
+        PropertyKeyEnumAndId propertyKeyEnumAndId = this.vertexPropertyKeyToIdMap.get(key);
+        if (propertyKeyEnumAndId != null) {
+            //Make sure it is a string property
+            if (propertyKeyEnumAndId.propertyTypeEnum == PropertyTypeEnum.INT) {
+                //this calls mdb_cursor_get with MDB_GET_CURRENT
+                //if the first call finds nothing the it calls MDB_GET_NEXT
+                int rc = mdb_get_current_vertex_from_vertex_int_index_db(cursor.pointer(), vertexIdArray, propertyKeyEnumAndId.id, value);
+                if (rc == MDB_NOTFOUND) {
+                    return false;
+                } else {
+                    checkErrorCode(rc);
+                    return true;
+                }
+            } else {
+                return false;
+            }
+        } else {
+            return false;
+        }
+    }
+
+    public boolean getCurrentVertexFromVertexFloatIndexDb(Cursor cursor, long vertexIdArray[], String key, float value) {
+        PropertyKeyEnumAndId propertyKeyEnumAndId = this.vertexPropertyKeyToIdMap.get(key);
+        if (propertyKeyEnumAndId != null) {
+            //Make sure it is a string property
+            if (propertyKeyEnumAndId.propertyTypeEnum == PropertyTypeEnum.FLOAT) {
+                //this calls mdb_cursor_get with MDB_GET_CURRENT
+                //if the first call finds nothing the it calls MDB_GET_NEXT
+                int rc = mdb_get_current_vertex_from_vertex_float_index_db(cursor.pointer(), vertexIdArray, propertyKeyEnumAndId.id, value);
+                if (rc == MDB_NOTFOUND) {
+                    return false;
+                } else {
+                    checkErrorCode(rc);
+                    return true;
+                }
+            } else {
+                return false;
+            }
+        } else {
+            return false;
+        }
+    }
+
+    public boolean getCurrentVertexFromVertexDoubleIndexDb(Cursor cursor, long vertexIdArray[], String key, double value) {
+        PropertyKeyEnumAndId propertyKeyEnumAndId = this.vertexPropertyKeyToIdMap.get(key);
+        if (propertyKeyEnumAndId != null) {
+            //Make sure it is a string property
+            if (propertyKeyEnumAndId.propertyTypeEnum == PropertyTypeEnum.DOUBLE) {
+                //this calls mdb_cursor_get with MDB_GET_CURRENT
+                //if the first call finds nothing the it calls MDB_GET_NEXT
+                int rc = mdb_get_current_vertex_from_vertex_double_index_db(cursor.pointer(), vertexIdArray, propertyKeyEnumAndId.id, value);
+                if (rc == MDB_NOTFOUND) {
+                    return false;
+                } else {
+                    checkErrorCode(rc);
+                    return true;
+                }
+            } else {
+                return false;
+            }
+        } else {
+            return false;
+        }
+    }
+
+    public boolean getCurrentVertexFromVertexCharIndexDb(Cursor cursor, long vertexIdArray[], String key, char value) {
+        PropertyKeyEnumAndId propertyKeyEnumAndId = this.vertexPropertyKeyToIdMap.get(key);
+        if (propertyKeyEnumAndId != null) {
+            //Make sure it is a string property
+            if (propertyKeyEnumAndId.propertyTypeEnum == PropertyTypeEnum.CHAR) {
+                //this calls mdb_cursor_get with MDB_GET_CURRENT
+                //if the first call finds nothing the it calls MDB_GET_NEXT
+                int rc = mdb_get_current_vertex_from_vertex_char_index_db(cursor.pointer(), vertexIdArray, propertyKeyEnumAndId.id, value);
+                if (rc == MDB_NOTFOUND) {
+                    return false;
+                } else {
+                    checkErrorCode(rc);
+                    return true;
+                }
+            } else {
+                return false;
+            }
+        } else {
+            return false;
+        }
+    }
+
+    public boolean getCurrentVertexFromVertexByteIndexDb(Cursor cursor, long vertexIdArray[], String key, byte value) {
+        PropertyKeyEnumAndId propertyKeyEnumAndId = this.vertexPropertyKeyToIdMap.get(key);
+        if (propertyKeyEnumAndId != null) {
+            //Make sure it is a string property
+            if (propertyKeyEnumAndId.propertyTypeEnum == PropertyTypeEnum.BYTE) {
+                //this calls mdb_cursor_get with MDB_GET_CURRENT
+                //if the first call finds nothing the it calls MDB_GET_NEXT
+                int rc = mdb_get_current_vertex_from_vertex_byte_index_db(cursor.pointer(), vertexIdArray, propertyKeyEnumAndId.id, value);
+                if (rc == MDB_NOTFOUND) {
+                    return false;
+                } else {
+                    checkErrorCode(rc);
+                    return true;
+                }
+            } else {
+                return false;
+            }
+        } else {
+            return false;
+        }
+    }
+
+    public boolean getCurrentVertexFromVertexBooleanIndexDb(Cursor cursor, long vertexIdArray[], String key, boolean value) {
+        PropertyKeyEnumAndId propertyKeyEnumAndId = this.vertexPropertyKeyToIdMap.get(key);
+        if (propertyKeyEnumAndId != null) {
+            //Make sure it is a string property
+            if (propertyKeyEnumAndId.propertyTypeEnum == PropertyTypeEnum.BOOLEAN) {
+                //this calls mdb_cursor_get with MDB_GET_CURRENT
+                //if the first call finds nothing the it calls MDB_GET_NEXT
+                int rc = mdb_get_current_vertex_from_vertex_boolean_index_db(cursor.pointer(), vertexIdArray, propertyKeyEnumAndId.id, value);
+                if (rc == MDB_NOTFOUND) {
+                    return false;
+                } else {
+                    checkErrorCode(rc);
+                    return true;
+                }
+            } else {
+                return false;
             }
         } else {
             return false;

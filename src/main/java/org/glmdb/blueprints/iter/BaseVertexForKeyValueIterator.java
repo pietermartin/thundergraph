@@ -61,7 +61,6 @@ public abstract class BaseVertexForKeyValueIterator extends BaseForKeyValueItera
         } else {
             this.cursorIsReadOnly = true;
         }
-//        this.refresh = false;
     }
 
     protected abstract boolean getFirst(long vertexIdArray[]);

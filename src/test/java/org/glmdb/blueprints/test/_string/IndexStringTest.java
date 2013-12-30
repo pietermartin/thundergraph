@@ -8,6 +8,7 @@ import org.glmdb.blueprints.test.BaseGlmdbGraphTest;
 import org.junit.Assert;
 import org.junit.Test;
 
+import java.util.Iterator;
 import java.util.Set;
 
 /**
@@ -308,7 +309,195 @@ public class IndexStringTest extends BaseGlmdbGraphTest {
         } finally {
             graph.shutdown();
         }
+    }
+
+    @Test
+    public void testCursorRefreshOnFirst() {
+
+        ThunderGraph graph = new ThunderGraph(this.dbPath);
+        try {
+            graph.createKeyIndex("name", Vertex.class);
+            graph.commit();
+
+            Vertex v1 = graph.addVertex(null);
+            v1.setProperty("name", "aaaa");
+            for (int i = 0; i < 10; i++) {
+                Vertex v2 = graph.addVertex(null);
+                v2.setProperty("name", "bbbb");
+                Edge e = graph.addEdge(null, v1, v2, "label1");
+                e.setProperty("name", "cccc");
+            }
+            graph.commit();
+
+            Assert.assertEquals(11, count(graph.getVertices()));
+            Assert.assertEquals(1, count(graph.getVertices("name", "aaaa")));
+            Assert.assertEquals(10, count(graph.getVertices("name", "bbbb")));
+            Assert.assertEquals(10, count(graph.getEdges("name", "cccc")));
+            Iterator<Vertex> iter = graph.getVertices("name", "aaaa").iterator();
+            //This will cause the transaction to be upgraded to a writable transaction.
+            //I.e. iter's cursor gets closed
+            graph.getEdges("name", "cccc").iterator().next().setProperty("name", "cccd");
+            Vertex v = iter.next();
+            Assert.assertEquals("aaaa", v.getProperty("name"));
+        } finally {
+            graph.shutdown();
+        }
 
     }
+
+    @Test
+    public void testCursorRefreshOnNext() {
+
+        ThunderGraph graph = new ThunderGraph(this.dbPath);
+        try {
+            graph.createKeyIndex("name", Vertex.class);
+            graph.commit();
+
+            Vertex v1 = graph.addVertex(null);
+            v1.setProperty("name", "aaaa");
+            for (int i = 0; i < 10; i++) {
+                Vertex v2 = graph.addVertex(null);
+                v2.setProperty("name", "bbbb");
+                Edge e = graph.addEdge(null, v1, v2, "label1");
+                e.setProperty("name", "cccc");
+            }
+            graph.commit();
+
+            Assert.assertEquals(11, count(graph.getVertices()));
+            Assert.assertEquals(1, count(graph.getVertices("name", "aaaa")));
+            Assert.assertEquals(10, count(graph.getVertices("name", "bbbb")));
+            Assert.assertEquals(10, count(graph.getEdges("name", "cccc")));
+
+            Iterator<Vertex> iter = graph.getVertices("name", "bbbb").iterator();
+            Vertex v = iter.next();
+            Assert.assertEquals(1L, v.getId());
+            Assert.assertEquals("bbbb", v.getProperty("name"));
+            //This will cause the transaction to be upgraded to a writable transaction.
+            //I.e. iter's cursor gets closed
+            v.setProperty("name", "bbbba");
+            v = iter.next();
+            Assert.assertEquals(2L, v.getId());
+            Assert.assertEquals("bbbb", v.getProperty("name"));
+            Assert.assertEquals(8, count(iter));
+        } finally {
+            graph.shutdown();
+        }
+
+    }
+
+    @Test
+    public void testRemove() {
+        ThunderGraph graph = new ThunderGraph(this.dbPath);
+        try {
+            graph.createKeyIndex("name", Vertex.class);
+            graph.commit();
+
+            Vertex v1 = graph.addVertex(null);
+            v1.setProperty("name", "aaaa");
+            for (int i = 0; i < 10; i++) {
+                Vertex v2 = graph.addVertex(null);
+                v2.setProperty("name", "bbbb");
+                Edge e = graph.addEdge(null, v1, v2, "label1");
+                e.setProperty("name", "cccc");
+            }
+            graph.commit();
+
+            Assert.assertEquals(11, count(graph.getVertices()));
+            Assert.assertEquals(1, count(graph.getVertices("name", "aaaa")));
+            Assert.assertEquals(10, count(graph.getVertices("name", "bbbb")));
+            Assert.assertEquals(10, count(graph.getEdges("name", "cccc")));
+
+            Iterator<Vertex> iter = graph.getVertices("name", "bbbb").iterator();
+            Vertex v = iter.next();
+            Assert.assertEquals(1L, v.getId());
+            Assert.assertEquals("bbbb", v.getProperty("name"));
+            iter.remove();
+            Assert.assertNull(graph.getVertex(1L));
+            Assert.assertEquals(9, count(iter));
+        } finally {
+            graph.shutdown();
+        }
+    }
+
+    @Test(expected = IllegalStateException.class)
+    public void testRemoveTransactionAlreadyWritableFail() {
+        ThunderGraph graph = new ThunderGraph(this.dbPath);
+        try {
+            graph.createKeyIndex("name", Vertex.class);
+            graph.commit();
+
+            Vertex v1 = graph.addVertex(null);
+            v1.setProperty("name", "aaaa");
+            for (int i = 0; i < 10; i++) {
+                Vertex v2 = graph.addVertex(null);
+                v2.setProperty("name", "bbbb");
+                Edge e = graph.addEdge(null, v1, v2, "label1");
+                e.setProperty("name", "cccc");
+            }
+            graph.commit();
+
+            Assert.assertEquals(11, count(graph.getVertices()));
+            Assert.assertEquals(1, count(graph.getVertices("name", "aaaa")));
+            Assert.assertEquals(10, count(graph.getVertices("name", "bbbb")));
+            Assert.assertEquals(10, count(graph.getEdges("name", "cccc")));
+
+            Iterator<Vertex> iter = graph.getVertices("name", "bbbb").iterator();
+            Vertex v = iter.next();
+            v.setProperty("name", "bbbba");
+            Assert.assertEquals(1L, v.getId());
+            Assert.assertEquals("bbbba", v.getProperty("name"));
+            iter.remove();
+            Assert.assertNull(graph.getVertex(1L));
+            Assert.assertEquals(9, count(iter));
+
+            graph.commit();
+            iter = graph.getVertices("name", "bbbb").iterator();
+            Assert.assertEquals(9, count(iter));
+
+        } finally {
+            graph.shutdown();
+        }
+    }
+
+    @Test
+    public void testRemoveTransactionAlreadyWritableSucceed() {
+        ThunderGraph graph = new ThunderGraph(this.dbPath);
+        try {
+            graph.createKeyIndex("name", Vertex.class);
+            graph.commit();
+
+            Vertex v1 = graph.addVertex(null);
+            v1.setProperty("name", "aaaa");
+            for (int i = 0; i < 10; i++) {
+                Vertex v2 = graph.addVertex(null);
+                v2.setProperty("name", "bbbb");
+                Edge e = graph.addEdge(null, v1, v2, "label1");
+                e.setProperty("name", "cccc");
+            }
+            graph.commit();
+
+            Assert.assertEquals(11, count(graph.getVertices()));
+            Assert.assertEquals(1, count(graph.getVertices("name", "aaaa")));
+            Assert.assertEquals(10, count(graph.getVertices("name", "bbbb")));
+            Assert.assertEquals(10, count(graph.getEdges("name", "cccc")));
+
+            Iterator<Vertex> iter = graph.getVertices("name", "bbbb").iterator();
+            Vertex v = iter.next();
+            v.setProperty("name", "bbbb");
+            Assert.assertEquals(1L, v.getId());
+            Assert.assertEquals("bbbb", v.getProperty("name"));
+            iter.remove();
+            Assert.assertNull(graph.getVertex(1L));
+            Assert.assertEquals(9, count(iter));
+
+            graph.commit();
+            iter = graph.getVertices("name", "bbbb").iterator();
+            Assert.assertEquals(9, count(iter));
+
+        } finally {
+            graph.shutdown();
+        }
+    }
+
 
 }

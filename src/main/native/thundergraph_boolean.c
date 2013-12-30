@@ -264,3 +264,45 @@ int deleteBooleanIndex(GLMDB_env * glmdb_env, MDB_txn * mdbTxn, int propertyKeyI
 	return rc;
 
 }
+
+int placeCursorOnKeyValueBooleanIndex(MDB_cursor *cursor, long long vertexId, int propertyKeyId, jboolean value) {
+
+	int rc;
+	MDB_val key, data;
+	BooleanIndexKeyStruct *booleanIndexKeyStruct = malloc(sizeof(BooleanIndexKeyStruct));
+	booleanIndexKeyStruct->propertyKeyId = (int) propertyKeyId;
+	booleanIndexKeyStruct->elementId = -1LL;
+	booleanIndexKeyStruct->elementId = vertexId;
+	booleanIndexKeyStruct->value = value;
+	key.mv_size = sizeof(BooleanIndexKeyStruct);
+	key.mv_data = booleanIndexKeyStruct;
+	rc = mdb_cursor_get(cursor, &key, &data, MDB_SET_RANGE);
+	if (rc == 0) {
+
+		BooleanIndexKeyStruct *booleanIndexKeyStructTmp = (BooleanIndexKeyStruct *) (key.mv_data);
+		unsigned char value1 = booleanIndexKeyStructTmp->value;
+		if (value1 != value) {
+			rc = MDB_NOTFOUND;
+		}
+
+	}
+
+	free(booleanIndexKeyStruct);
+	return rc;
+
+}
+
+int getCurrentVertexfromVertexBooleanIndexDb(MDB_cursor *cursor, jlong *vertexIdC, int propertyKeyId, jboolean value) {
+
+	int rc = 0;
+	MDB_val key, data;
+	rc = mdb_cursor_get(cursor, &key, &data, MDB_GET_CURRENT);
+
+	if (rc == MDB_NOTFOUND) {
+		rc = getNextElementForKeyValueFromBooleanIndex(cursor, propertyKeyId, value, (long long int *)vertexIdC);
+	} else {
+		*vertexIdC = *((long long *) data.mv_data);
+	}
+
+	return rc;
+}

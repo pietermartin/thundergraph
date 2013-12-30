@@ -22,11 +22,11 @@ public abstract class BaseThunderIterator<E extends ThunderElement> implements I
     protected boolean goToFirst = true;
     protected String currentLabel;
     protected long currentEdgeOutVertexId;
-//    protected boolean refresh;
     protected E next;
     //This is needed as a cache for the remove method.
     //Remove is called after a call to next however next sets next to null for the hasNext logic;
     protected E internalNext;
+    protected boolean closed = false;
 
     protected BaseThunderIterator(TransactionAndCursor tc) {
         this.tc = tc;
@@ -41,8 +41,6 @@ public abstract class BaseThunderIterator<E extends ThunderElement> implements I
         }
     }
 
-    protected abstract DbEnum getDbEnum();
-
     @Override
     public boolean hasNext() {
         if (this.next == null) {
@@ -51,13 +49,17 @@ public abstract class BaseThunderIterator<E extends ThunderElement> implements I
         }
         boolean result = this.next != null;
         if (!result) {
-            this.tc.closeAndRemoveCursor(this, this.getDbEnum(), this.cursor);
+            this.closed = true;
+            this.tc.closeAndRemoveCursor(this.getDbEnum(), this.cursor);
         }
         return result;
     }
 
     @Override
     public E next() {
+        if (this.closed) {
+            throw new NoSuchElementException();
+        }
         if (this.next == null) {
             this.next = internalNext();
             if (this.next == null) {
@@ -81,7 +83,6 @@ public abstract class BaseThunderIterator<E extends ThunderElement> implements I
             this.tc.addOpenCursor(this.cursor);
         }
         this.cursorIsReadOnly = this.tc.isReadOnly();
-//        this.refresh = false;
     }
 
     protected void refreshForNext() {
@@ -104,13 +105,9 @@ public abstract class BaseThunderIterator<E extends ThunderElement> implements I
         } else {
             this.cursorIsReadOnly = true;
         }
-//        this.refresh = false;
     }
 
-//    public void setRefresh(boolean refresh) {
-//        this.refresh = refresh;
-//    }
-
+    protected abstract DbEnum getDbEnum();
     protected abstract E internalNext();
     protected abstract BaseThunderIterable getParentIterable();
 

@@ -50,8 +50,6 @@ int compareShortIndexDbId(const MDB_val *key1, const MDB_val *key2) {
 
 int getFirstElementForKeyValueFromShortIndex(MDB_cursor *cursor, int propertyKeyId, short value, long long int *vertexIdResultC) {
 
-	printf("getFirstElementForKeyValueFromShortIndex propertyKeyId = %i", propertyKeyId);
-
 	int rc;
 	MDB_val key, data;
 	ShortIndexKeyStruct *shortIndexKeyStruct = malloc(sizeof(ShortIndexKeyStruct));
@@ -65,9 +63,6 @@ int getFirstElementForKeyValueFromShortIndex(MDB_cursor *cursor, int propertyKey
 
 		ShortIndexKeyStruct *shortIndexKeyStructTmp = (ShortIndexKeyStruct *) (key.mv_data);
 		short value1 = shortIndexKeyStructTmp->value;
-
-		printf("getFirstElementForKeyValueFromShortIndex value1 = %hu", value1);
-		printf("getFirstElementForKeyValueFromShortIndex value = %hu", value);
 
 		if (value == value1) {
 			*vertexIdResultC = *((long long *) data.mv_data);
@@ -263,4 +258,48 @@ int deleteShortIndex(GLMDB_env * glmdb_env, MDB_txn * mdbTxn, int propertyKeyId,
 	}
 	return rc;
 
+}
+
+int placeCursorOnKeyValueShortIndex(MDB_cursor *cursor, long long vertexId, int propertyKeyId, jshort value) {
+
+	int rc;
+	MDB_val key, data;
+	ShortIndexKeyStruct *shortIndexKeyStruct = malloc(sizeof(ShortIndexKeyStruct));
+	shortIndexKeyStruct->propertyKeyId = (int) propertyKeyId;
+	shortIndexKeyStruct->elementId = -1LL;
+	shortIndexKeyStruct->elementId = vertexId;
+	shortIndexKeyStruct->value = value;
+	key.mv_size = sizeof(ShortIndexKeyStruct);
+	key.mv_data = shortIndexKeyStruct;
+	rc = mdb_cursor_get(cursor, &key, &data, MDB_SET_RANGE);
+	if (rc == 0) {
+
+		printStringIndexDbRecord(key, data);
+
+		ShortIndexKeyStruct *shortIndexKeyStructTmp = (ShortIndexKeyStruct *) (key.mv_data);
+		short value1 = shortIndexKeyStructTmp->value;
+		if (value1 != value) {
+			rc = MDB_NOTFOUND;
+		}
+
+	}
+
+	free(shortIndexKeyStruct);
+	return rc;
+
+}
+
+int getCurrentVertexfromVertexShortIndexDb(MDB_cursor *cursor, jlong *vertexIdC, int propertyKeyId, jshort value) {
+
+	int rc = 0;
+	MDB_val key, data;
+	rc = mdb_cursor_get(cursor, &key, &data, MDB_GET_CURRENT);
+
+	if (rc == MDB_NOTFOUND) {
+		rc = getNextElementForKeyValueFromShortIndex(cursor, propertyKeyId, value, (long long int *)vertexIdC);
+	} else {
+		*vertexIdC = *((long long *) data.mv_data);
+	}
+
+	return rc;
 }

@@ -27,3 +27,5 @@ int setEdgePropertyLong(MDB_cursor *cursor, jlong edgeId, jint propertyKeyId, jl
 int deleteLongIndex(GLMDB_env * glmdb_env, MDB_txn * mdbTxn, int propertyKeyId, unsigned char vertex);
 
 void printLongIndexDbRecord(MDB_val key, MDB_val data);
+int placeCursorOnKeyValueLongIndex(MDB_cursor *cursor, long long vertexId, int propertyKeyId, jlong value);
+int getCurrentVertexfromVertexLongIndexDb(MDB_cursor *cursor, jlong *vertexIdC, int propertyKeyId, jlong value);

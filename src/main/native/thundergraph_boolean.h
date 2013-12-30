@@ -27,3 +27,5 @@ int setEdgePropertyBoolean(MDB_cursor *cursor, jlong edgeId, jint propertyKeyId,
 int deleteBooleanIndex(GLMDB_env * glmdb_env, MDB_txn * mdbTxn, int propertyKeyId, unsigned char vertex);
 
 void printBooleanIndexDbRecord(MDB_val key, MDB_val data);
+int placeCursorOnKeyValueBooleanIndex(MDB_cursor *cursor, long long vertexId, int propertyKeyId, jboolean value);
+int getCurrentVertexfromVertexBooleanIndexDb(MDB_cursor *cursor, jlong *vertexIdC, int propertyKeyId, jboolean value);
