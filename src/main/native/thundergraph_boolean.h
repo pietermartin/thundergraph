@@ -28,4 +28,4 @@ int deleteBooleanIndex(GLMDB_env * glmdb_env, MDB_txn * mdbTxn, int propertyKeyI
 
 void printBooleanIndexDbRecord(MDB_val key, MDB_val data);
 int placeCursorOnKeyValueBooleanIndex(MDB_cursor *cursor, long long vertexId, int propertyKeyId, jboolean value);
-int getCurrentVertexfromVertexBooleanIndexDb(MDB_cursor *cursor, jlong *vertexIdC, int propertyKeyId, jboolean value);
+int getCurrentElementFromBooleanIndexDb(MDB_cursor *cursor, jlong *vertexIdC, int propertyKeyId, jboolean value);

@@ -130,12 +130,11 @@ int placeCursorOnKeyValueStringIndex(MDB_cursor *cursor, long long vertexId, int
 
 }
 
-int getCurrentVertexfromVertexStringIndexDb(MDB_cursor *cursor, jlong *vertexIdC, int propertyKeyId, int propertyValueLength, char *value) {
+int getCurrentElementFromStringIndexDb(MDB_cursor *cursor, jlong *vertexIdC, int propertyKeyId, int propertyValueLength, char *value) {
 
 	int rc = 0;
 	MDB_val key, data;
 	rc = mdb_cursor_get(cursor, &key, &data, MDB_GET_CURRENT);
-	printStringIndexDbRecord(key, data);
 
 	if (rc == MDB_NOTFOUND) {
 		printf("getCurrentVertexfromVertexStringIndexDb going to next\n");
@@ -149,7 +148,7 @@ int getCurrentVertexfromVertexStringIndexDb(MDB_cursor *cursor, jlong *vertexIdC
 
 
 int getNextElementForKeyValueFromStringIndex(MDB_cursor *cursor, int propertyKeyId, int propertyValueLength, char *value,
-		long long int *vertexIdResultC) {
+		long long int *elementIdResultC) {
 
 	int rc;
 	MDB_val key, data;
@@ -165,7 +164,7 @@ int getNextElementForKeyValueFromStringIndex(MDB_cursor *cursor, int propertyKey
 			char *value1 = stringIndexKeyStructTmp->value;
 			int compare = strncmp(value1, value, propertyValueLength);
 			if (compare == 0) {
-				*vertexIdResultC = *((long long *) data.mv_data);
+				*elementIdResultC = *((long long *) data.mv_data);
 			} else {
 				rc = MDB_NOTFOUND;
 			}
@@ -223,6 +222,8 @@ int removeStringIndex(MDB_cursor *indexCursor, long long elementId, int property
 	rc = mdb_cursor_get(indexCursor, &key, &data, MDB_SET_KEY);
 	if (rc == 0) {
 		rc = mdb_cursor_del(indexCursor, 0);
+	} else {
+		printf("not found asshole %i\n", rc);
 	}
 	free(stringIndexKeyStruct);
 	return rc;

@@ -132,7 +132,7 @@ public class ThunderJni {
 
     public static final native int print_db(long glmdb_env, long txn, int dbEnum);
 
-    public static final native int mdb_db_entries(long glmdb_env, long txn, int dbEnum, int[] entries);
+    public static final native int mdb_stat(long glmdb_env, long txn, int dbEnum, int ms_psize[], int ms_depth[], int ms_branch_pages[], int ms_leaf_pages[], int ms_overflow_pages[], int ms_entries[]);
 
     public static final native int glmdb_env_create(String path, long[] env);
 
@@ -234,6 +234,14 @@ public class ThunderJni {
 
     public static final native int mdb_get_current_vertex_from_vertex_string_index_db(long cursor, long[] vertexId, int propertyKeyId, String value);
 
+    public static final native int mdb_get_first_edge_for_key_string_value(long cursor, long edgeIdResult[], int[] label, long[] outVertexId, long[] inVertexId, int key, String value);
+
+    public static final native int mdb_get_next_edge_for_key_string_value(long cursor, long edgeIdResult[], int[] label, long[] outVertexId, long[] inVertexId, int key, String value);
+
+    public static final native int mdb_cursor_open_and_position_on_key_value_edge_string_index_db(long txn, long glmdb_env, long edgeId, int key, String value, long[] cursor);
+
+    public static final native int mdb_get_current_edge_from_edge_string_index_db(long edgeStringIndexDbCursor, long edgeDbCursor, int propertyKeyId, String value, long edgeIdArray[], String labelArray[], long outVertexIdArray[], long inVertexIdArray[]);
+
 
     //int
     public static final native int mdb_get_first_vertex_for_key_int_value(long cursor, long vertexIdResult[], int key, int value);
@@ -255,6 +263,10 @@ public class ThunderJni {
     public static final native int mdb_cursor_open_and_position_on_key_value_vertex_int_index_db(long txn, long glmdb_env, long vertexId, int key, int value, long[] cursor);
 
     public static final native int mdb_get_current_vertex_from_vertex_int_index_db(long cursor, long[] vertexId, int propertyKeyId, int value);
+
+    public static final native int mdb_cursor_open_and_position_on_key_value_edge_int_index_db(long txn, long glmdb_env, long edgeId, int key, int value, long[] cursor);
+
+    public static final native int mdb_get_current_edge_from_edge_int_index_db(long edgeIntIndexDbCursor, long edgeDbCursor, int propertyKeyId, int value, long edgeIdArray[], String labelArray[], long outVertexIdArray[], long inVertexIdArray[]);
 
 
     //long
@@ -278,6 +290,10 @@ public class ThunderJni {
 
     public static final native int mdb_get_current_vertex_from_vertex_long_index_db(long cursor, long[] vertexId, int propertyKeyId, long value);
 
+    public static final native int mdb_cursor_open_and_position_on_key_value_edge_long_index_db(long txn, long glmdb_env, long edgeId, int key, long value, long[] cursor);
+
+    public static final native int mdb_get_current_edge_from_edge_long_index_db(long edgeLongIndexDbCursor, long edgeDbCursor, int propertyKeyId, long value, long edgeIdArray[], String labelArray[], long outVertexIdArray[], long inVertexIdArray[]);
+
 
     //float
     public static final native int mdb_get_first_vertex_for_key_float_value(long cursor, long vertexIdResult[], int key, float value);
@@ -299,6 +315,10 @@ public class ThunderJni {
     public static final native int mdb_cursor_open_and_position_on_key_value_vertex_float_index_db(long txn, long glmdb_env, long vertexId, int key, float value, long[] cursor);
 
     public static final native int mdb_get_current_vertex_from_vertex_float_index_db(long cursor, long[] vertexId, int propertyKeyId, float value);
+
+    public static final native int mdb_cursor_open_and_position_on_key_value_edge_float_index_db(long txn, long glmdb_env, long edgeId, int key, float value, long[] cursor);
+
+    public static final native int mdb_get_current_edge_from_edge_float_index_db(long edgeFloatIndexDbCursor, long edgeDbCursor, int propertyKeyId, float value, long edgeIdArray[], String labelArray[], long outVertexIdArray[], long inVertexIdArray[]);
 
 
     //double
@@ -322,6 +342,11 @@ public class ThunderJni {
 
     public static final native int mdb_get_current_vertex_from_vertex_double_index_db(long cursor, long[] vertexId, int propertyKeyId, double value);
 
+    public static final native int mdb_cursor_open_and_position_on_key_value_edge_double_index_db(long txn, long glmdb_env, long edgeId, int key, double value, long[] cursor);
+
+    public static final native int mdb_get_current_edge_from_edge_double_index_db(long edgeDoubleIndexDbCursor, long edgeDbCursor, int propertyKeyId, double value, long edgeIdArray[], String labelArray[], long outVertexIdArray[], long inVertexIdArray[]);
+
+
 
     //boolean
     public static final native int mdb_get_first_vertex_for_key_boolean_value(long cursor, long vertexIdResult[], int key, boolean value);
@@ -343,6 +368,12 @@ public class ThunderJni {
     public static final native int mdb_cursor_open_and_position_on_key_value_vertex_boolean_index_db(long txn, long glmdb_env, long vertexId, int key, boolean value, long[] cursor);
 
     public static final native int mdb_get_current_vertex_from_vertex_boolean_index_db(long cursor, long[] vertexId, int propertyKeyId, boolean value);
+
+    public static final native int mdb_cursor_open_and_position_on_key_value_edge_boolean_index_db(long txn, long glmdb_env, long edgeId, int key, boolean value, long[] cursor);
+
+    public static final native int mdb_get_current_edge_from_edge_boolean_index_db(long edgeBooleanIndexDbCursor, long edgeDbCursor, int propertyKeyId, boolean value, long edgeIdArray[], String labelArray[], long outVertexIdArray[], long inVertexIdArray[]);
+
+
 
 
     //short
@@ -366,6 +397,11 @@ public class ThunderJni {
 
     public static final native int mdb_get_current_vertex_from_vertex_short_index_db(long cursor, long[] vertexId, int propertyKeyId, short value);
 
+    public static final native int mdb_cursor_open_and_position_on_key_value_edge_short_index_db(long txn, long glmdb_env, long edgeId, int key, short value, long[] cursor);
+
+    public static final native int mdb_get_current_edge_from_edge_short_index_db(long edgeShortIndexDbCursor, long edgeDbCursor, int propertyKeyId, short value, long edgeIdArray[], String labelArray[], long outVertexIdArray[], long inVertexIdArray[]);
+
+
 
     //char
     public static final native int mdb_get_first_vertex_for_key_char_value(long cursor, long vertexIdResult[], int key, char value);
@@ -387,6 +423,11 @@ public class ThunderJni {
     public static final native int mdb_cursor_open_and_position_on_key_value_vertex_char_index_db(long txn, long glmdb_env, long vertexId, int key, char value, long[] cursor);
 
     public static final native int mdb_get_current_vertex_from_vertex_char_index_db(long cursor, long[] vertexId, int propertyKeyId, char value);
+
+    public static final native int mdb_cursor_open_and_position_on_key_value_edge_char_index_db(long txn, long glmdb_env, long edgeId, int key, char value, long[] cursor);
+
+    public static final native int mdb_get_current_edge_from_edge_char_index_db(long edgeCharIndexDbCursor, long edgeDbCursor, int propertyKeyId, char value, long edgeIdArray[], String labelArray[], long outVertexIdArray[], long inVertexIdArray[]);
+
 
 
     //byte
@@ -410,6 +451,9 @@ public class ThunderJni {
 
     public static final native int mdb_get_current_vertex_from_vertex_byte_index_db(long cursor, long[] vertexId, int propertyKeyId, byte value);
 
+    public static final native int mdb_cursor_open_and_position_on_key_value_edge_byte_index_db(long txn, long glmdb_env, long edgeId, int key, byte value, long[] cursor);
+
+    public static final native int mdb_get_current_edge_from_edge_byte_index_db(long edgeByteIndexDbCursor, long edgeDbCursor, int propertyKeyId, byte value, long edgeIdArray[], String labelArray[], long outVertexIdArray[], long inVertexIdArray[]);
 
 
 
@@ -422,10 +466,6 @@ public class ThunderJni {
     public static final native int mdb_get_first_edge(long cursor, long edgeIdResult[], int[] label, long[] outVertexId, long[] inVertexId);
 
     public static final native int mdb_get_next_edge(long cursor, long previousEdgeId, long edgeIdResult[], int[] label, long[] outVertexId, long[] inVertexId);
-
-    public static final native int mdb_get_first_edge_for_key_string_value(long cursor, long edgeIdResult[], int[] label, long[] outVertexId, long[] inVertexId, int key, String value);
-
-    public static final native int mdb_get_next_edge_for_key_string_value(long cursor, long edgeIdResult[], int[] label, long[] outVertexId, long[] inVertexId, int key, String value);
 
 
 

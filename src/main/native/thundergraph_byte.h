@@ -28,4 +28,4 @@ int deleteByteIndex(GLMDB_env * glmdb_env, MDB_txn * mdbTxn, int propertyKeyId, 
 
 void printByteIndexDbRecord(MDB_val key, MDB_val data);
 int placeCursorOnKeyValueByteIndex(MDB_cursor *cursor, long long vertexId, int propertyKeyId, jbyte value);
-int getCurrentVertexfromVertexByteIndexDb(MDB_cursor *cursor, jlong *vertexIdC, int propertyKeyId, jbyte value);
+int getCurrentElementFromByteIndexDb(MDB_cursor *cursor, jlong *vertexIdC, int propertyKeyId, jbyte value);

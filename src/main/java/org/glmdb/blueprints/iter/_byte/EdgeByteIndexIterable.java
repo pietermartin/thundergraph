@@ -4,6 +4,7 @@ import com.tinkerpop.blueprints.Vertex;
 import org.glmdb.blueprints.ThunderEdge;
 import org.glmdb.blueprints.ThunderGraph;
 import org.glmdb.blueprints.TransactionAndCursor;
+import org.glmdb.blueprints.iter.BaseEdgeIndexIterable;
 import org.glmdb.blueprints.iter.BaseThunderIterable;
 import org.glmdb.blueprints.iter.BaseThunderIterator;
 import org.glmdb.blueprints.jni.Cursor;
@@ -32,15 +33,10 @@ public class EdgeByteIndexIterable<T extends Vertex> extends BaseThunderIterable
         return new EdgeByteIndexIterator();
     }
 
-    private final class EdgeByteIndexIterator extends BaseThunderIterator<ThunderEdge> implements Iterator {
-
-        private boolean goToFirst = true;
-        private Cursor edgeDbCursor;
+    private final class EdgeByteIndexIterator extends BaseEdgeIndexIterable implements Iterator {
 
         public EdgeByteIndexIterator() {
             super(EdgeByteIndexIterable.this.tc);
-            this.edgeDbCursor = EdgeByteIndexIterable.this.thunderGraph.getThunder().openCursor(this.tc.getTxn(), DbEnum.EDGE_DB);
-            this.tc.addOpenCursor(this.edgeDbCursor);
         }
 
         @Override
@@ -54,31 +50,29 @@ public class EdgeByteIndexIterable<T extends Vertex> extends BaseThunderIterable
         }
 
         @Override
-        public void remove() {
-            throw new RuntimeException("Not yet implemented!");
+        protected boolean getCurrentEdgeFromEdgeIndexDb(long edgeIdArray[], String labelArray[], long outVertexIdArray[], long inVertexIdArray[]) {
+            return EdgeByteIndexIterable.this.thunderGraph.getThunder().getCurrentEdgeFromEdgeByteIndexDb(this.cursor, this.edgeDbCursor, EdgeByteIndexIterable.this.key, EdgeByteIndexIterable.this.value, edgeIdArray, labelArray, outVertexIdArray, inVertexIdArray);
         }
 
         @Override
-        protected ThunderEdge internalNext() {
-            long edgeIdArray[] = new long[1];
-            String labelArray[] = new String[1];
-            long outVertexIdArray[] = new long[1];
-            long inVertexIdArray[] = new long[1];
+        protected boolean getFirstEdgeForKeyValueFromTypeIndex(long edgeIdArray[], String labelArray[], long outVertexIdArray[], long inVertexIdArray[]) {
+            return EdgeByteIndexIterable.this.thunderGraph.getThunder().getFirstEdgeForKeyValueFromByteIndex(this.cursor, this.edgeDbCursor, EdgeByteIndexIterable.this.key, EdgeByteIndexIterable.this.value, edgeIdArray, labelArray, outVertexIdArray, inVertexIdArray);
 
-            if (this.goToFirst) {
-                this.goToFirst = false;
-                if (EdgeByteIndexIterable.this.thunderGraph.getThunder().getFirstEdgeForKeyValueFromByteIndex(this.cursor, this.edgeDbCursor, EdgeByteIndexIterable.this.key, EdgeByteIndexIterable.this.value, edgeIdArray, labelArray, outVertexIdArray, inVertexIdArray)) {
-                    return new ThunderEdge(EdgeByteIndexIterable.this.thunderGraph, edgeIdArray[0], labelArray[0], outVertexIdArray[0], inVertexIdArray[0]);
-                } else {
-                    return null;
-                }
-            } else {
-                if (EdgeByteIndexIterable.this.thunderGraph.getThunder().getNextEdgeForKeyValueFromByteIndex(this.cursor, this.edgeDbCursor, EdgeByteIndexIterable.this.key, EdgeByteIndexIterable.this.value, edgeIdArray, labelArray, outVertexIdArray, inVertexIdArray)) {
-                    return new ThunderEdge(EdgeByteIndexIterable.this.thunderGraph, edgeIdArray[0], labelArray[0], outVertexIdArray[0], inVertexIdArray[0]);
-                } else {
-                    return null;
-                }
-            }
+        }
+
+        @Override
+        protected boolean getNextEdgeForKeyValueFromTypeIndex(long edgeIdArray[], String labelArray[], long outVertexIdArray[], long inVertexIdArray[]) {
+            return EdgeByteIndexIterable.this.thunderGraph.getThunder().getNextEdgeForKeyValueFromByteIndex(this.cursor, this.edgeDbCursor, EdgeByteIndexIterable.this.key, EdgeByteIndexIterable.this.value, edgeIdArray, labelArray, outVertexIdArray, inVertexIdArray);
+        }
+
+        @Override
+        protected Cursor openAndPositionCursorOnKeyValueInEdgeTypeIndexDb() {
+            return EdgeByteIndexIterable.this.thunderGraph.getThunder().openAndPositionCursorOnKeyValueInEdgeByteIndexDb(
+                    this.tc.getTxn(),
+                    this.internalNext.getInternalId(),
+                    EdgeByteIndexIterable.this.key,
+                    EdgeByteIndexIterable.this.value
+            );
         }
 
     }

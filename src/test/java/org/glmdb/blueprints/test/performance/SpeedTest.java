@@ -44,14 +44,14 @@ public class SpeedTest extends BaseGlmdbGraphTest {
                 if (i != 0 && i % 1000000 == 0) {
                     stopWatch.split();
                     long splitTime = stopWatch.getSplitTime();
-                    System.out.println(i + " " + stopWatch.toString() + " 100000 in " + (splitTime - previousSplitTime));
+                    System.out.println(i + " " + stopWatch.toString() + " 1000000 in " + (splitTime - previousSplitTime));
                     previousSplitTime = stopWatch.getSplitTime();
                     g.commit();
                 }
             }
             g.commit();
             stopWatch.stop();
-            System.out.println("write 10000000 = " + stopWatch.toString());
+            System.out.println("write " + NUMBER_TO_ITER + " = " + stopWatch.toString());
 
             stopWatch.reset();
             stopWatch.start();
@@ -60,7 +60,7 @@ public class SpeedTest extends BaseGlmdbGraphTest {
             for (Vertex v : startV.getVertices(Direction.OUT)) {
                 v.getProperty("many");
                 if (count++ % 1000000 == 0) {
-                    System.out.println("in vertex id = " + v.getId());
+                    System.out.println("read 1000000 vertex, id = " + v.getId());
                 }
             }
             stopWatch.stop();
@@ -70,7 +70,7 @@ public class SpeedTest extends BaseGlmdbGraphTest {
         }
     }
 
-//    @Test
+    //    @Test
     public void testSpeedDude2() throws IOException {
         ThunderGraph g = new ThunderGraph(this.dbPath);
         try {
@@ -148,7 +148,7 @@ public class SpeedTest extends BaseGlmdbGraphTest {
         }
     }
 
-//    @Test
+    //    @Test
     public void testSpeedLinkedList() {
         ThunderGraph g = new ThunderGraph(this.dbPath);
         try {

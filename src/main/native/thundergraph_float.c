@@ -292,7 +292,7 @@ int placeCursorOnKeyValueFloatIndex(MDB_cursor *cursor, long long vertexId, int 
 
 }
 
-int getCurrentVertexfromVertexFloatIndexDb(MDB_cursor *cursor, jlong *vertexIdC, int propertyKeyId, jfloat value) {
+int getCurrentElementFromFloatIndexDb(MDB_cursor *cursor, jlong *vertexIdC, int propertyKeyId, jfloat value) {
 
 	int rc = 0;
 	MDB_val key, data;

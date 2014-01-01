@@ -274,8 +274,6 @@ int placeCursorOnKeyValueShortIndex(MDB_cursor *cursor, long long vertexId, int 
 	rc = mdb_cursor_get(cursor, &key, &data, MDB_SET_RANGE);
 	if (rc == 0) {
 
-		printStringIndexDbRecord(key, data);
-
 		ShortIndexKeyStruct *shortIndexKeyStructTmp = (ShortIndexKeyStruct *) (key.mv_data);
 		short value1 = shortIndexKeyStructTmp->value;
 		if (value1 != value) {
@@ -289,7 +287,7 @@ int placeCursorOnKeyValueShortIndex(MDB_cursor *cursor, long long vertexId, int 
 
 }
 
-int getCurrentVertexfromVertexShortIndexDb(MDB_cursor *cursor, jlong *vertexIdC, int propertyKeyId, jshort value) {
+int getCurrentElementFromShortIndexDb(MDB_cursor *cursor, jlong *vertexIdC, int propertyKeyId, jshort value) {
 
 	int rc = 0;
 	MDB_val key, data;

@@ -475,6 +475,11 @@ public class ThunderGraph implements TransactionalGraph, KeyIndexableGraph {
         this.thunder.printDb(tc.getTxn(), dbEnum);
     }
 
+    public MDBStat getMDBStat(DbEnum dbEnum) {
+        TransactionAndCursor tc = this.getReadOnlyTx();
+        return this.thunder.getMDBStat(tc.getTxn(), dbEnum);
+    }
+
     public String getDbPath() {
         return this.thunder.getDbPath();
     }

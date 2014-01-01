@@ -287,7 +287,7 @@ int placeCursorOnKeyValueByteIndex(MDB_cursor *cursor, long long vertexId, int p
 
 }
 
-int getCurrentVertexfromVertexByteIndexDb(MDB_cursor *cursor, jlong *vertexIdC, int propertyKeyId, jbyte value) {
+int getCurrentElementFromByteIndexDb(MDB_cursor *cursor, jlong *vertexIdC, int propertyKeyId, jbyte value) {
 
 	int rc = 0;
 	MDB_val key, data;

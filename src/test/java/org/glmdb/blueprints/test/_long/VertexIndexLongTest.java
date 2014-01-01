@@ -1,4 +1,4 @@
-package org.glmdb.blueprints.test._double;
+package org.glmdb.blueprints.test._long;
 
 import com.tinkerpop.blueprints.Edge;
 import com.tinkerpop.blueprints.Vertex;
@@ -15,10 +15,10 @@ import java.util.Set;
  * Date: 2013/12/14
  * Time: 8:35 PM
  */
-public class IndexDoubleTest extends BaseGlmdbGraphTest {
+public class VertexIndexLongTest extends BaseGlmdbGraphTest {
 
     @Test
-    public void testIndexDoubleOnVertex() {
+    public void testIndexLongOnVertex() {
         ThunderGraph thunderGraph = new ThunderGraph(this.dbPath);
         try {
             thunderGraph.createKeyIndex("name1", Vertex.class);
@@ -26,11 +26,11 @@ public class IndexDoubleTest extends BaseGlmdbGraphTest {
             thunderGraph.commit();
 
             Vertex v1 = thunderGraph.addVertex(null);
-            v1.setProperty("name1", 11D);
-            v1.setProperty("name2", 12D);
+            v1.setProperty("name1", 11L);
+            v1.setProperty("name2", 12L);
             Vertex v2 = thunderGraph.addVertex(null);
-            v2.setProperty("name1", 21D);
-            v2.setProperty("name2", 22D);
+            v2.setProperty("name1", 21L);
+            v2.setProperty("name2", 22L);
 
             thunderGraph.commit();
 
@@ -39,15 +39,17 @@ public class IndexDoubleTest extends BaseGlmdbGraphTest {
             Assert.assertTrue(indexedKeys.contains("name1"));
             Assert.assertTrue(indexedKeys.contains("name2"));
 
-            Iterable<Vertex> name11s = thunderGraph.getVertices("name1", 11D);
-            Assert.assertEquals(1, count(name11s.iterator()));
-            Iterable<Vertex> name21s = thunderGraph.getVertices("name1", 21D);
-            Assert.assertEquals(1, count(name21s.iterator()));
+            thunderGraph.printDb(DbEnum.VERTEX_LONG_INDEX);
 
-            name11s = thunderGraph.getVertices("name1", 12D);
-            Assert.assertEquals(0, count(name11s.iterator()));
-            name21s = thunderGraph.getVertices("name1", 22D);
-            Assert.assertEquals(0, count(name21s.iterator()));
+            Iterable<Vertex> name11s = thunderGraph.getVertices("name1", 11L);
+            Assert.assertEquals(1, countIter(name11s.iterator()));
+            Iterable<Vertex> name21s = thunderGraph.getVertices("name1", 21L);
+            Assert.assertEquals(1, countIter(name21s.iterator()));
+
+            name11s = thunderGraph.getVertices("name1", 12L);
+            Assert.assertEquals(0, countIter(name11s.iterator()));
+            name21s = thunderGraph.getVertices("name1", 22L);
+            Assert.assertEquals(0, countIter(name21s.iterator()));
 
         } finally {
             thunderGraph.shutdown();
@@ -56,7 +58,7 @@ public class IndexDoubleTest extends BaseGlmdbGraphTest {
     }
 
     @Test
-    public void testIndexDoubleOnEdge() {
+    public void testIndexLongOnEdge() {
         ThunderGraph thunderGraph = new ThunderGraph(this.dbPath);
         try {
             thunderGraph.createKeyIndex("name1", Edge.class);
@@ -64,17 +66,17 @@ public class IndexDoubleTest extends BaseGlmdbGraphTest {
             Vertex v2 = thunderGraph.addVertex(null);
             Vertex v3 = thunderGraph.addVertex(null);
             Edge e1 = v1.addEdge("edge1", v2);
-            e1.setProperty("name1", 1D);
+            e1.setProperty("name1", 1L);
             Edge e2 = v1.addEdge("edge1", v3);
-            e2.setProperty("name1", 1D);
+            e2.setProperty("name1", 1L);
             thunderGraph.commit();
 
             Assert.assertEquals(1, thunderGraph.getIndexedKeys(Edge.class).size());
-            Assert.assertEquals(0, count(thunderGraph.getEdges("name", 1D).iterator()));
-            Assert.assertEquals(2, count(thunderGraph.getEdges("name1", 1D).iterator()));
-            Assert.assertEquals(0, count(thunderGraph.getEdges("name1", 2D).iterator()));
+            Assert.assertEquals(0, count(thunderGraph.getEdges("name", 1L).iterator()));
+            Assert.assertEquals(2, count(thunderGraph.getEdges("name1", 1L).iterator()));
+            Assert.assertEquals(0, count(thunderGraph.getEdges("name1", 2L).iterator()));
 
-            thunderGraph.printDb(DbEnum.EDGE_DOUBLE_INDEX);
+            thunderGraph.printDb(DbEnum.EDGE_LONG_INDEX);
 
         } finally {
             thunderGraph.shutdown();
@@ -82,32 +84,31 @@ public class IndexDoubleTest extends BaseGlmdbGraphTest {
     }
 
     @Test
-    public void dropDoubleIndexTest() {
+    public void dropLongIndexTest() {
         ThunderGraph thunderGraph = new ThunderGraph(this.dbPath);
         try {
             thunderGraph.createKeyIndex("name1", Vertex.class);
             thunderGraph.commit();
 
             Vertex v1 = thunderGraph.addVertex(null);
-            v1.setProperty("name1", 1D);
+            v1.setProperty("name1", 1L);
             Vertex v2 = thunderGraph.addVertex(null);
-            v2.setProperty("name1", 1D);
+            v2.setProperty("name1", 1L);
             Vertex v3 = thunderGraph.addVertex(null);
-            v3.setProperty("name1", 1D);
+            v3.setProperty("name1", 1L);
 
             thunderGraph.commit();
 
-            Assert.assertEquals(3, count(thunderGraph.getVertices("name1", 1D)));
-            Assert.assertEquals(3, thunderGraph.getDbEntries(DbEnum.VERTEX_DOUBLE_INDEX));
+            Assert.assertEquals(3, count(thunderGraph.getVertices("name1", 1L)));
+            Assert.assertEquals(3, thunderGraph.getDbEntries(DbEnum.VERTEX_LONG_INDEX));
 
             thunderGraph.dropKeyIndex("name1", Vertex.class);
 
             thunderGraph.commit();
 
             //Still finds it just not via the index
-            Assert.assertEquals(0, thunderGraph.getDbEntries(DbEnum.VERTEX_DOUBLE_INDEX));
-            Assert.assertEquals(3, count(thunderGraph.getVertices("name1", 1D)));
-
+            Assert.assertEquals(0, thunderGraph.getDbEntries(DbEnum.VERTEX_LONG_INDEX));
+            Assert.assertEquals(3, count(thunderGraph.getVertices("name1", 1L)));
         } finally {
             thunderGraph.shutdown();
         }
@@ -122,18 +123,18 @@ public class IndexDoubleTest extends BaseGlmdbGraphTest {
             thunderGraph.commit();
 
             Vertex v1 = thunderGraph.addVertex(null);
-            v1.setProperty("name1", 1D);
+            v1.setProperty("name1", 1L);
             Vertex v2 = thunderGraph.addVertex(null);
-            v2.setProperty("name1", 1D);
+            v2.setProperty("name1", 1L);
             Vertex v3 = thunderGraph.addVertex(null);
-            v3.setProperty("name1", 1D);
+            v3.setProperty("name1", 1L);
             thunderGraph.commit();
 
-            Assert.assertEquals(3, count(thunderGraph.getVertices("name1", 1D)));
-            v1.setProperty("name1", 2D);
+            Assert.assertEquals(3, count(thunderGraph.getVertices("name1", 1L)));
+            v1.setProperty("name1", 2L);
             thunderGraph.commit();
 
-            Assert.assertEquals(2, count(thunderGraph.getVertices("name1", 1D)));
+            Assert.assertEquals(2, count(thunderGraph.getVertices("name1", 1L)));
         } finally {
             thunderGraph.shutdown();
         }
@@ -152,29 +153,29 @@ public class IndexDoubleTest extends BaseGlmdbGraphTest {
             Edge e1 = v1.addEdge("label1", v2);
             Edge e2 = v1.addEdge("label1", v3);
             Edge e3 = v1.addEdge("label1", v4);
-            e1.setProperty("name1", 1D);
-            e2.setProperty("name1", 1D);
-            e3.setProperty("name1", 1D);
+            e1.setProperty("name1", 1L);
+            e2.setProperty("name1", 1L);
+            e3.setProperty("name1", 1L);
             thunderGraph.commit();
 
-            Assert.assertEquals(3, count(thunderGraph.getEdges("name1", 1D)));
-            e1.setProperty("name1", 2D);
+            Assert.assertEquals(3, count(thunderGraph.getEdges("name1", 1L)));
+            e1.setProperty("name1", 2L);
             thunderGraph.commit();
 
-            Assert.assertEquals(2, count(thunderGraph.getEdges("name1", 1D)));
-            e2.setProperty("name1", 2D);
+            Assert.assertEquals(2, count(thunderGraph.getEdges("name1", 1L)));
+            e2.setProperty("name1", 2L);
             thunderGraph.commit();
 
-            Assert.assertEquals(1, count(thunderGraph.getEdges("name1", 1D)));
-            e3.setProperty("name1", 2D);
+            Assert.assertEquals(1, count(thunderGraph.getEdges("name1", 1L)));
+            e3.setProperty("name1", 2L);
             thunderGraph.commit();
 
-            Assert.assertEquals(0, count(thunderGraph.getEdges("name1", 1D)));
-            Assert.assertEquals(3, count(thunderGraph.getEdges("name1", 2D)));
+            Assert.assertEquals(0, count(thunderGraph.getEdges("name1", 1L)));
+            Assert.assertEquals(3, count(thunderGraph.getEdges("name1", 2L)));
 
-            thunderGraph.printDb(DbEnum.EDGE_DOUBLE_INDEX);
+            thunderGraph.printDb(DbEnum.EDGE_LONG_INDEX);
             thunderGraph.dropKeyIndex("name1", Edge.class);
-            thunderGraph.printDb(DbEnum.EDGE_DOUBLE_INDEX);
+            thunderGraph.printDb(DbEnum.EDGE_LONG_INDEX);
 
         } finally {
             thunderGraph.shutdown();
@@ -187,19 +188,19 @@ public class IndexDoubleTest extends BaseGlmdbGraphTest {
         try {
 
             Vertex v1 = thunderGraph.addVertex(null);
-            v1.setProperty("name1", 1D);
+            v1.setProperty("name1", 1L);
             Vertex v2 = thunderGraph.addVertex(null);
-            v2.setProperty("name1", 1D);
+            v2.setProperty("name1", 1L);
             Vertex v3 = thunderGraph.addVertex(null);
-            v3.setProperty("name1", 1D);
+            v3.setProperty("name1", 1L);
             thunderGraph.commit();
 
-            Assert.assertEquals(3, count(thunderGraph.getVertices("name1", 1D)));
-            Assert.assertEquals(0, thunderGraph.getDbEntries(DbEnum.VERTEX_DOUBLE_INDEX));
+            Assert.assertEquals(3, count(thunderGraph.getVertices("name1", 1L)));
+            Assert.assertEquals(0, thunderGraph.getDbEntries(DbEnum.VERTEX_LONG_INDEX));
 
             thunderGraph.createKeyIndex("name1", Vertex.class);
-            Assert.assertEquals(3, count(thunderGraph.getVertices("name1", 1D)));
-            Assert.assertEquals(3, thunderGraph.getDbEntries(DbEnum.VERTEX_DOUBLE_INDEX));
+            Assert.assertEquals(3, count(thunderGraph.getVertices("name1", 1L)));
+            Assert.assertEquals(3, thunderGraph.getDbEntries(DbEnum.VERTEX_LONG_INDEX));
 
         } finally {
             thunderGraph.shutdown();
@@ -220,18 +221,18 @@ public class IndexDoubleTest extends BaseGlmdbGraphTest {
             Edge e2 = v1.addEdge("label1", v3);
             Edge e3 = v1.addEdge("label1", v4);
 
-            e1.setProperty("name1", 1D);
-            e2.setProperty("name1", 1D);
-            e3.setProperty("name1", 1D);
+            e1.setProperty("name1", 1L);
+            e2.setProperty("name1", 1L);
+            e3.setProperty("name1", 1L);
 
             thunderGraph.commit();
 
-            Assert.assertEquals(3, count(thunderGraph.getEdges("name1", 1D)));
-            thunderGraph.printDb(DbEnum.EDGE_DOUBLE_INDEX);
+            Assert.assertEquals(3, count(thunderGraph.getEdges("name1", 1L)));
+            thunderGraph.printDb(DbEnum.EDGE_LONG_INDEX);
 
             thunderGraph.createKeyIndex("name1", Edge.class);
-            Assert.assertEquals(3, count(thunderGraph.getEdges("name1", 1D)));
-            thunderGraph.printDb(DbEnum.EDGE_DOUBLE_INDEX);
+            Assert.assertEquals(3, count(thunderGraph.getEdges("name1", 1L)));
+            thunderGraph.printDb(DbEnum.EDGE_LONG_INDEX);
 
         } finally {
             thunderGraph.shutdown();
@@ -245,23 +246,18 @@ public class IndexDoubleTest extends BaseGlmdbGraphTest {
             thunderGraph.createKeyIndex("name", Vertex.class);
 
             Vertex v1 = thunderGraph.addVertex(null);
-            v1.setProperty("name", 1D);
+            v1.setProperty("name", 1L);
             thunderGraph.commit();
-            Assert.assertEquals(1, thunderGraph.getDbEntries(DbEnum.VERTEX_DOUBLE_INDEX));
+            Assert.assertEquals(1, thunderGraph.getDbEntries(DbEnum.VERTEX_LONG_INDEX));
 
             v1.remove();
             thunderGraph.commit();
-            Assert.assertEquals(0, thunderGraph.getDbEntries(DbEnum.VERTEX_DOUBLE_INDEX));
+            Assert.assertEquals(0, thunderGraph.getDbEntries(DbEnum.VERTEX_LONG_INDEX));
         } finally {
             thunderGraph.shutdown();
         }
 
     }
-
-
-
-
-
 
     @Test
     public void testCursorRefreshOnFirst() {
@@ -272,25 +268,25 @@ public class IndexDoubleTest extends BaseGlmdbGraphTest {
             graph.commit();
 
             Vertex v1 = graph.addVertex(null);
-            v1.setProperty("name", 1D);
+            v1.setProperty("name", 1L);
             for (int i = 0; i < 10; i++) {
                 Vertex v2 = graph.addVertex(null);
-                v2.setProperty("name", 2D);
+                v2.setProperty("name", 2L);
                 Edge e = graph.addEdge(null, v1, v2, "label1");
                 e.setProperty("name", "cccc");
             }
             graph.commit();
 
             Assert.assertEquals(11, count(graph.getVertices()));
-            Assert.assertEquals(1, count(graph.getVertices("name", 1D)));
-            Assert.assertEquals(10, count(graph.getVertices("name", 2D)));
+            Assert.assertEquals(1, count(graph.getVertices("name", 1L)));
+            Assert.assertEquals(10, count(graph.getVertices("name", 2L)));
             Assert.assertEquals(10, count(graph.getEdges("name", "cccc")));
-            Iterator<Vertex> iter = graph.getVertices("name", 1D).iterator();
+            Iterator<Vertex> iter = graph.getVertices("name", 1L).iterator();
             //This will cause the transaction to be upgraded to a writable transaction.
             //I.e. iter's cursor gets closed
             graph.getEdges("name", "cccc").iterator().next().setProperty("name", "cccd");
             Vertex v = iter.next();
-            Assert.assertEquals(1D, v.getProperty("name"));
+            Assert.assertEquals(1L, v.getProperty("name"));
         } finally {
             graph.shutdown();
         }
@@ -306,32 +302,32 @@ public class IndexDoubleTest extends BaseGlmdbGraphTest {
             graph.commit();
 
             Vertex v1 = graph.addVertex(null);
-            v1.setProperty("name", 1D);
+            v1.setProperty("name", 1L);
             for (int i = 0; i < 10; i++) {
                 Vertex v2 = graph.addVertex(null);
-                v2.setProperty("name", 2D);
+                v2.setProperty("name", 2L);
                 Edge e = graph.addEdge(null, v1, v2, "label1");
                 e.setProperty("name", "cccc");
             }
             graph.commit();
 
             Assert.assertEquals(11, count(graph.getVertices()));
-            Assert.assertEquals(1, count(graph.getVertices("name", 1D)));
-            Assert.assertEquals(10, count(graph.getVertices("name", 2D)));
+            Assert.assertEquals(1, count(graph.getVertices("name", 1L)));
+            Assert.assertEquals(10, count(graph.getVertices("name", 2L)));
             Assert.assertEquals(10, count(graph.getEdges("name", "cccc")));
 
-            Iterator<Vertex> iter = graph.getVertices("name", 2D).iterator();
+            Iterator<Vertex> iter = graph.getVertices("name", 2L).iterator();
             Vertex v = iter.next();
             Assert.assertEquals(1L, v.getId());
-            Assert.assertEquals(2D, v.getProperty("name"));
+            Assert.assertEquals(2L, v.getProperty("name"));
 
             //This will cause the transaction to be upgraded to a writable transaction.
             //I.e. iter's cursor gets closed
-            v.setProperty("name", 3D);
+            v.setProperty("name", 3L);
 
             v = iter.next();
             Assert.assertEquals(2L, v.getId());
-            Assert.assertEquals(2D, v.getProperty("name"));
+            Assert.assertEquals(2L, v.getProperty("name"));
             Assert.assertEquals(8, count(iter));
         } finally {
             graph.shutdown();
@@ -347,24 +343,24 @@ public class IndexDoubleTest extends BaseGlmdbGraphTest {
             graph.commit();
 
             Vertex v1 = graph.addVertex(null);
-            v1.setProperty("name", 1D);
+            v1.setProperty("name", 1L);
             for (int i = 0; i < 10; i++) {
                 Vertex v2 = graph.addVertex(null);
-                v2.setProperty("name", 2D);
+                v2.setProperty("name", 2L);
                 Edge e = graph.addEdge(null, v1, v2, "label1");
                 e.setProperty("name", "cccc");
             }
             graph.commit();
 
             Assert.assertEquals(11, count(graph.getVertices()));
-            Assert.assertEquals(1, count(graph.getVertices("name", 1D)));
-            Assert.assertEquals(10, count(graph.getVertices("name", 2D)));
+            Assert.assertEquals(1, count(graph.getVertices("name", 1L)));
+            Assert.assertEquals(10, count(graph.getVertices("name", 2L)));
             Assert.assertEquals(10, count(graph.getEdges("name", "cccc")));
 
-            Iterator<Vertex> iter = graph.getVertices("name", 2D).iterator();
+            Iterator<Vertex> iter = graph.getVertices("name", 2L).iterator();
             Vertex v = iter.next();
             Assert.assertEquals(1L, v.getId());
-            Assert.assertEquals(2D, v.getProperty("name"));
+            Assert.assertEquals(2L, v.getProperty("name"));
             iter.remove();
             Assert.assertNull(graph.getVertex(1L));
             Assert.assertEquals(9, count(iter));
@@ -381,31 +377,31 @@ public class IndexDoubleTest extends BaseGlmdbGraphTest {
             graph.commit();
 
             Vertex v1 = graph.addVertex(null);
-            v1.setProperty("name", 1D);
+            v1.setProperty("name", 1L);
             for (int i = 0; i < 10; i++) {
                 Vertex v2 = graph.addVertex(null);
-                v2.setProperty("name", 2D);
+                v2.setProperty("name", 2L);
                 Edge e = graph.addEdge(null, v1, v2, "label1");
                 e.setProperty("name", "cccc");
             }
             graph.commit();
 
             Assert.assertEquals(11, count(graph.getVertices()));
-            Assert.assertEquals(1, count(graph.getVertices("name", 1D)));
-            Assert.assertEquals(10, count(graph.getVertices("name", 2D)));
+            Assert.assertEquals(1, count(graph.getVertices("name", 1L)));
+            Assert.assertEquals(10, count(graph.getVertices("name", 2L)));
             Assert.assertEquals(10, count(graph.getEdges("name", "cccc")));
 
-            Iterator<Vertex> iter = graph.getVertices("name", 2D).iterator();
+            Iterator<Vertex> iter = graph.getVertices("name", 2L).iterator();
             Vertex v = iter.next();
-            v.setProperty("name", 3D);
+            v.setProperty("name", 3L);
             Assert.assertEquals(1L, v.getId());
-            Assert.assertEquals(3D, v.getProperty("name"));
+            Assert.assertEquals(3L, v.getProperty("name"));
             iter.remove();
             Assert.assertNull(graph.getVertex(1L));
             Assert.assertEquals(9, count(iter));
 
             graph.commit();
-            iter = graph.getVertices("name", 2D).iterator();
+            iter = graph.getVertices("name", 2L).iterator();
             Assert.assertEquals(9, count(iter));
 
         } finally {
@@ -421,31 +417,31 @@ public class IndexDoubleTest extends BaseGlmdbGraphTest {
             graph.commit();
 
             Vertex v1 = graph.addVertex(null);
-            v1.setProperty("name", 1D);
+            v1.setProperty("name", 1L);
             for (int i = 0; i < 10; i++) {
                 Vertex v2 = graph.addVertex(null);
-                v2.setProperty("name", 2D);
+                v2.setProperty("name", 2L);
                 Edge e = graph.addEdge(null, v1, v2, "label1");
                 e.setProperty("name", "cccc");
             }
             graph.commit();
 
             Assert.assertEquals(11, count(graph.getVertices()));
-            Assert.assertEquals(1, count(graph.getVertices("name", 1D)));
-            Assert.assertEquals(10, count(graph.getVertices("name", 2D)));
+            Assert.assertEquals(1, count(graph.getVertices("name", 1L)));
+            Assert.assertEquals(10, count(graph.getVertices("name", 2L)));
             Assert.assertEquals(10, count(graph.getEdges("name", "cccc")));
 
-            Iterator<Vertex> iter = graph.getVertices("name", 2D).iterator();
+            Iterator<Vertex> iter = graph.getVertices("name", 2L).iterator();
             Vertex v = iter.next();
-            v.setProperty("name", 2D);
+            v.setProperty("name", 2L);
             Assert.assertEquals(1L, v.getId());
-            Assert.assertEquals(2D, v.getProperty("name"));
+            Assert.assertEquals(2L, v.getProperty("name"));
             iter.remove();
             Assert.assertNull(graph.getVertex(1L));
             Assert.assertEquals(9, count(iter));
 
             graph.commit();
-            iter = graph.getVertices("name", 2D).iterator();
+            iter = graph.getVertices("name", 2L).iterator();
             Assert.assertEquals(9, count(iter));
 
         } finally {

@@ -15,7 +15,7 @@ import java.util.Set;
  * Date: 2013/12/14
  * Time: 8:35 PM
  */
-public class IndexIntTest extends BaseGlmdbGraphTest {
+public class VertexIndexIntTest extends BaseGlmdbGraphTest {
 
     @Test
     public void testIndexIntOnVertex() {

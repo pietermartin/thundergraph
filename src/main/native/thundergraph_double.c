@@ -292,7 +292,7 @@ int placeCursorOnKeyValueDoubleIndex(MDB_cursor *cursor, long long vertexId, int
 
 }
 
-int getCurrentVertexfromVertexDoubleIndexDb(MDB_cursor *cursor, jlong *vertexIdC, int propertyKeyId, jdouble value) {
+int getCurrentElementFromDoubleIndexDb(MDB_cursor *cursor, jlong *vertexIdC, int propertyKeyId, jdouble value) {
 
 	int rc = 0;
 	MDB_val key, data;

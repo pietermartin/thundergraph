@@ -153,14 +153,14 @@ int removeVertex(MDB_txn *txn, GLMDB_env *genv, jlong vertexId) {
 	key.mv_size = sizeof(VertexDbId);
 	key.mv_data = &id;
 
-	//First delete all in edges
+	//First delete all edges
 	while ((rc = mdb_cursor_get((MDB_cursor *) (long) vertexCursor, &key, &data, MDB_SET_RANGE)) == 0) {
 
 		VertexDbId vertexDbId = *((VertexDbId *) (key.mv_data));
 		if (vertexId == vertexDbId.vertexId) {
 			if (vertexDbId.coreOrPropertyEnum == INLABEL || vertexDbId.coreOrPropertyEnum == OUTLABEL) {
 
-				rc = internalRemoveEdge(edgeCursor, vertexDbId.edgeId);
+				rc = internalRemoveEdge(genv, txn, edgeCursor, vertexDbId.edgeId);
 				if (rc != 0) {
 					rc = GLMDB_DB_CORRUPT;
 					goto fail;
@@ -203,7 +203,6 @@ int removeVertex(MDB_txn *txn, GLMDB_env *genv, jlong vertexId) {
 				}
 
 				PropertyKeyInverseDataStruct *propertyKeyInverseDataStruct = (PropertyKeyInverseDataStruct *) propertyKeyInverseData.mv_data;
-				int propertyKeySize = propertyKeyInverseData.mv_size - sizeof(PropertyKeyInverseDataStruct);
 				if (propertyKeyInverseDataStruct->indexed == 1) {
 					switch (propertyKeyInverseDataStruct->type) {
 					case BOOLEAN:
@@ -293,7 +292,7 @@ int removeVertex(MDB_txn *txn, GLMDB_env *genv, jlong vertexId) {
 						if (rc != 0) {
 							goto fail;
 						}
-						rc = removeStringIndex(stringIndexCursor, vertexId, vertexDbId.propertykeyId, propertyKeySize,
+						rc = removeStringIndex(stringIndexCursor, vertexId, vertexDbId.propertykeyId, data.mv_size,
 								(char *) data.mv_data);
 						mdb_cursor_close(stringIndexCursor);
 						break;
@@ -302,11 +301,12 @@ int removeVertex(MDB_txn *txn, GLMDB_env *genv, jlong vertexId) {
 						break;
 					}
 					if (rc != 0) {
+						rc = GLMDB_DB_CORRUPT;
 						goto fail;
 					}
 				}
 
-				//delete current
+				//delete current, i.e. the edge property
 				key.mv_size = sizeof(VertexDbId);
 				key.mv_data = &vertexDbId;
 				rc = mdb_del(txn, genv->vertexDb, &key, &data);
@@ -345,75 +345,21 @@ int removeVertex(MDB_txn *txn, GLMDB_env *genv, jlong vertexId) {
 	return rc;
 }
 
-int internalDeleteVertex(MDB_cursor *vertexCursor, MDB_cursor *inverseCursor, MDB_cursor *edgeCursor, VertexDbId vertexDbId,
-		VertexDbId inverseId, MDB_val inverseKey, MDB_val data, MDB_val inverseData) {
-
-	int rc;
-	rc = internalRemoveEdge(edgeCursor, vertexDbId.edgeId);
-	if (rc != 0) {
-		rc = GLMDB_DB_CORRUPT;
-		goto fail;
-	}
-	//get the inverse side
-	inverseId.vertexId = *(long long *) data.mv_data;
-	inverseId.coreOrPropertyEnum = (vertexDbId.coreOrPropertyEnum == OUTLABEL ? INLABEL : OUTLABEL);
-	inverseId.labelId = vertexDbId.labelId;
-	inverseId.edgeId = vertexDbId.edgeId;
-	inverseKey.mv_size = sizeof(VertexDbId);
-	inverseKey.mv_data = &inverseId;
-
-	//delete inverse
-	rc = mdb_cursor_get(inverseCursor, &inverseKey, &inverseData, MDB_SET);
-	if (rc != 0) {
-		rc = GLMDB_DB_CORRUPT;
-		goto fail;
-	}
-	rc = mdb_cursor_del(inverseCursor, 0);
-	if (rc != 0) {
-		rc = GLMDB_DB_CORRUPT;
-		goto fail;
-	}
-
-	//delete current
-	rc = mdb_cursor_del(vertexCursor, 0);
-	if (rc != 0) {
-		rc = GLMDB_DB_CORRUPT;
-		goto fail;
-	}
-	fail: return rc;
-
-}
-
-int internalRemoveEdge(MDB_cursor *cursor, jlong edgeId) {
+int internalRemoveEdge(GLMDB_env *genv, MDB_txn *txn, MDB_cursor *edgeCursor, jlong edgeId) {
 	MDB_val edgeKey, edgeData;
-	int rc = getEdge(cursor, edgeId, &edgeKey, &edgeData);
+	int rc = getEdge(edgeCursor, edgeId, &edgeKey, &edgeData);
 	if (rc == 0) {
-		rc = mdb_cursor_del(cursor, 0);
+		rc = mdb_del(txn, genv->edgeDb, &edgeKey, &edgeData);
+	}
+	if (rc == 0) {
+		//delete the properties
+		rc = deleteEdgeProperties(genv, txn, edgeCursor, edgeKey, edgeData, edgeId);
 	}
 
-	while ((rc = mdb_cursor_get(cursor, &edgeKey, &edgeData, MDB_NEXT)) == 0) {
-		EdgeDbId edgeDbId = *((EdgeDbId *) (edgeKey.mv_data));
-		if (edgeDbId.edgeId == edgeId) {
-			rc = mdb_cursor_del((MDB_cursor *) (long) cursor, 0);
-			if (rc == MDB_NOTFOUND) {
-				printf("internalRemoveEdge  MDB_NOTFOUND %i\n", rc);
-				//This happens at the end of the keys when it iterates forever on the last record.
-				//When we delete what is already deleted it returns MDB_NOTFOUND
-				break;
-			}
-			if (rc != 0) {
-				printf("internalRemoveEdge %i\n", rc);
-				rc = GLMDB_DB_CORRUPT;
-				goto fail;
-			}
-		} else {
-			break;
-		}
-	}
 	if (rc == MDB_NOTFOUND) {
 		rc = 0;
 	}
-	fail: return rc;
+	return rc;
 }
 
 int removeEdge(MDB_txn *txn, GLMDB_env *genv, jlong edgeId) {
@@ -492,11 +438,154 @@ int removeEdge(MDB_txn *txn, GLMDB_env *genv, jlong edgeId) {
 		goto fail;
 	}
 
-	while ((rc = mdb_cursor_get((MDB_cursor *) (long) edgeCursor, &edgeKey, &data, MDB_NEXT)) == 0) {
+	//delete the properties
+	rc = deleteEdgeProperties(genv, txn, edgeCursor, edgeKey, data, edgeId);
+
+	if (rc == MDB_NOTFOUND) {
+		rc = 0;
+	}
+	if (rc != 0) {
+		rc = GLMDB_DB_CORRUPT;
+		goto fail;
+	}
+
+	fail: mdb_cursor_close(vertexCursor);
+	mdb_cursor_close(edgeCursor);
+
+	return rc;
+}
+
+int deleteEdgeProperties(GLMDB_env *genv, MDB_txn *txn, MDB_cursor *edgeCursor, MDB_val edgeKey, MDB_val data, jlong edgeId) {
+	int rc = 0;
+	MDB_cursor *edgePropertyKeyInverseDbCursor;
+	rc = mdb_cursor_open(txn, genv->edgePropertyKeyInverseDb, &edgePropertyKeyInverseDbCursor);
+	if (rc != 0) {
+		goto fail;
+	}
+
+	//delete the properties
+	while ((rc = mdb_cursor_get(edgeCursor, &edgeKey, &data, MDB_NEXT)) == 0) {
+
 		EdgeDbId edgeDbId = *((EdgeDbId *) (edgeKey.mv_data));
-		if (edgeDbId.edgeId == edgeId) {
+		if (edgeDbId.edgeId == edgeId && edgeDbId.coreOrPropertyEnum == EPROPERTY_KEY) {
+
+			//If it was indexed then remove all entries from the index
+			MDB_val propertyKeyInverseKey, propertyKeyInverseData;
+			propertyKeyInverseKey.mv_size = sizeof(int);
+			propertyKeyInverseKey.mv_data = &edgeDbId.propertykeyId;
+
+			rc = mdb_cursor_get(edgePropertyKeyInverseDbCursor, &propertyKeyInverseKey, &propertyKeyInverseData, MDB_SET_KEY);
+			if (rc != 0) {
+				rc = GLMDB_PROPERTY_KEY_NOT_FOUND;
+				goto fail;
+			}
+
+			PropertyKeyInverseDataStruct *propertyKeyInverseDataStruct = (PropertyKeyInverseDataStruct *) propertyKeyInverseData.mv_data;
+			if (propertyKeyInverseDataStruct->indexed == 1) {
+				switch (propertyKeyInverseDataStruct->type) {
+				case BOOLEAN:
+					;
+					MDB_cursor *booleanIndexCursor;
+					rc = mdb_cursor_open(txn, genv->edgeBooleanIndexDb, &booleanIndexCursor);
+					if (rc != 0) {
+						goto fail;
+					}
+					rc = removeBooleanIndex(booleanIndexCursor, edgeId, edgeDbId.propertykeyId, *((unsigned char *) data.mv_data));
+					mdb_cursor_close(booleanIndexCursor);
+					break;
+				case BYTE:
+					;
+					MDB_cursor *byteIndexCursor;
+					rc = mdb_cursor_open(txn, genv->edgeByteIndexDb, &byteIndexCursor);
+					if (rc != 0) {
+						goto fail;
+					}
+					rc = removeByteIndex(byteIndexCursor, edgeId, edgeDbId.propertykeyId, *((signed char *) data.mv_data));
+					mdb_cursor_close(byteIndexCursor);
+					break;
+				case SHORT:
+					;
+					MDB_cursor *shortIndexCursor;
+					rc = mdb_cursor_open(txn, genv->edgeShortIndexDb, &shortIndexCursor);
+					if (rc != 0) {
+						goto fail;
+					}
+					rc = removeShortIndex(shortIndexCursor, edgeId, edgeDbId.propertykeyId, *((short *) data.mv_data));
+					mdb_cursor_close(shortIndexCursor);
+					break;
+				case INT:
+					;
+					MDB_cursor *intIndexCursor;
+					rc = mdb_cursor_open(txn, genv->edgeIntIndexDb, &intIndexCursor);
+					if (rc != 0) {
+						goto fail;
+					}
+					rc = removeIntIndex(intIndexCursor, edgeId, edgeDbId.propertykeyId, *((int *) data.mv_data));
+					mdb_cursor_close(intIndexCursor);
+					break;
+				case LONG:
+					;
+					MDB_cursor *longIndexCursor;
+					rc = mdb_cursor_open(txn, genv->edgeLongIndexDb, &longIndexCursor);
+					if (rc != 0) {
+						goto fail;
+					}
+					rc = removeLongIndex(longIndexCursor, edgeId, edgeDbId.propertykeyId, *((long long *) data.mv_data));
+					mdb_cursor_close(longIndexCursor);
+					break;
+				case FLOAT:
+					;
+					MDB_cursor *floatIndexCursor;
+					rc = mdb_cursor_open(txn, genv->edgeFloatIndexDb, &floatIndexCursor);
+					if (rc != 0) {
+						goto fail;
+					}
+					rc = removeFloatIndex(floatIndexCursor, edgeId, edgeDbId.propertykeyId, *((float *) data.mv_data));
+					mdb_cursor_close(floatIndexCursor);
+					break;
+				case DOUBLE:
+					;
+					MDB_cursor *doubleIndexCursor;
+					rc = mdb_cursor_open(txn, genv->edgeDoubleIndexDb, &doubleIndexCursor);
+					if (rc != 0) {
+						goto fail;
+					}
+					rc = removeDoubleIndex(doubleIndexCursor, edgeId, edgeDbId.propertykeyId, *((double *) data.mv_data));
+					mdb_cursor_close(doubleIndexCursor);
+					break;
+				case CHAR:
+					;
+					MDB_cursor *charIndexCursor;
+					rc = mdb_cursor_open(txn, genv->edgeCharIndexDb, &charIndexCursor);
+					if (rc != 0) {
+						goto fail;
+					}
+					rc = removeCharIndex(charIndexCursor, edgeId, edgeDbId.propertykeyId, *((unsigned short *) data.mv_data));
+					mdb_cursor_close(charIndexCursor);
+					break;
+				case STRING:
+					;
+					MDB_cursor *stringIndexCursor;
+					rc = mdb_cursor_open(txn, genv->edgeStringIndexDb, &stringIndexCursor);
+					if (rc != 0) {
+						goto fail;
+					}
+					rc = removeStringIndex(stringIndexCursor, edgeId, edgeDbId.propertykeyId, data.mv_size,
+							(char *) data.mv_data);
+					mdb_cursor_close(stringIndexCursor);
+					break;
+				default:
+					rc = GLMDB_INVALID_SEQUENCE;
+					break;
+				}
+				if (rc != 0) {
+					rc = GLMDB_DB_CORRUPT;
+					goto fail;
+				}
+			}
+
+			//delete the edge property
 			rc = mdb_del(txn, genv->edgeDb, &edgeKey, &data);
-//			rc = mdb_cursor_del((MDB_cursor *) (long) edgeCursor, 0);
 			if (rc == MDB_NOTFOUND) {
 				//This happens at the end of the keys when it iterates forever on the last record.
 				//When we delete what is already deleted it returns MDB_NOTFOUND
@@ -510,17 +599,8 @@ int removeEdge(MDB_txn *txn, GLMDB_env *genv, jlong edgeId) {
 			break;
 		}
 	}
-	if (rc == MDB_NOTFOUND) {
-		rc = 0;
-	}
-	if (rc != 0) {
-		rc = GLMDB_DB_CORRUPT;
-		goto fail;
-	}
-
-	fail: mdb_cursor_close(vertexCursor);
-	mdb_cursor_close(edgeCursor);
-
+	fail:
+	mdb_cursor_close(edgePropertyKeyInverseDbCursor);
 	return rc;
 }
 

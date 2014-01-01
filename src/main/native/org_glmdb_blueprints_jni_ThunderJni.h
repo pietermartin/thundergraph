@@ -41,11 +41,11 @@ JNIEXPORT jint JNICALL Java_org_glmdb_blueprints_jni_ThunderJni_print_1db
 
 /*
  * Class:     org_glmdb_blueprints_jni_ThunderJni
- * Method:    mdb_db_entries
- * Signature: (JJI[I)I
+ * Method:    mdb_stat
+ * Signature: (JJI[I[I[I[I[I[I)I
  */
-JNIEXPORT jint JNICALL Java_org_glmdb_blueprints_jni_ThunderJni_mdb_1db_1entries
-  (JNIEnv *, jclass, jlong, jlong, jint, jintArray);
+JNIEXPORT jint JNICALL Java_org_glmdb_blueprints_jni_ThunderJni_mdb_1stat
+  (JNIEnv *, jclass, jlong, jlong, jint, jintArray, jintArray, jintArray, jintArray, jintArray, jintArray);
 
 /*
  * Class:     org_glmdb_blueprints_jni_ThunderJni
@@ -417,6 +417,38 @@ JNIEXPORT jint JNICALL Java_org_glmdb_blueprints_jni_ThunderJni_mdb_1get_1curren
 
 /*
  * Class:     org_glmdb_blueprints_jni_ThunderJni
+ * Method:    mdb_get_first_edge_for_key_string_value
+ * Signature: (J[J[I[J[JILjava/lang/String;)I
+ */
+JNIEXPORT jint JNICALL Java_org_glmdb_blueprints_jni_ThunderJni_mdb_1get_1first_1edge_1for_1key_1string_1value
+  (JNIEnv *, jclass, jlong, jlongArray, jintArray, jlongArray, jlongArray, jint, jstring);
+
+/*
+ * Class:     org_glmdb_blueprints_jni_ThunderJni
+ * Method:    mdb_get_next_edge_for_key_string_value
+ * Signature: (J[J[I[J[JILjava/lang/String;)I
+ */
+JNIEXPORT jint JNICALL Java_org_glmdb_blueprints_jni_ThunderJni_mdb_1get_1next_1edge_1for_1key_1string_1value
+  (JNIEnv *, jclass, jlong, jlongArray, jintArray, jlongArray, jlongArray, jint, jstring);
+
+/*
+ * Class:     org_glmdb_blueprints_jni_ThunderJni
+ * Method:    mdb_cursor_open_and_position_on_key_value_edge_string_index_db
+ * Signature: (JJJILjava/lang/String;[J)I
+ */
+JNIEXPORT jint JNICALL Java_org_glmdb_blueprints_jni_ThunderJni_mdb_1cursor_1open_1and_1position_1on_1key_1value_1edge_1string_1index_1db
+  (JNIEnv *, jclass, jlong, jlong, jlong, jint, jstring, jlongArray);
+
+/*
+ * Class:     org_glmdb_blueprints_jni_ThunderJni
+ * Method:    mdb_get_current_edge_from_edge_string_index_db
+ * Signature: (JJILjava/lang/String;[J[Ljava/lang/String;[J[J)I
+ */
+JNIEXPORT jint JNICALL Java_org_glmdb_blueprints_jni_ThunderJni_mdb_1get_1current_1edge_1from_1edge_1string_1index_1db
+  (JNIEnv *, jclass, jlong, jlong, jint, jstring, jlongArray, jobjectArray, jlongArray, jlongArray);
+
+/*
+ * Class:     org_glmdb_blueprints_jni_ThunderJni
  * Method:    mdb_get_first_vertex_for_key_int_value
  * Signature: (J[JII)I
  */
@@ -494,6 +526,22 @@ JNIEXPORT jint JNICALL Java_org_glmdb_blueprints_jni_ThunderJni_mdb_1cursor_1ope
  */
 JNIEXPORT jint JNICALL Java_org_glmdb_blueprints_jni_ThunderJni_mdb_1get_1current_1vertex_1from_1vertex_1int_1index_1db
   (JNIEnv *, jclass, jlong, jlongArray, jint, jint);
+
+/*
+ * Class:     org_glmdb_blueprints_jni_ThunderJni
+ * Method:    mdb_cursor_open_and_position_on_key_value_edge_int_index_db
+ * Signature: (JJJII[J)I
+ */
+JNIEXPORT jint JNICALL Java_org_glmdb_blueprints_jni_ThunderJni_mdb_1cursor_1open_1and_1position_1on_1key_1value_1edge_1int_1index_1db
+  (JNIEnv *, jclass, jlong, jlong, jlong, jint, jint, jlongArray);
+
+/*
+ * Class:     org_glmdb_blueprints_jni_ThunderJni
+ * Method:    mdb_get_current_edge_from_edge_int_index_db
+ * Signature: (JJII[J[Ljava/lang/String;[J[J)I
+ */
+JNIEXPORT jint JNICALL Java_org_glmdb_blueprints_jni_ThunderJni_mdb_1get_1current_1edge_1from_1edge_1int_1index_1db
+  (JNIEnv *, jclass, jlong, jlong, jint, jint, jlongArray, jobjectArray, jlongArray, jlongArray);
 
 /*
  * Class:     org_glmdb_blueprints_jni_ThunderJni
@@ -577,6 +625,22 @@ JNIEXPORT jint JNICALL Java_org_glmdb_blueprints_jni_ThunderJni_mdb_1get_1curren
 
 /*
  * Class:     org_glmdb_blueprints_jni_ThunderJni
+ * Method:    mdb_cursor_open_and_position_on_key_value_edge_long_index_db
+ * Signature: (JJJIJ[J)I
+ */
+JNIEXPORT jint JNICALL Java_org_glmdb_blueprints_jni_ThunderJni_mdb_1cursor_1open_1and_1position_1on_1key_1value_1edge_1long_1index_1db
+  (JNIEnv *, jclass, jlong, jlong, jlong, jint, jlong, jlongArray);
+
+/*
+ * Class:     org_glmdb_blueprints_jni_ThunderJni
+ * Method:    mdb_get_current_edge_from_edge_long_index_db
+ * Signature: (JJIJ[J[Ljava/lang/String;[J[J)I
+ */
+JNIEXPORT jint JNICALL Java_org_glmdb_blueprints_jni_ThunderJni_mdb_1get_1current_1edge_1from_1edge_1long_1index_1db
+  (JNIEnv *, jclass, jlong, jlong, jint, jlong, jlongArray, jobjectArray, jlongArray, jlongArray);
+
+/*
+ * Class:     org_glmdb_blueprints_jni_ThunderJni
  * Method:    mdb_get_first_vertex_for_key_float_value
  * Signature: (J[JIF)I
  */
@@ -654,6 +718,22 @@ JNIEXPORT jint JNICALL Java_org_glmdb_blueprints_jni_ThunderJni_mdb_1cursor_1ope
  */
 JNIEXPORT jint JNICALL Java_org_glmdb_blueprints_jni_ThunderJni_mdb_1get_1current_1vertex_1from_1vertex_1float_1index_1db
   (JNIEnv *, jclass, jlong, jlongArray, jint, jfloat);
+
+/*
+ * Class:     org_glmdb_blueprints_jni_ThunderJni
+ * Method:    mdb_cursor_open_and_position_on_key_value_edge_float_index_db
+ * Signature: (JJJIF[J)I
+ */
+JNIEXPORT jint JNICALL Java_org_glmdb_blueprints_jni_ThunderJni_mdb_1cursor_1open_1and_1position_1on_1key_1value_1edge_1float_1index_1db
+  (JNIEnv *, jclass, jlong, jlong, jlong, jint, jfloat, jlongArray);
+
+/*
+ * Class:     org_glmdb_blueprints_jni_ThunderJni
+ * Method:    mdb_get_current_edge_from_edge_float_index_db
+ * Signature: (JJIF[J[Ljava/lang/String;[J[J)I
+ */
+JNIEXPORT jint JNICALL Java_org_glmdb_blueprints_jni_ThunderJni_mdb_1get_1current_1edge_1from_1edge_1float_1index_1db
+  (JNIEnv *, jclass, jlong, jlong, jint, jfloat, jlongArray, jobjectArray, jlongArray, jlongArray);
 
 /*
  * Class:     org_glmdb_blueprints_jni_ThunderJni
@@ -737,6 +817,22 @@ JNIEXPORT jint JNICALL Java_org_glmdb_blueprints_jni_ThunderJni_mdb_1get_1curren
 
 /*
  * Class:     org_glmdb_blueprints_jni_ThunderJni
+ * Method:    mdb_cursor_open_and_position_on_key_value_edge_double_index_db
+ * Signature: (JJJID[J)I
+ */
+JNIEXPORT jint JNICALL Java_org_glmdb_blueprints_jni_ThunderJni_mdb_1cursor_1open_1and_1position_1on_1key_1value_1edge_1double_1index_1db
+  (JNIEnv *, jclass, jlong, jlong, jlong, jint, jdouble, jlongArray);
+
+/*
+ * Class:     org_glmdb_blueprints_jni_ThunderJni
+ * Method:    mdb_get_current_edge_from_edge_double_index_db
+ * Signature: (JJID[J[Ljava/lang/String;[J[J)I
+ */
+JNIEXPORT jint JNICALL Java_org_glmdb_blueprints_jni_ThunderJni_mdb_1get_1current_1edge_1from_1edge_1double_1index_1db
+  (JNIEnv *, jclass, jlong, jlong, jint, jdouble, jlongArray, jobjectArray, jlongArray, jlongArray);
+
+/*
+ * Class:     org_glmdb_blueprints_jni_ThunderJni
  * Method:    mdb_get_first_vertex_for_key_boolean_value
  * Signature: (J[JIZ)I
  */
@@ -814,6 +910,22 @@ JNIEXPORT jint JNICALL Java_org_glmdb_blueprints_jni_ThunderJni_mdb_1cursor_1ope
  */
 JNIEXPORT jint JNICALL Java_org_glmdb_blueprints_jni_ThunderJni_mdb_1get_1current_1vertex_1from_1vertex_1boolean_1index_1db
   (JNIEnv *, jclass, jlong, jlongArray, jint, jboolean);
+
+/*
+ * Class:     org_glmdb_blueprints_jni_ThunderJni
+ * Method:    mdb_cursor_open_and_position_on_key_value_edge_boolean_index_db
+ * Signature: (JJJIZ[J)I
+ */
+JNIEXPORT jint JNICALL Java_org_glmdb_blueprints_jni_ThunderJni_mdb_1cursor_1open_1and_1position_1on_1key_1value_1edge_1boolean_1index_1db
+  (JNIEnv *, jclass, jlong, jlong, jlong, jint, jboolean, jlongArray);
+
+/*
+ * Class:     org_glmdb_blueprints_jni_ThunderJni
+ * Method:    mdb_get_current_edge_from_edge_boolean_index_db
+ * Signature: (JJIZ[J[Ljava/lang/String;[J[J)I
+ */
+JNIEXPORT jint JNICALL Java_org_glmdb_blueprints_jni_ThunderJni_mdb_1get_1current_1edge_1from_1edge_1boolean_1index_1db
+  (JNIEnv *, jclass, jlong, jlong, jint, jboolean, jlongArray, jobjectArray, jlongArray, jlongArray);
 
 /*
  * Class:     org_glmdb_blueprints_jni_ThunderJni
@@ -897,6 +1009,22 @@ JNIEXPORT jint JNICALL Java_org_glmdb_blueprints_jni_ThunderJni_mdb_1get_1curren
 
 /*
  * Class:     org_glmdb_blueprints_jni_ThunderJni
+ * Method:    mdb_cursor_open_and_position_on_key_value_edge_short_index_db
+ * Signature: (JJJIS[J)I
+ */
+JNIEXPORT jint JNICALL Java_org_glmdb_blueprints_jni_ThunderJni_mdb_1cursor_1open_1and_1position_1on_1key_1value_1edge_1short_1index_1db
+  (JNIEnv *, jclass, jlong, jlong, jlong, jint, jshort, jlongArray);
+
+/*
+ * Class:     org_glmdb_blueprints_jni_ThunderJni
+ * Method:    mdb_get_current_edge_from_edge_short_index_db
+ * Signature: (JJIS[J[Ljava/lang/String;[J[J)I
+ */
+JNIEXPORT jint JNICALL Java_org_glmdb_blueprints_jni_ThunderJni_mdb_1get_1current_1edge_1from_1edge_1short_1index_1db
+  (JNIEnv *, jclass, jlong, jlong, jint, jshort, jlongArray, jobjectArray, jlongArray, jlongArray);
+
+/*
+ * Class:     org_glmdb_blueprints_jni_ThunderJni
  * Method:    mdb_get_first_vertex_for_key_char_value
  * Signature: (J[JIC)I
  */
@@ -974,6 +1102,22 @@ JNIEXPORT jint JNICALL Java_org_glmdb_blueprints_jni_ThunderJni_mdb_1cursor_1ope
  */
 JNIEXPORT jint JNICALL Java_org_glmdb_blueprints_jni_ThunderJni_mdb_1get_1current_1vertex_1from_1vertex_1char_1index_1db
   (JNIEnv *, jclass, jlong, jlongArray, jint, jchar);
+
+/*
+ * Class:     org_glmdb_blueprints_jni_ThunderJni
+ * Method:    mdb_cursor_open_and_position_on_key_value_edge_char_index_db
+ * Signature: (JJJIC[J)I
+ */
+JNIEXPORT jint JNICALL Java_org_glmdb_blueprints_jni_ThunderJni_mdb_1cursor_1open_1and_1position_1on_1key_1value_1edge_1char_1index_1db
+  (JNIEnv *, jclass, jlong, jlong, jlong, jint, jchar, jlongArray);
+
+/*
+ * Class:     org_glmdb_blueprints_jni_ThunderJni
+ * Method:    mdb_get_current_edge_from_edge_char_index_db
+ * Signature: (JJIC[J[Ljava/lang/String;[J[J)I
+ */
+JNIEXPORT jint JNICALL Java_org_glmdb_blueprints_jni_ThunderJni_mdb_1get_1current_1edge_1from_1edge_1char_1index_1db
+  (JNIEnv *, jclass, jlong, jlong, jint, jchar, jlongArray, jobjectArray, jlongArray, jlongArray);
 
 /*
  * Class:     org_glmdb_blueprints_jni_ThunderJni
@@ -1057,6 +1201,22 @@ JNIEXPORT jint JNICALL Java_org_glmdb_blueprints_jni_ThunderJni_mdb_1get_1curren
 
 /*
  * Class:     org_glmdb_blueprints_jni_ThunderJni
+ * Method:    mdb_cursor_open_and_position_on_key_value_edge_byte_index_db
+ * Signature: (JJJIB[J)I
+ */
+JNIEXPORT jint JNICALL Java_org_glmdb_blueprints_jni_ThunderJni_mdb_1cursor_1open_1and_1position_1on_1key_1value_1edge_1byte_1index_1db
+  (JNIEnv *, jclass, jlong, jlong, jlong, jint, jbyte, jlongArray);
+
+/*
+ * Class:     org_glmdb_blueprints_jni_ThunderJni
+ * Method:    mdb_get_current_edge_from_edge_byte_index_db
+ * Signature: (JJIB[J[Ljava/lang/String;[J[J)I
+ */
+JNIEXPORT jint JNICALL Java_org_glmdb_blueprints_jni_ThunderJni_mdb_1get_1current_1edge_1from_1edge_1byte_1index_1db
+  (JNIEnv *, jclass, jlong, jlong, jint, jbyte, jlongArray, jobjectArray, jlongArray, jlongArray);
+
+/*
+ * Class:     org_glmdb_blueprints_jni_ThunderJni
  * Method:    mdb_get_edge
  * Signature: (JJ[J[I[J[J)I
  */
@@ -1086,22 +1246,6 @@ JNIEXPORT jint JNICALL Java_org_glmdb_blueprints_jni_ThunderJni_mdb_1get_1first_
  */
 JNIEXPORT jint JNICALL Java_org_glmdb_blueprints_jni_ThunderJni_mdb_1get_1next_1edge
   (JNIEnv *, jclass, jlong, jlong, jlongArray, jintArray, jlongArray, jlongArray);
-
-/*
- * Class:     org_glmdb_blueprints_jni_ThunderJni
- * Method:    mdb_get_first_edge_for_key_string_value
- * Signature: (J[J[I[J[JILjava/lang/String;)I
- */
-JNIEXPORT jint JNICALL Java_org_glmdb_blueprints_jni_ThunderJni_mdb_1get_1first_1edge_1for_1key_1string_1value
-  (JNIEnv *, jclass, jlong, jlongArray, jintArray, jlongArray, jlongArray, jint, jstring);
-
-/*
- * Class:     org_glmdb_blueprints_jni_ThunderJni
- * Method:    mdb_get_next_edge_for_key_string_value
- * Signature: (J[J[I[J[JILjava/lang/String;)I
- */
-JNIEXPORT jint JNICALL Java_org_glmdb_blueprints_jni_ThunderJni_mdb_1get_1next_1edge_1for_1key_1string_1value
-  (JNIEnv *, jclass, jlong, jlongArray, jintArray, jlongArray, jlongArray, jint, jstring);
 
 /*
  * Class:     org_glmdb_blueprints_jni_ThunderJni

@@ -20,7 +20,8 @@ int removeEdge(MDB_txn *txn, GLMDB_env *genv, jlong edgeId);
 /**
  * This only removes the edge from the edge db, not the related edges in the vertexDb
  */
-int internalRemoveEdge(MDB_cursor *cursor, jlong edgeId);
+int internalRemoveEdge(GLMDB_env *genv, MDB_txn *txn, MDB_cursor *edgeCursor, jlong edgeId);
+int deleteEdgeProperties(GLMDB_env *genv, MDB_txn *txn, MDB_cursor *edgeCursor, MDB_val edgeKey, MDB_val data, jlong edgeId);
 
 int getEdge(MDB_cursor *cursor, jlong edgeId, MDB_val *edgeKey, MDB_val *edgeData);
 

@@ -4,6 +4,7 @@ import com.tinkerpop.blueprints.Vertex;
 import org.glmdb.blueprints.ThunderEdge;
 import org.glmdb.blueprints.ThunderGraph;
 import org.glmdb.blueprints.TransactionAndCursor;
+import org.glmdb.blueprints.iter.BaseEdgeIndexIterable;
 import org.glmdb.blueprints.iter.BaseThunderIterable;
 import org.glmdb.blueprints.iter.BaseThunderIterator;
 import org.glmdb.blueprints.jni.Cursor;
@@ -32,15 +33,11 @@ public class EdgeShortIndexIterable<T extends Vertex> extends BaseThunderIterabl
         return new EdgeShortIndexIterator();
     }
 
-    private final class EdgeShortIndexIterator extends BaseThunderIterator<ThunderEdge>  implements Iterator {
+    private final class EdgeShortIndexIterator extends BaseEdgeIndexIterable implements Iterator {
 
-        private boolean goToFirst = true;
-        private Cursor edgeDbCursor;
 
         public EdgeShortIndexIterator() {
             super(EdgeShortIndexIterable.this.tc);
-            this.edgeDbCursor = EdgeShortIndexIterable.this.thunderGraph.getThunder().openCursor(this.tc.getTxn(), DbEnum.EDGE_DB);
-            this.tc.addOpenCursor(this.edgeDbCursor);
         }
 
         @Override
@@ -54,31 +51,29 @@ public class EdgeShortIndexIterable<T extends Vertex> extends BaseThunderIterabl
         }
 
         @Override
-        public void remove() {
-            throw new RuntimeException("Not yet implemented!");
+        protected boolean getCurrentEdgeFromEdgeIndexDb(long edgeIdArray[], String labelArray[], long outVertexIdArray[], long inVertexIdArray[]) {
+            return EdgeShortIndexIterable.this.thunderGraph.getThunder().getCurrentEdgeFromEdgeShortIndexDb(this.cursor, this.edgeDbCursor, EdgeShortIndexIterable.this.key, EdgeShortIndexIterable.this.value, edgeIdArray, labelArray, outVertexIdArray, inVertexIdArray);
         }
 
         @Override
-        protected ThunderEdge internalNext() {
-            long edgeIdArray[] = new long[1];
-            String labelArray[] = new String[1];
-            long outVertexIdArray[] = new long[1];
-            long inVertexIdArray[] = new long[1];
+        protected boolean getFirstEdgeForKeyValueFromTypeIndex(long edgeIdArray[], String labelArray[], long outVertexIdArray[], long inVertexIdArray[]) {
+            return EdgeShortIndexIterable.this.thunderGraph.getThunder().getFirstEdgeForKeyValueFromShortIndex(this.cursor, this.edgeDbCursor, EdgeShortIndexIterable.this.key, EdgeShortIndexIterable.this.value, edgeIdArray, labelArray, outVertexIdArray, inVertexIdArray);
 
-            if (this.goToFirst) {
-                this.goToFirst = false;
-                if (EdgeShortIndexIterable.this.thunderGraph.getThunder().getFirstEdgeForKeyValueFromShortIndex(this.cursor, this.edgeDbCursor, EdgeShortIndexIterable.this.key, EdgeShortIndexIterable.this.value, edgeIdArray, labelArray, outVertexIdArray, inVertexIdArray)) {
-                    return new ThunderEdge(EdgeShortIndexIterable.this.thunderGraph, edgeIdArray[0], labelArray[0], outVertexIdArray[0], inVertexIdArray[0]);
-                } else {
-                    return null;
-                }
-            } else {
-                if (EdgeShortIndexIterable.this.thunderGraph.getThunder().getNextEdgeForKeyValueFromShortIndex(this.cursor, this.edgeDbCursor, EdgeShortIndexIterable.this.key, EdgeShortIndexIterable.this.value, edgeIdArray, labelArray, outVertexIdArray, inVertexIdArray)) {
-                    return new ThunderEdge(EdgeShortIndexIterable.this.thunderGraph, edgeIdArray[0], labelArray[0], outVertexIdArray[0], inVertexIdArray[0]);
-                } else {
-                    return null;
-                }
-            }
+        }
+
+        @Override
+        protected boolean getNextEdgeForKeyValueFromTypeIndex(long edgeIdArray[], String labelArray[], long outVertexIdArray[], long inVertexIdArray[]) {
+            return EdgeShortIndexIterable.this.thunderGraph.getThunder().getNextEdgeForKeyValueFromShortIndex(this.cursor, this.edgeDbCursor, EdgeShortIndexIterable.this.key, EdgeShortIndexIterable.this.value, edgeIdArray, labelArray, outVertexIdArray, inVertexIdArray);
+        }
+
+        @Override
+        protected Cursor openAndPositionCursorOnKeyValueInEdgeTypeIndexDb() {
+            return EdgeShortIndexIterable.this.thunderGraph.getThunder().openAndPositionCursorOnKeyValueInEdgeShortIndexDb(
+                    this.tc.getTxn(),
+                    this.internalNext.getInternalId(),
+                    EdgeShortIndexIterable.this.key,
+                    EdgeShortIndexIterable.this.value
+            );
         }
 
     }

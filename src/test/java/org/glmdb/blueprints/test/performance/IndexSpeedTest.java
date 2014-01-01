@@ -16,7 +16,7 @@ import java.util.Iterator;
  */
 public class IndexSpeedTest extends BaseGlmdbGraphTest {
 
-    @Test
+//    @Test
     public void testIndexSpeed() {
         ThunderGraph g = new ThunderGraph(this.dbPath);
         try {

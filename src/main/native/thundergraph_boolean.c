@@ -292,7 +292,7 @@ int placeCursorOnKeyValueBooleanIndex(MDB_cursor *cursor, long long vertexId, in
 
 }
 
-int getCurrentVertexfromVertexBooleanIndexDb(MDB_cursor *cursor, jlong *vertexIdC, int propertyKeyId, jboolean value) {
+int getCurrentElementFromBooleanIndexDb(MDB_cursor *cursor, jlong *vertexIdC, int propertyKeyId, jboolean value) {
 
 	int rc = 0;
 	MDB_val key, data;

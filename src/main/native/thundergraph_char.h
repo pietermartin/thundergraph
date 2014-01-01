@@ -28,4 +28,4 @@ int deleteCharIndex(GLMDB_env * glmdb_env, MDB_txn * mdbTxn, int propertyKeyId, 
 
 void printCharIndexDbRecord(MDB_val key, MDB_val data);
 int placeCursorOnKeyValueCharIndex(MDB_cursor *cursor, long long vertexId, int propertyKeyId, jchar value);
-int getCurrentVertexfromVertexCharIndexDb(MDB_cursor *cursor, jlong *vertexIdC, int propertyKeyId, jchar value);
+int getCurrentElementFromCharIndexDb(MDB_cursor *cursor, jlong *vertexIdC, int propertyKeyId, jchar value);

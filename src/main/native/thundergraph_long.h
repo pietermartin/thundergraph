@@ -28,4 +28,4 @@ int deleteLongIndex(GLMDB_env * glmdb_env, MDB_txn * mdbTxn, int propertyKeyId, 
 
 void printLongIndexDbRecord(MDB_val key, MDB_val data);
 int placeCursorOnKeyValueLongIndex(MDB_cursor *cursor, long long vertexId, int propertyKeyId, jlong value);
-int getCurrentVertexfromVertexLongIndexDb(MDB_cursor *cursor, jlong *vertexIdC, int propertyKeyId, jlong value);
+int getCurrentElementFromLongIndexDb(MDB_cursor *cursor, jlong *vertexIdC, int propertyKeyId, jlong value);

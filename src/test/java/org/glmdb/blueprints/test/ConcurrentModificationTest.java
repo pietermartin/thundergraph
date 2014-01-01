@@ -2,6 +2,7 @@ package org.glmdb.blueprints.test;
 
 import com.tinkerpop.blueprints.*;
 import org.glmdb.blueprints.ThunderGraph;
+import org.glmdb.blueprints.jni.DbEnum;
 import org.junit.Assert;
 import org.junit.Test;
 
@@ -49,4 +50,30 @@ public class ConcurrentModificationTest extends BaseGlmdbGraphTest {
         graph.shutdown();
 
     }
+
+    @Test
+    public void testNoConcurrentModificationException() {
+        ThunderGraph graph = new ThunderGraph(this.dbPath);
+        try {
+            graph.createKeyIndex("key", Edge.class);
+            for (int i = 0; i < 25; i++) {
+                graph.addEdge(null, graph.addVertex(null), graph.addVertex(null), "test").setProperty("key", "value");
+            }
+            Assert.assertEquals(count(graph.getVertices()), 50);
+            Assert.assertEquals(count(graph.getEdges()), 25);
+            int counter = 0;
+            for (final Edge edge : graph.getEdges("key", "value")) {
+                graph.removeEdge(edge);
+                counter++;
+            }
+
+            Assert.assertEquals(counter, 25);
+            Assert.assertEquals(count(graph.getVertices()), 50);
+            Assert.assertEquals(count(graph.getEdges()), 0);
+
+        } finally {
+            graph.shutdown();
+        }
+    }
+
 }

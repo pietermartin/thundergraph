@@ -28,4 +28,4 @@ int deleteFloatIndex(GLMDB_env * glmdb_env, MDB_txn * mdbTxn, int propertyKeyId,
 
 void printFloatIndexDbRecord(MDB_val key, MDB_val data);
 int placeCursorOnKeyValueFloatIndex(MDB_cursor *cursor, long long vertexId, int propertyKeyId, jfloat value);
-int getCurrentVertexfromVertexFloatIndexDb(MDB_cursor *cursor, jlong *vertexIdC, int propertyKeyId, jfloat value);
+int getCurrentElementFromFloatIndexDb(MDB_cursor *cursor, jlong *vertexIdC, int propertyKeyId, jfloat value);

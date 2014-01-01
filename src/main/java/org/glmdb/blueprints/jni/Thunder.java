@@ -2,6 +2,7 @@ package org.glmdb.blueprints.jni;
 
 import com.tinkerpop.blueprints.Direction;
 import com.tinkerpop.blueprints.Element;
+import org.glmdb.blueprints.MDBStat;
 
 import java.io.Closeable;
 import java.nio.ByteBuffer;
@@ -98,6 +99,186 @@ public class Thunder extends NativeObject implements Closeable {
             if (propertyKeyEnumAndId.propertyTypeEnum == PropertyTypeEnum.STRING) {
                 long cursor[] = new long[1];
                 int rc = mdb_cursor_open_and_position_on_key_value_vertex_string_index_db(tx.pointer(), pointer(), vertexId, propertyKeyEnumAndId.id, value, cursor);
+                if (rc == MDB_NOTFOUND) {
+                    return null;
+                } else {
+                    checkErrorCode(rc);
+                    return new Cursor(this, cursor[0]);
+                }
+            } else {
+                return null;
+            }
+        } else {
+            return null;
+        }
+    }
+
+    public Cursor openAndPositionCursorOnKeyValueInEdgeStringIndexDb(Transaction tx, long edgeId, String key, String value) {
+        PropertyKeyEnumAndId propertyKeyEnumAndId = this.edgePropertyKeyToIdMap.get(key);
+        if (propertyKeyEnumAndId != null) {
+            if (propertyKeyEnumAndId.propertyTypeEnum == PropertyTypeEnum.STRING) {
+                long cursor[] = new long[1];
+                int rc = mdb_cursor_open_and_position_on_key_value_edge_string_index_db(tx.pointer(), pointer(), edgeId, propertyKeyEnumAndId.id, value, cursor);
+                if (rc == MDB_NOTFOUND) {
+                    return null;
+                } else {
+                    checkErrorCode(rc);
+                    return new Cursor(this, cursor[0]);
+                }
+            } else {
+                return null;
+            }
+        } else {
+            return null;
+        }
+    }
+
+    public Cursor openAndPositionCursorOnKeyValueInEdgeShortIndexDb(Transaction tx, long edgeId, String key, short value) {
+        PropertyKeyEnumAndId propertyKeyEnumAndId = this.edgePropertyKeyToIdMap.get(key);
+        if (propertyKeyEnumAndId != null) {
+            if (propertyKeyEnumAndId.propertyTypeEnum == PropertyTypeEnum.SHORT) {
+                long cursor[] = new long[1];
+                int rc = mdb_cursor_open_and_position_on_key_value_edge_short_index_db(tx.pointer(), pointer(), edgeId, propertyKeyEnumAndId.id, value, cursor);
+                if (rc == MDB_NOTFOUND) {
+                    return null;
+                } else {
+                    checkErrorCode(rc);
+                    return new Cursor(this, cursor[0]);
+                }
+            } else {
+                return null;
+            }
+        } else {
+            return null;
+        }
+    }
+
+    public Cursor openAndPositionCursorOnKeyValueInEdgeLongIndexDb(Transaction tx, long edgeId, String key, long value) {
+        PropertyKeyEnumAndId propertyKeyEnumAndId = this.edgePropertyKeyToIdMap.get(key);
+        if (propertyKeyEnumAndId != null) {
+            if (propertyKeyEnumAndId.propertyTypeEnum == PropertyTypeEnum.LONG) {
+                long cursor[] = new long[1];
+                int rc = mdb_cursor_open_and_position_on_key_value_edge_long_index_db(tx.pointer(), pointer(), edgeId, propertyKeyEnumAndId.id, value, cursor);
+                if (rc == MDB_NOTFOUND) {
+                    return null;
+                } else {
+                    checkErrorCode(rc);
+                    return new Cursor(this, cursor[0]);
+                }
+            } else {
+                return null;
+            }
+        } else {
+            return null;
+        }
+    }
+
+    public Cursor openAndPositionCursorOnKeyValueInEdgeIntIndexDb(Transaction tx, long edgeId, String key, int value) {
+        PropertyKeyEnumAndId propertyKeyEnumAndId = this.edgePropertyKeyToIdMap.get(key);
+        if (propertyKeyEnumAndId != null) {
+            if (propertyKeyEnumAndId.propertyTypeEnum == PropertyTypeEnum.INT) {
+                long cursor[] = new long[1];
+                int rc = mdb_cursor_open_and_position_on_key_value_edge_int_index_db(tx.pointer(), pointer(), edgeId, propertyKeyEnumAndId.id, value, cursor);
+                if (rc == MDB_NOTFOUND) {
+                    return null;
+                } else {
+                    checkErrorCode(rc);
+                    return new Cursor(this, cursor[0]);
+                }
+            } else {
+                return null;
+            }
+        } else {
+            return null;
+        }
+    }
+
+    public Cursor openAndPositionCursorOnKeyValueInEdgeFloatIndexDb(Transaction tx, long edgeId, String key, float value) {
+        PropertyKeyEnumAndId propertyKeyEnumAndId = this.edgePropertyKeyToIdMap.get(key);
+        if (propertyKeyEnumAndId != null) {
+            if (propertyKeyEnumAndId.propertyTypeEnum == PropertyTypeEnum.FLOAT) {
+                long cursor[] = new long[1];
+                int rc = mdb_cursor_open_and_position_on_key_value_edge_float_index_db(tx.pointer(), pointer(), edgeId, propertyKeyEnumAndId.id, value, cursor);
+                if (rc == MDB_NOTFOUND) {
+                    return null;
+                } else {
+                    checkErrorCode(rc);
+                    return new Cursor(this, cursor[0]);
+                }
+            } else {
+                return null;
+            }
+        } else {
+            return null;
+        }
+    }
+
+    public Cursor openAndPositionCursorOnKeyValueInEdgeDoubleIndexDb(Transaction tx, long edgeId, String key, double value) {
+        PropertyKeyEnumAndId propertyKeyEnumAndId = this.edgePropertyKeyToIdMap.get(key);
+        if (propertyKeyEnumAndId != null) {
+            if (propertyKeyEnumAndId.propertyTypeEnum == PropertyTypeEnum.DOUBLE) {
+                long cursor[] = new long[1];
+                int rc = mdb_cursor_open_and_position_on_key_value_edge_double_index_db(tx.pointer(), pointer(), edgeId, propertyKeyEnumAndId.id, value, cursor);
+                if (rc == MDB_NOTFOUND) {
+                    return null;
+                } else {
+                    checkErrorCode(rc);
+                    return new Cursor(this, cursor[0]);
+                }
+            } else {
+                return null;
+            }
+        } else {
+            return null;
+        }
+    }
+
+    public Cursor openAndPositionCursorOnKeyValueInEdgeCharIndexDb(Transaction tx, long edgeId, String key, char value) {
+        PropertyKeyEnumAndId propertyKeyEnumAndId = this.edgePropertyKeyToIdMap.get(key);
+        if (propertyKeyEnumAndId != null) {
+            if (propertyKeyEnumAndId.propertyTypeEnum == PropertyTypeEnum.CHAR) {
+                long cursor[] = new long[1];
+                int rc = mdb_cursor_open_and_position_on_key_value_edge_char_index_db(tx.pointer(), pointer(), edgeId, propertyKeyEnumAndId.id, value, cursor);
+                if (rc == MDB_NOTFOUND) {
+                    return null;
+                } else {
+                    checkErrorCode(rc);
+                    return new Cursor(this, cursor[0]);
+                }
+            } else {
+                return null;
+            }
+        } else {
+            return null;
+        }
+    }
+
+    public Cursor openAndPositionCursorOnKeyValueInEdgeByteIndexDb(Transaction tx, long edgeId, String key, byte value) {
+        PropertyKeyEnumAndId propertyKeyEnumAndId = this.edgePropertyKeyToIdMap.get(key);
+        if (propertyKeyEnumAndId != null) {
+            if (propertyKeyEnumAndId.propertyTypeEnum == PropertyTypeEnum.BYTE) {
+                long cursor[] = new long[1];
+                int rc = mdb_cursor_open_and_position_on_key_value_edge_byte_index_db(tx.pointer(), pointer(), edgeId, propertyKeyEnumAndId.id, value, cursor);
+                if (rc == MDB_NOTFOUND) {
+                    return null;
+                } else {
+                    checkErrorCode(rc);
+                    return new Cursor(this, cursor[0]);
+                }
+            } else {
+                return null;
+            }
+        } else {
+            return null;
+        }
+    }
+
+    public Cursor openAndPositionCursorOnKeyValueInEdgeBooleanIndexDb(Transaction tx, long edgeId, String key, boolean value) {
+        PropertyKeyEnumAndId propertyKeyEnumAndId = this.edgePropertyKeyToIdMap.get(key);
+        if (propertyKeyEnumAndId != null) {
+            if (propertyKeyEnumAndId.propertyTypeEnum == PropertyTypeEnum.BOOLEAN) {
+                long cursor[] = new long[1];
+                int rc = mdb_cursor_open_and_position_on_key_value_edge_boolean_index_db(tx.pointer(), pointer(), edgeId, propertyKeyEnumAndId.id, value, cursor);
                 if (rc == MDB_NOTFOUND) {
                     return null;
                 } else {
@@ -513,6 +694,204 @@ public class Thunder extends NativeObject implements Closeable {
                 //this calls mdb_cursor_get with MDB_GET_CURRENT
                 //if the first call finds nothing the it calls MDB_GET_NEXT
                 int rc = mdb_get_current_vertex_from_vertex_string_index_db(cursor.pointer(), vertexIdArray, propertyKeyEnumAndId.id, value);
+                if (rc == MDB_NOTFOUND) {
+                    return false;
+                } else {
+                    checkErrorCode(rc);
+                    return true;
+                }
+            } else {
+                return false;
+            }
+        } else {
+            return false;
+        }
+    }
+
+    public boolean getCurrentEdgeFromEdgeStringIndexDb(Cursor edgeStringIndexDbCursor, Cursor edgeDbCursor, String key, String value, long edgeIdArray[], String labelArray[], long outVertexIdArray[], long inVertexIdArray[]) {
+        PropertyKeyEnumAndId propertyKeyEnumAndId = this.edgePropertyKeyToIdMap.get(key);
+        if (propertyKeyEnumAndId != null) {
+            //Make sure it is a string property
+            if (propertyKeyEnumAndId.propertyTypeEnum == PropertyTypeEnum.STRING) {
+                //this calls mdb_cursor_get with MDB_GET_CURRENT
+                //if the first call finds nothing the it calls MDB_GET_NEXT
+                int rc = mdb_get_current_edge_from_edge_string_index_db(edgeStringIndexDbCursor.pointer(),  edgeDbCursor.pointer(), propertyKeyEnumAndId.id, value, edgeIdArray, labelArray, outVertexIdArray, inVertexIdArray);
+                if (rc == MDB_NOTFOUND) {
+                    return false;
+                } else {
+                    checkErrorCode(rc);
+                    return true;
+                }
+            } else {
+                return false;
+            }
+        } else {
+            return false;
+        }
+    }
+
+    public boolean getCurrentEdgeFromEdgeShortIndexDb(Cursor edgeShortIndexDbCursor, Cursor edgeDbCursor, String key, short value, long edgeIdArray[], String labelArray[], long outVertexIdArray[], long inVertexIdArray[]) {
+        PropertyKeyEnumAndId propertyKeyEnumAndId = this.edgePropertyKeyToIdMap.get(key);
+        if (propertyKeyEnumAndId != null) {
+            //Make sure it is a string property
+            if (propertyKeyEnumAndId.propertyTypeEnum == PropertyTypeEnum.SHORT) {
+                //this calls mdb_cursor_get with MDB_GET_CURRENT
+                //if the first call finds nothing the it calls MDB_GET_NEXT
+                int rc = mdb_get_current_edge_from_edge_short_index_db(edgeShortIndexDbCursor.pointer(),  edgeDbCursor.pointer(), propertyKeyEnumAndId.id, value, edgeIdArray, labelArray, outVertexIdArray, inVertexIdArray);
+                if (rc == MDB_NOTFOUND) {
+                    return false;
+                } else {
+                    checkErrorCode(rc);
+                    return true;
+                }
+            } else {
+                return false;
+            }
+        } else {
+            return false;
+        }
+    }
+
+    public boolean getCurrentEdgeFromEdgeLongIndexDb(Cursor edgeLongIndexDbCursor, Cursor edgeDbCursor, String key, long value, long edgeIdArray[], String labelArray[], long outVertexIdArray[], long inVertexIdArray[]) {
+        PropertyKeyEnumAndId propertyKeyEnumAndId = this.edgePropertyKeyToIdMap.get(key);
+        if (propertyKeyEnumAndId != null) {
+            //Make sure it is a string property
+            if (propertyKeyEnumAndId.propertyTypeEnum == PropertyTypeEnum.LONG) {
+                //this calls mdb_cursor_get with MDB_GET_CURRENT
+                //if the first call finds nothing the it calls MDB_GET_NEXT
+                int rc = mdb_get_current_edge_from_edge_long_index_db(edgeLongIndexDbCursor.pointer(),  edgeDbCursor.pointer(), propertyKeyEnumAndId.id, value, edgeIdArray, labelArray, outVertexIdArray, inVertexIdArray);
+                if (rc == MDB_NOTFOUND) {
+                    return false;
+                } else {
+                    checkErrorCode(rc);
+                    return true;
+                }
+            } else {
+                return false;
+            }
+        } else {
+            return false;
+        }
+    }
+
+    public boolean getCurrentEdgeFromEdgeIntIndexDb(Cursor edgeIntIndexDbCursor, Cursor edgeDbCursor, String key, int value, long edgeIdArray[], String labelArray[], long outVertexIdArray[], long inVertexIdArray[]) {
+        PropertyKeyEnumAndId propertyKeyEnumAndId = this.edgePropertyKeyToIdMap.get(key);
+        if (propertyKeyEnumAndId != null) {
+            //Make sure it is a string property
+            if (propertyKeyEnumAndId.propertyTypeEnum == PropertyTypeEnum.INT) {
+                //this calls mdb_cursor_get with MDB_GET_CURRENT
+                //if the first call finds nothing the it calls MDB_GET_NEXT
+                int rc = mdb_get_current_edge_from_edge_int_index_db(edgeIntIndexDbCursor.pointer(),  edgeDbCursor.pointer(), propertyKeyEnumAndId.id, value, edgeIdArray, labelArray, outVertexIdArray, inVertexIdArray);
+                if (rc == MDB_NOTFOUND) {
+                    return false;
+                } else {
+                    checkErrorCode(rc);
+                    return true;
+                }
+            } else {
+                return false;
+            }
+        } else {
+            return false;
+        }
+    }
+
+    public boolean getCurrentEdgeFromEdgeFloatIndexDb(Cursor edgeFloatIndexDbCursor, Cursor edgeDbCursor, String key, float value, long edgeIdArray[], String labelArray[], long outVertexIdArray[], long inVertexIdArray[]) {
+        PropertyKeyEnumAndId propertyKeyEnumAndId = this.edgePropertyKeyToIdMap.get(key);
+        if (propertyKeyEnumAndId != null) {
+            //Make sure it is a string property
+            if (propertyKeyEnumAndId.propertyTypeEnum == PropertyTypeEnum.FLOAT) {
+                //this calls mdb_cursor_get with MDB_GET_CURRENT
+                //if the first call finds nothing the it calls MDB_GET_NEXT
+                int rc = mdb_get_current_edge_from_edge_float_index_db(edgeFloatIndexDbCursor.pointer(),  edgeDbCursor.pointer(), propertyKeyEnumAndId.id, value, edgeIdArray, labelArray, outVertexIdArray, inVertexIdArray);
+                if (rc == MDB_NOTFOUND) {
+                    return false;
+                } else {
+                    checkErrorCode(rc);
+                    return true;
+                }
+            } else {
+                return false;
+            }
+        } else {
+            return false;
+        }
+    }
+
+    public boolean getCurrentEdgeFromEdgeDoubleIndexDb(Cursor edgeDoubleIndexDbCursor, Cursor edgeDbCursor, String key, double value, long edgeIdArray[], String labelArray[], long outVertexIdArray[], long inVertexIdArray[]) {
+        PropertyKeyEnumAndId propertyKeyEnumAndId = this.edgePropertyKeyToIdMap.get(key);
+        if (propertyKeyEnumAndId != null) {
+            //Make sure it is a string property
+            if (propertyKeyEnumAndId.propertyTypeEnum == PropertyTypeEnum.DOUBLE) {
+                //this calls mdb_cursor_get with MDB_GET_CURRENT
+                //if the first call finds nothing the it calls MDB_GET_NEXT
+                int rc = mdb_get_current_edge_from_edge_double_index_db(edgeDoubleIndexDbCursor.pointer(),  edgeDbCursor.pointer(), propertyKeyEnumAndId.id, value, edgeIdArray, labelArray, outVertexIdArray, inVertexIdArray);
+                if (rc == MDB_NOTFOUND) {
+                    return false;
+                } else {
+                    checkErrorCode(rc);
+                    return true;
+                }
+            } else {
+                return false;
+            }
+        } else {
+            return false;
+        }
+    }
+
+    public boolean getCurrentEdgeFromEdgeCharIndexDb(Cursor edgeCharIndexDbCursor, Cursor edgeDbCursor, String key, char value, long edgeIdArray[], String labelArray[], long outVertexIdArray[], long inVertexIdArray[]) {
+        PropertyKeyEnumAndId propertyKeyEnumAndId = this.edgePropertyKeyToIdMap.get(key);
+        if (propertyKeyEnumAndId != null) {
+            //Make sure it is a string property
+            if (propertyKeyEnumAndId.propertyTypeEnum == PropertyTypeEnum.CHAR) {
+                //this calls mdb_cursor_get with MDB_GET_CURRENT
+                //if the first call finds nothing the it calls MDB_GET_NEXT
+                int rc = mdb_get_current_edge_from_edge_char_index_db(edgeCharIndexDbCursor.pointer(),  edgeDbCursor.pointer(), propertyKeyEnumAndId.id, value, edgeIdArray, labelArray, outVertexIdArray, inVertexIdArray);
+                if (rc == MDB_NOTFOUND) {
+                    return false;
+                } else {
+                    checkErrorCode(rc);
+                    return true;
+                }
+            } else {
+                return false;
+            }
+        } else {
+            return false;
+        }
+    }
+
+    public boolean getCurrentEdgeFromEdgeByteIndexDb(Cursor edgeByteIndexDbCursor, Cursor edgeDbCursor, String key, byte value, long edgeIdArray[], String labelArray[], long outVertexIdArray[], long inVertexIdArray[]) {
+        PropertyKeyEnumAndId propertyKeyEnumAndId = this.edgePropertyKeyToIdMap.get(key);
+        if (propertyKeyEnumAndId != null) {
+            //Make sure it is a string property
+            if (propertyKeyEnumAndId.propertyTypeEnum == PropertyTypeEnum.BYTE) {
+                //this calls mdb_cursor_get with MDB_GET_CURRENT
+                //if the first call finds nothing the it calls MDB_GET_NEXT
+                int rc = mdb_get_current_edge_from_edge_byte_index_db(edgeByteIndexDbCursor.pointer(),  edgeDbCursor.pointer(), propertyKeyEnumAndId.id, value, edgeIdArray, labelArray, outVertexIdArray, inVertexIdArray);
+                if (rc == MDB_NOTFOUND) {
+                    return false;
+                } else {
+                    checkErrorCode(rc);
+                    return true;
+                }
+            } else {
+                return false;
+            }
+        } else {
+            return false;
+        }
+    }
+
+    public boolean getCurrentEdgeFromEdgeBooleanIndexDb(Cursor edgeBooleanIndexDbCursor, Cursor edgeDbCursor, String key, boolean value, long edgeIdArray[], String labelArray[], long outVertexIdArray[], long inVertexIdArray[]) {
+        PropertyKeyEnumAndId propertyKeyEnumAndId = this.edgePropertyKeyToIdMap.get(key);
+        if (propertyKeyEnumAndId != null) {
+            //Make sure it is a string property
+            if (propertyKeyEnumAndId.propertyTypeEnum == PropertyTypeEnum.BOOLEAN) {
+                //this calls mdb_cursor_get with MDB_GET_CURRENT
+                //if the first call finds nothing the it calls MDB_GET_NEXT
+                int rc = mdb_get_current_edge_from_edge_boolean_index_db(edgeBooleanIndexDbCursor.pointer(),  edgeDbCursor.pointer(), propertyKeyEnumAndId.id, value, edgeIdArray, labelArray, outVertexIdArray, inVertexIdArray);
                 if (rc == MDB_NOTFOUND) {
                     return false;
                 } else {
@@ -1049,12 +1428,6 @@ public class Thunder extends NativeObject implements Closeable {
 
     public void printDb(Transaction txn, DbEnum dbEnum) {
         checkErrorCode(print_db(this.pointer(), txn.pointer(), dbEnum.ordinal()));
-    }
-
-    public int getDbEntries(Transaction txn, DbEnum dbEnum) {
-        int entries[] = new int[1];
-        checkErrorCode(mdb_db_entries(this.pointer(), txn.pointer(), dbEnum.ordinal(), entries));
-        return entries[0];
     }
 
     public void createKeyIndex(Transaction txn, String key, boolean vertex) {
@@ -2492,5 +2865,20 @@ public class Thunder extends NativeObject implements Closeable {
         }
     }
 
+    public int getDbEntries(Transaction txn, DbEnum dbEnum) {
+        return this.getMDBStat(txn, dbEnum).getMs_entries();
+    }
+
+
+    public MDBStat getMDBStat(Transaction txn, DbEnum dbEnum) {
+        int ms_psize[] = new int[1];
+        int ms_depth[] = new int[1];
+        int ms_branch_pages[] = new int[1];
+        int ms_leaf_pages[] = new int[1];
+        int ms_overflow_pages[] = new int[1];
+        int ms_entries[] = new int[1];
+        checkErrorCode(mdb_stat(this.pointer(), txn.pointer(), dbEnum.ordinal(), ms_psize, ms_depth, ms_branch_pages, ms_leaf_pages, ms_overflow_pages, ms_entries));
+        return new MDBStat(ms_psize[0], ms_depth[0], ms_branch_pages[0], ms_leaf_pages[0], ms_overflow_pages[0], ms_entries[0]);
+    }
 
 }

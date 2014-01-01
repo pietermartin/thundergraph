@@ -4,6 +4,7 @@ import com.tinkerpop.blueprints.Direction;
 import com.tinkerpop.blueprints.Edge;
 import com.tinkerpop.blueprints.Vertex;
 import org.glmdb.blueprints.ThunderGraph;
+import org.glmdb.blueprints.jni.DbEnum;
 import org.glmdb.blueprints.test.BaseGlmdbGraphTest;
 import org.junit.Assert;
 import org.junit.Test;
@@ -35,7 +36,7 @@ public class VertexIterTest extends BaseGlmdbGraphTest {
 
         int count = 0;
         Iterator<Vertex> iterator = thunderGraph.getVertices().iterator();
-        while (iterator.hasNext()){
+        while (iterator.hasNext()) {
             Vertex v = iterator.next();
             count++;
             if (count == 5) {
@@ -48,7 +49,7 @@ public class VertexIterTest extends BaseGlmdbGraphTest {
         thunderGraph.commit();
 
         iterator = thunderGraph.getVertices().iterator();
-        while (iterator.hasNext()){
+        while (iterator.hasNext()) {
             iterator.next();
             iterator.remove();
         }
@@ -77,7 +78,7 @@ public class VertexIterTest extends BaseGlmdbGraphTest {
         int count = 0;
         Vertex v = thunderGraph.getVertex(0L);
         Iterator<Vertex> iterator = v.getVertices(Direction.OUT).iterator();
-        while (iterator.hasNext()){
+        while (iterator.hasNext()) {
             iterator.next();
             count++;
             if (count == 5) {
@@ -90,7 +91,7 @@ public class VertexIterTest extends BaseGlmdbGraphTest {
 
         v = thunderGraph.getVertex(0L);
         iterator = v.getVertices(Direction.OUT).iterator();
-        while (iterator.hasNext()){
+        while (iterator.hasNext()) {
             iterator.next();
             iterator.remove();
         }

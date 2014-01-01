@@ -28,4 +28,4 @@ int deleteIntIndex(GLMDB_env * glmdb_env, MDB_txn * mdbTxn, int propertyKeyId, u
 
 void printIntIndexDbRecord(MDB_val key, MDB_val data);
 int placeCursorOnKeyValueIntIndex(MDB_cursor *cursor, long long vertexId, int propertyKeyId, jint value);
-int getCurrentVertexfromVertexIntIndexDb(MDB_cursor *cursor, jlong *vertexIdC, int propertyKeyId, jint value);
+int getCurrentElementFromIntIndexDb(MDB_cursor *cursor, jlong *vertexIdC, int propertyKeyId, jint value);

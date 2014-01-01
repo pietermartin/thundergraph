@@ -9,46 +9,32 @@ import org.junit.Assert;
 import org.junit.Test;
 
 import java.util.Iterator;
-import java.util.Set;
 
 /**
- * Date: 2013/12/14
- * Time: 8:35 PM
+ * Date: 2013/12/31
+ * Time: 11:53 AM
  */
-public class IndexFloatTest extends BaseGlmdbGraphTest {
+public class EdgeIndexFloatTest extends BaseGlmdbGraphTest {
 
     @Test
-    public void testIndexFloatOnVertex() {
+    public void testIndexRemoval() {
         ThunderGraph thunderGraph = new ThunderGraph(this.dbPath);
         try {
-            thunderGraph.createKeyIndex("name1", Vertex.class);
-            thunderGraph.createKeyIndex("name2", Vertex.class);
-            thunderGraph.commit();
-
+            thunderGraph.createKeyIndex("name1", Edge.class);
             Vertex v1 = thunderGraph.addVertex(null);
-            v1.setProperty("name1", 11F);
-            v1.setProperty("name2", 12F);
             Vertex v2 = thunderGraph.addVertex(null);
-            v2.setProperty("name1", 21F);
-            v2.setProperty("name2", 22F);
-
+            Vertex v3 = thunderGraph.addVertex(null);
+            Edge e1 = v1.addEdge("edge1", v2);
+            e1.setProperty("name1", 1F);
+            Edge e2 = v1.addEdge("edge1", v3);
+            e2.setProperty("name1", 1F);
             thunderGraph.commit();
 
-            Set<String> indexedKeys = thunderGraph.getIndexedKeys(Vertex.class);
-            Assert.assertEquals(2, indexedKeys.size());
-            Assert.assertTrue(indexedKeys.contains("name1"));
-            Assert.assertTrue(indexedKeys.contains("name2"));
-
-            Iterable<Vertex> name11s = thunderGraph.getVertices("name1", 11F);
-            Assert.assertEquals(1, count(name11s.iterator()));
-            Iterable<Vertex> name21s = thunderGraph.getVertices("name1", 21F);
-            Assert.assertEquals(1, count(name21s.iterator()));
-
-            name11s = thunderGraph.getVertices("name1", 12F);
-            Assert.assertEquals(0, countIter(name11s.iterator()));
-            name21s = thunderGraph.getVertices("name1", 22F);
-            Assert.assertEquals(0, count(name21s.iterator()));
-
+            Assert.assertEquals(2, thunderGraph.getDbEntries(DbEnum.EDGE_FLOAT_INDEX));
+            e1.remove();
+            Assert.assertEquals(1, thunderGraph.getDbEntries(DbEnum.EDGE_FLOAT_INDEX));
+            e2.remove();
+            Assert.assertEquals(0, thunderGraph.getDbEntries(DbEnum.EDGE_FLOAT_INDEX));
         } finally {
             thunderGraph.shutdown();
         }
@@ -74,8 +60,6 @@ public class IndexFloatTest extends BaseGlmdbGraphTest {
             Assert.assertEquals(2, count(thunderGraph.getEdges("name1", 1F).iterator()));
             Assert.assertEquals(0, count(thunderGraph.getEdges("name1", 2F).iterator()));
 
-            thunderGraph.printDb(DbEnum.EDGE_FLOAT_INDEX);
-
         } finally {
             thunderGraph.shutdown();
         }
@@ -85,54 +69,31 @@ public class IndexFloatTest extends BaseGlmdbGraphTest {
     public void dropFloatIndexTest() {
         ThunderGraph thunderGraph = new ThunderGraph(this.dbPath);
         try {
-            thunderGraph.createKeyIndex("name1", Vertex.class);
+            thunderGraph.createKeyIndex("name1", Edge.class);
             thunderGraph.commit();
 
             Vertex v1 = thunderGraph.addVertex(null);
-            v1.setProperty("name1", 1F);
-            Vertex v2 = thunderGraph.addVertex(null);
-            v2.setProperty("name1", 1F);
-            Vertex v3 = thunderGraph.addVertex(null);
-            v3.setProperty("name1", 1F);
+            v1.setProperty("name1", "aaaa1");
+            Edge e1 = v1.addEdge("label", thunderGraph.addVertex(null));
+            e1.setProperty("name1", 1F);
+            Edge e2 = v1.addEdge("label", thunderGraph.addVertex(null));
+            e2.setProperty("name1", 1F);
+            Edge e3 = v1.addEdge("label", thunderGraph.addVertex(null));
+            e3.setProperty("name1", 1F);
 
             thunderGraph.commit();
 
-            Assert.assertEquals(3, count(thunderGraph.getVertices("name1", 1F)));
-            Assert.assertEquals(3, thunderGraph.getDbEntries(DbEnum.VERTEX_FLOAT_INDEX));
+            Assert.assertEquals(3, count(thunderGraph.getEdges("name1", 1F).iterator()));
+            Assert.assertEquals(3, thunderGraph.getDbEntries(DbEnum.EDGE_FLOAT_INDEX));
 
-            thunderGraph.dropKeyIndex("name1", Vertex.class);
-
-            thunderGraph.commit();
+            thunderGraph.dropKeyIndex("name1", Edge.class);
 
             //Still finds it just not via the index
-            Assert.assertEquals(0, thunderGraph.getDbEntries(DbEnum.VERTEX_FLOAT_INDEX));
-            Assert.assertEquals(3, count(thunderGraph.getVertices("name1", 1F)));
-        } finally {
-            thunderGraph.shutdown();
-        }
-    }
+            Assert.assertEquals(3, count(thunderGraph.getEdges("name1", 1F).iterator()));
+            Assert.assertEquals(0, thunderGraph.getDbEntries(DbEnum.EDGE_FLOAT_INDEX));
 
-    @Test
-    public void testUpdateIndexedField() {
-
-        ThunderGraph thunderGraph = new ThunderGraph(this.dbPath);
-        try {
-            thunderGraph.createKeyIndex("name1", Vertex.class);
             thunderGraph.commit();
 
-            Vertex v1 = thunderGraph.addVertex(null);
-            v1.setProperty("name1", 1F);
-            Vertex v2 = thunderGraph.addVertex(null);
-            v2.setProperty("name1", 1F);
-            Vertex v3 = thunderGraph.addVertex(null);
-            v3.setProperty("name1", 1F);
-            thunderGraph.commit();
-
-            Assert.assertEquals(3, count(thunderGraph.getVertices("name1", 1F)));
-            v1.setProperty("name1", 2F);
-            thunderGraph.commit();
-
-            Assert.assertEquals(2, count(thunderGraph.getVertices("name1", 1F)));
         } finally {
             thunderGraph.shutdown();
         }
@@ -171,34 +132,9 @@ public class IndexFloatTest extends BaseGlmdbGraphTest {
             Assert.assertEquals(0, count(thunderGraph.getEdges("name1", 1F)));
             Assert.assertEquals(3, count(thunderGraph.getEdges("name1", 2F)));
 
-            thunderGraph.printDb(DbEnum.EDGE_FLOAT_INDEX);
+            Assert.assertEquals(3, thunderGraph.getDbEntries(DbEnum.EDGE_FLOAT_INDEX));
             thunderGraph.dropKeyIndex("name1", Edge.class);
-            thunderGraph.printDb(DbEnum.EDGE_FLOAT_INDEX);
-
-        } finally {
-            thunderGraph.shutdown();
-        }
-    }
-
-    @Test
-    public void testReindexOnVertex() {
-        ThunderGraph thunderGraph = new ThunderGraph(this.dbPath);
-        try {
-
-            Vertex v1 = thunderGraph.addVertex(null);
-            v1.setProperty("name1", 1F);
-            Vertex v2 = thunderGraph.addVertex(null);
-            v2.setProperty("name1", 1F);
-            Vertex v3 = thunderGraph.addVertex(null);
-            v3.setProperty("name1", 1F);
-            thunderGraph.commit();
-
-            Assert.assertEquals(3, count(thunderGraph.getVertices("name1", 1F)));
-            Assert.assertEquals(0, thunderGraph.getDbEntries(DbEnum.VERTEX_FLOAT_INDEX));
-
-            thunderGraph.createKeyIndex("name1", Vertex.class);
-            Assert.assertEquals(3, count(thunderGraph.getVertices("name1", 1F)));
-            Assert.assertEquals(3, thunderGraph.getDbEntries(DbEnum.VERTEX_FLOAT_INDEX));
+            Assert.assertEquals(0, thunderGraph.getDbEntries(DbEnum.EDGE_FLOAT_INDEX));
 
         } finally {
             thunderGraph.shutdown();
@@ -226,11 +162,11 @@ public class IndexFloatTest extends BaseGlmdbGraphTest {
             thunderGraph.commit();
 
             Assert.assertEquals(3, count(thunderGraph.getEdges("name1", 1F)));
-            thunderGraph.printDb(DbEnum.EDGE_FLOAT_INDEX);
+            Assert.assertEquals(0, thunderGraph.getDbEntries(DbEnum.EDGE_FLOAT_INDEX));
 
             thunderGraph.createKeyIndex("name1", Edge.class);
             Assert.assertEquals(3, count(thunderGraph.getEdges("name1", 1F)));
-            thunderGraph.printDb(DbEnum.EDGE_FLOAT_INDEX);
+            Assert.assertEquals(3, thunderGraph.getDbEntries(DbEnum.EDGE_FLOAT_INDEX));
 
         } finally {
             thunderGraph.shutdown();
@@ -238,23 +174,77 @@ public class IndexFloatTest extends BaseGlmdbGraphTest {
     }
 
     @Test
-    public void deleteIndexedVertex() {
+    public void deleteIndexedEdge() {
         ThunderGraph thunderGraph = new ThunderGraph(this.dbPath);
         try {
-            thunderGraph.createKeyIndex("name", Vertex.class);
+            thunderGraph.createKeyIndex("name", Edge.class);
 
             Vertex v1 = thunderGraph.addVertex(null);
-            v1.setProperty("name", 1F);
+            Edge e1 = v1.addEdge("label", thunderGraph.addVertex(null));
+            e1.setProperty("name", 1F);
             thunderGraph.commit();
-            Assert.assertEquals(1, thunderGraph.getDbEntries(DbEnum.VERTEX_FLOAT_INDEX));
+            Assert.assertEquals(1, thunderGraph.getDbEntries(DbEnum.EDGE_FLOAT_INDEX));
 
             v1.remove();
             thunderGraph.commit();
-            Assert.assertEquals(0, thunderGraph.getDbEntries(DbEnum.VERTEX_FLOAT_INDEX));
+            Assert.assertEquals(0, thunderGraph.getDbEntries(DbEnum.EDGE_FLOAT_INDEX));
         } finally {
             thunderGraph.shutdown();
         }
 
+    }
+
+    @Test
+    public void testUpdateValuesInIndexKeys() throws Exception {
+        ThunderGraph graph = new ThunderGraph(this.dbPath);
+        try {
+            graph.createKeyIndex("name", Edge.class);
+            graph.commit();
+
+            Vertex v1 = graph.addVertex(null);
+            Edge e1 = v1.addEdge("label", graph.addVertex(null));
+            e1.setProperty("name", 1F);
+            Assert.assertEquals(e1.getProperty("name"), 1F);
+            Assert.assertEquals(1, count(graph.getEdges()));
+            graph.commit();
+
+            e1 = graph.getEdges("name", 1F).iterator().next();
+            Assert.assertEquals(e1.getProperty("name"), 1F);
+            e1.setProperty("name", 2F);
+            Assert.assertEquals(e1.getProperty("name"), 2F);
+            Assert.assertEquals(1, count(graph.getEdges()));
+            graph.commit();
+
+
+            Assert.assertFalse(graph.getEdges("name", 1F).iterator().hasNext());
+            e1 = graph.getEdges("name", 2F).iterator().next();
+            Assert.assertEquals(e1.getProperty("name"), 2F);
+            Assert.assertEquals(1, count(graph.getEdges()));
+            graph.commit();
+
+        } finally {
+            graph.shutdown();
+        }
+    }
+
+    @Test
+    public void testPartialMatchFails() {
+        ThunderGraph graph = new ThunderGraph(this.dbPath);
+        try {
+            graph.createKeyIndex("name", Edge.class);
+            graph.commit();
+
+            Vertex v1 = graph.addVertex(null);
+            Edge e1 = v1.addEdge("label", graph.addVertex(null));
+            e1.setProperty("name", 1F);
+
+            graph.commit();
+
+            Assert.assertEquals(1, count(graph.getEdges("name", 1F)));
+            Assert.assertEquals(0, count(graph.getEdges("name", 2F)));
+        } finally {
+            graph.shutdown();
+        }
     }
 
     @Test
@@ -262,29 +252,29 @@ public class IndexFloatTest extends BaseGlmdbGraphTest {
 
         ThunderGraph graph = new ThunderGraph(this.dbPath);
         try {
-            graph.createKeyIndex("name", Vertex.class);
+            graph.createKeyIndex("name", Edge.class);
             graph.commit();
 
             Vertex v1 = graph.addVertex(null);
-            v1.setProperty("name", 1F);
+            v1.setProperty("name", "aaaa");
             for (int i = 0; i < 10; i++) {
                 Vertex v2 = graph.addVertex(null);
-                v2.setProperty("name", 2F);
+                v2.setProperty("name", "bbbb");
                 Edge e = graph.addEdge(null, v1, v2, "label1");
-                e.setProperty("name", "cccc");
+                e.setProperty("name", 1F);
             }
             graph.commit();
 
             Assert.assertEquals(11, count(graph.getVertices()));
-            Assert.assertEquals(1, count(graph.getVertices("name", 1F)));
-            Assert.assertEquals(10, count(graph.getVertices("name", 2F)));
-            Assert.assertEquals(10, count(graph.getEdges("name", "cccc")));
-            Iterator<Vertex> iter = graph.getVertices("name", 1F).iterator();
+            Assert.assertEquals(1, count(graph.getVertices("name", "aaaa")));
+            Assert.assertEquals(10, count(graph.getVertices("name", "bbbb")));
+            Assert.assertEquals(10, count(graph.getEdges("name", 1F)));
+            Iterator<Edge> iter = graph.getEdges("name", 1F).iterator();
             //This will cause the transaction to be upgraded to a writable transaction.
             //I.e. iter's cursor gets closed
-            graph.getEdges("name", "cccc").iterator().next().setProperty("name", "cccd");
-            Vertex v = iter.next();
-            Assert.assertEquals(1F, v.getProperty("name"));
+            graph.getVertices("name", "bbbb").iterator().next().setProperty("name", "bbba");
+            Edge e = iter.next();
+            Assert.assertEquals(1F, e.getProperty("name"));
         } finally {
             graph.shutdown();
         }
@@ -296,36 +286,34 @@ public class IndexFloatTest extends BaseGlmdbGraphTest {
 
         ThunderGraph graph = new ThunderGraph(this.dbPath);
         try {
-            graph.createKeyIndex("name", Vertex.class);
+            graph.createKeyIndex("name", Edge.class);
             graph.commit();
 
             Vertex v1 = graph.addVertex(null);
-            v1.setProperty("name", 1F);
+            v1.setProperty("name", "aaaa");
             for (int i = 0; i < 10; i++) {
                 Vertex v2 = graph.addVertex(null);
-                v2.setProperty("name", 2F);
+                v2.setProperty("name", "bbbb");
                 Edge e = graph.addEdge(null, v1, v2, "label1");
-                e.setProperty("name", "cccc");
+                e.setProperty("name", 1F);
             }
             graph.commit();
 
             Assert.assertEquals(11, count(graph.getVertices()));
-            Assert.assertEquals(1, count(graph.getVertices("name", 1F)));
-            Assert.assertEquals(10, count(graph.getVertices("name", 2F)));
-            Assert.assertEquals(10, count(graph.getEdges("name", "cccc")));
+            Assert.assertEquals(1, count(graph.getVertices("name", "aaaa")));
+            Assert.assertEquals(10, count(graph.getVertices("name", "bbbb")));
+            Assert.assertEquals(10, count(graph.getEdges("name", 1F)));
 
-            Iterator<Vertex> iter = graph.getVertices("name", 2F).iterator();
-            Vertex v = iter.next();
-            Assert.assertEquals(1L, v.getId());
-            Assert.assertEquals(2F, v.getProperty("name"));
-
+            Iterator<Edge> iter = graph.getEdges("name", 1F).iterator();
+            Edge e = iter.next();
+            Assert.assertEquals(0L, e.getId());
+            Assert.assertEquals(1F, e.getProperty("name"));
             //This will cause the transaction to be upgraded to a writable transaction.
             //I.e. iter's cursor gets closed
-            v.setProperty("name", 3F);
-
-            v = iter.next();
-            Assert.assertEquals(2L, v.getId());
-            Assert.assertEquals(2F, v.getProperty("name"));
+            e.setProperty("name", 2F);
+            e = iter.next();
+            Assert.assertEquals(1L, e.getId());
+            Assert.assertEquals(1F, e.getProperty("name"));
             Assert.assertEquals(8, count(iter));
         } finally {
             graph.shutdown();
@@ -337,30 +325,30 @@ public class IndexFloatTest extends BaseGlmdbGraphTest {
     public void testRemove() {
         ThunderGraph graph = new ThunderGraph(this.dbPath);
         try {
-            graph.createKeyIndex("name", Vertex.class);
+            graph.createKeyIndex("name", Edge.class);
             graph.commit();
 
             Vertex v1 = graph.addVertex(null);
-            v1.setProperty("name", 1F);
+            v1.setProperty("name", "aaaa");
             for (int i = 0; i < 10; i++) {
                 Vertex v2 = graph.addVertex(null);
-                v2.setProperty("name", 2F);
+                v2.setProperty("name", "bbbb");
                 Edge e = graph.addEdge(null, v1, v2, "label1");
-                e.setProperty("name", "cccc");
+                e.setProperty("name", 1F);
             }
             graph.commit();
 
             Assert.assertEquals(11, count(graph.getVertices()));
-            Assert.assertEquals(1, count(graph.getVertices("name", 1F)));
-            Assert.assertEquals(10, count(graph.getVertices("name", 2F)));
-            Assert.assertEquals(10, count(graph.getEdges("name", "cccc")));
+            Assert.assertEquals(1, count(graph.getVertices("name", "aaaa")));
+            Assert.assertEquals(10, count(graph.getVertices("name", "bbbb")));
+            Assert.assertEquals(10, count(graph.getEdges("name", 1F)));
 
-            Iterator<Vertex> iter = graph.getVertices("name", 2F).iterator();
-            Vertex v = iter.next();
-            Assert.assertEquals(1L, v.getId());
-            Assert.assertEquals(2F, v.getProperty("name"));
+            Iterator<Edge> iter = graph.getEdges("name", 1F).iterator();
+            Edge e = iter.next();
+            Assert.assertEquals(0L, e.getId());
+            Assert.assertEquals(1F, e.getProperty("name"));
             iter.remove();
-            Assert.assertNull(graph.getVertex(1L));
+            Assert.assertNull(graph.getEdge(0L));
             Assert.assertEquals(9, count(iter));
         } finally {
             graph.shutdown();
@@ -371,35 +359,35 @@ public class IndexFloatTest extends BaseGlmdbGraphTest {
     public void testRemoveTransactionAlreadyWritableFail() {
         ThunderGraph graph = new ThunderGraph(this.dbPath);
         try {
-            graph.createKeyIndex("name", Vertex.class);
+            graph.createKeyIndex("name", Edge.class);
             graph.commit();
 
             Vertex v1 = graph.addVertex(null);
-            v1.setProperty("name", 1F);
+            v1.setProperty("name", "aaaa");
             for (int i = 0; i < 10; i++) {
                 Vertex v2 = graph.addVertex(null);
-                v2.setProperty("name", 2F);
+                v2.setProperty("name", "bbbb");
                 Edge e = graph.addEdge(null, v1, v2, "label1");
-                e.setProperty("name", "cccc");
+                e.setProperty("name", 1F);
             }
             graph.commit();
 
             Assert.assertEquals(11, count(graph.getVertices()));
-            Assert.assertEquals(1, count(graph.getVertices("name", 1F)));
-            Assert.assertEquals(10, count(graph.getVertices("name", 2F)));
-            Assert.assertEquals(10, count(graph.getEdges("name", "cccc")));
+            Assert.assertEquals(1, count(graph.getVertices("name", "aaaa")));
+            Assert.assertEquals(10, count(graph.getVertices("name", "bbbb")));
+            Assert.assertEquals(10, count(graph.getEdges("name", 1F)));
 
-            Iterator<Vertex> iter = graph.getVertices("name", 2F).iterator();
-            Vertex v = iter.next();
-            v.setProperty("name", 3F);
-            Assert.assertEquals(1L, v.getId());
-            Assert.assertEquals(3F, v.getProperty("name"));
+            Iterator<Edge> iter = graph.getEdges("name", 1F).iterator();
+            Edge e = iter.next();
+            e.setProperty("name", 2F);
+            Assert.assertEquals(0L, e.getId());
+            Assert.assertEquals(2F, e.getProperty("name"));
             iter.remove();
-            Assert.assertNull(graph.getVertex(1L));
+            Assert.assertNull(graph.getEdge(0L));
             Assert.assertEquals(9, count(iter));
 
             graph.commit();
-            iter = graph.getVertices("name", 2F).iterator();
+            iter = graph.getEdges("name", 1F).iterator();
             Assert.assertEquals(9, count(iter));
 
         } finally {
@@ -411,35 +399,35 @@ public class IndexFloatTest extends BaseGlmdbGraphTest {
     public void testRemoveTransactionAlreadyWritableSucceed() {
         ThunderGraph graph = new ThunderGraph(this.dbPath);
         try {
-            graph.createKeyIndex("name", Vertex.class);
+            graph.createKeyIndex("name", Edge.class);
             graph.commit();
 
             Vertex v1 = graph.addVertex(null);
-            v1.setProperty("name", 1F);
+            v1.setProperty("name", "aaaa");
             for (int i = 0; i < 10; i++) {
                 Vertex v2 = graph.addVertex(null);
-                v2.setProperty("name", 2F);
+                v2.setProperty("name", "bbbb");
                 Edge e = graph.addEdge(null, v1, v2, "label1");
-                e.setProperty("name", "cccc");
+                e.setProperty("name", 1F);
             }
             graph.commit();
 
             Assert.assertEquals(11, count(graph.getVertices()));
-            Assert.assertEquals(1, count(graph.getVertices("name", 1F)));
-            Assert.assertEquals(10, count(graph.getVertices("name", 2F)));
-            Assert.assertEquals(10, count(graph.getEdges("name", "cccc")));
+            Assert.assertEquals(1, count(graph.getVertices("name", "aaaa")));
+            Assert.assertEquals(10, count(graph.getVertices("name", "bbbb")));
+            Assert.assertEquals(10, count(graph.getEdges("name", 1F)));
 
-            Iterator<Vertex> iter = graph.getVertices("name", 2F).iterator();
-            Vertex v = iter.next();
-            v.setProperty("name", 2F);
-            Assert.assertEquals(1L, v.getId());
-            Assert.assertEquals(2F, v.getProperty("name"));
+            Iterator<Edge> iter = graph.getEdges("name", 1F).iterator();
+            Edge e = iter.next();
+            e.setProperty("name", 1F);
+            Assert.assertEquals(0L, e.getId());
+            Assert.assertEquals(1F, e.getProperty("name"));
             iter.remove();
-            Assert.assertNull(graph.getVertex(1L));
+            Assert.assertNull(graph.getEdge(0L));
             Assert.assertEquals(9, count(iter));
 
             graph.commit();
-            iter = graph.getVertices("name", 2F).iterator();
+            iter = graph.getEdges("name", 1F).iterator();
             Assert.assertEquals(9, count(iter));
 
         } finally {

@@ -287,7 +287,7 @@ int placeCursorOnKeyValueLongIndex(MDB_cursor *cursor, long long vertexId, int p
 
 }
 
-int getCurrentVertexfromVertexLongIndexDb(MDB_cursor *cursor, jlong *vertexIdC, int propertyKeyId, jlong value) {
+int getCurrentElementFromLongIndexDb(MDB_cursor *cursor, jlong *vertexIdC, int propertyKeyId, jlong value) {
 
 	int rc = 0;
 	MDB_val key, data;
