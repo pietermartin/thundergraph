@@ -21,30 +21,29 @@ public class ConcurrentModificationTest extends BaseGlmdbGraphTest {
         System.out.println(a.getId());
         System.out.println(b.getId());
         System.out.println(c.getId());
-        if (graph.getFeatures().supportsVertexIteration) {
-            for (Vertex vertex : graph.getVertices()) {
-                System.out.println(vertex.getId());
-                graph.addEdge(null, vertex, a, "x");
-                graph.addEdge(null, vertex, a, "y");
-            }
+        for (Vertex vertex : graph.getVertices()) {
+            System.out.println(vertex.getId());
+            graph.addEdge(null, vertex, a, "x");
+            graph.addEdge(null, vertex, a, "y");
+        }
 
-            for (Vertex vertex : graph.getVertices()) {
-                System.out.println(vertex.getId());
-                Assert.assertEquals(BaseTest.count(vertex.getEdges(Direction.OUT)), 2);
-                for (Edge edge : vertex.getEdges(Direction.OUT)) {
-                    graph.removeEdge(edge);
-                }
-            }
-            for (Vertex vertex : graph.getVertices()) {
-                graph.removeVertex(vertex);
-            }
-        } else if (graph.getFeatures().supportsEdgeIteration) {
-            for (int i = 0; i < 10; i++) {
-                graph.addEdge(null, graph.addVertex(null), graph.addVertex(null), "test");
-            }
-            for (Edge edge : graph.getEdges()) {
+//        graph.printDb(DbEnum.VERTEX_DB);
+
+        for (Vertex vertex : graph.getVertices()) {
+            System.out.println(vertex.getId());
+            Assert.assertEquals(2, BaseTest.count(vertex.getEdges(Direction.OUT)));
+            for (Edge edge : vertex.getEdges(Direction.OUT)) {
                 graph.removeEdge(edge);
             }
+        }
+        for (Vertex vertex : graph.getVertices()) {
+            graph.removeVertex(vertex);
+        }
+        for (int i = 0; i < 10; i++) {
+            graph.addEdge(null, graph.addVertex(null), graph.addVertex(null), "test");
+        }
+        for (Edge edge : graph.getEdges()) {
+            graph.removeEdge(edge);
         }
         graph.commit();
         graph.shutdown();

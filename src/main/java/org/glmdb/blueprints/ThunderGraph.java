@@ -1,6 +1,7 @@
 package org.glmdb.blueprints;
 
 import com.tinkerpop.blueprints.*;
+import com.tinkerpop.blueprints.util.DefaultGraphQuery;
 import org.glmdb.blueprints.iter.AllEdgeIterable;
 import org.glmdb.blueprints.iter.AllVertexIterable;
 import org.glmdb.blueprints.iter._boolean.EdgeBooleanIndexIterable;
@@ -314,7 +315,7 @@ public class ThunderGraph implements TransactionalGraph, KeyIndexableGraph {
     @Override
     public GraphQuery query() {
         //TODO
-        return null;  //To change body of implemented methods use File | Settings | File Templates.
+        return new DefaultGraphQuery(this);
     }
 
     @Override
@@ -326,6 +327,7 @@ public class ThunderGraph implements TransactionalGraph, KeyIndexableGraph {
 
     @Override
     public void commit() {
+//        printDb(DbEnum.VERTEX_DB);
         TransactionAndCursor tc = this.currentTransaction.get();
         if (tc != null) {
             if (!tc.isReadOnly()) {
@@ -345,6 +347,12 @@ public class ThunderGraph implements TransactionalGraph, KeyIndexableGraph {
 
     @Override
     public void rollback() {
+        this.internalRollback();
+    }
+
+    //This is here to avoid method overriding rollback
+    //As rollback gets called when a readonly transaction is upgraded to a writable one
+    private void internalRollback() {
         TransactionAndCursor tc = this.currentTransaction.get();
         if (tc != null) {
             if (!tc.isReadOnly()) {
@@ -393,7 +401,7 @@ public class ThunderGraph implements TransactionalGraph, KeyIndexableGraph {
         if (!readOnly && tc.isReadOnly()) {
 //            //Copy the current open iterator cursors to the new TransactionAndCursor
 //            Set<Pair<BaseThunderIterable, Cursor>> iteratorCursors = tc.getCopyOfIteratorCursorsCopy();
-            this.rollback();
+            this.internalRollback();
             //Only one thread is allowed to write at a time
             synchronized (this.thunder) {
                 Transaction t = this.thunder.createWriteTransaction();

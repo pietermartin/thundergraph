@@ -45,6 +45,9 @@ public class VertexesFromVertexTest extends BaseGlmdbGraphTest {
             Assert.assertEquals(10, count);
             thunderGraph.commit();
 
+            vertex1_1 = thunderGraph.getVertex(0L);
+            Assert.assertEquals(10, count(vertex1_1.getEdges(Direction.BOTH, "testLabel1")));
+
             List<String> vertexName = new ArrayList<String>();
             count = 0;
             vertex1_1 = thunderGraph.getVertex(0L);

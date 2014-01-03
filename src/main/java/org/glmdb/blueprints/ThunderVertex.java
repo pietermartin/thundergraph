@@ -4,6 +4,7 @@ import com.tinkerpop.blueprints.Direction;
 import com.tinkerpop.blueprints.Edge;
 import com.tinkerpop.blueprints.Vertex;
 import com.tinkerpop.blueprints.VertexQuery;
+import com.tinkerpop.blueprints.util.DefaultVertexQuery;
 import org.glmdb.blueprints.iter.EdgesFromVertexIterable;
 import org.glmdb.blueprints.iter.VertexesFromVertexIterable;
 
@@ -68,7 +69,7 @@ public class ThunderVertex extends ThunderElement implements Vertex {
     @Override
     public VertexQuery query() {
         //TODO
-        return null;  //To change body of implemented methods use File | Settings | File Templates.
+        return new DefaultVertexQuery(this);
     }
 
     @Override

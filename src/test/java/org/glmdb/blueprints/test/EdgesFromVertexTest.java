@@ -5,6 +5,7 @@ import com.tinkerpop.blueprints.Edge;
 import com.tinkerpop.blueprints.Vertex;
 import org.apache.commons.lang.time.StopWatch;
 import org.glmdb.blueprints.ThunderGraph;
+import org.glmdb.blueprints.jni.DbEnum;
 import org.junit.Assert;
 import org.junit.Test;
 
@@ -59,7 +60,6 @@ public class EdgesFromVertexTest extends BaseGlmdbGraphTest {
         Assert.assertEquals("edge9", edgeName.get(9));
 
         thunderGraph.commit();
-
 
 
         Vertex vertex2_1 = thunderGraph.getVertex(1L);
@@ -144,7 +144,7 @@ public class EdgesFromVertexTest extends BaseGlmdbGraphTest {
         int count = 0;
         Vertex v = thunderGraph.getVertex(0L);
         Iterator<Edge> iterator = v.getEdges(Direction.OUT, "testLabel1").iterator();
-        while (iterator.hasNext()){
+        while (iterator.hasNext()) {
             iterator.next();
             count++;
             if (count == 5) {
@@ -157,7 +157,7 @@ public class EdgesFromVertexTest extends BaseGlmdbGraphTest {
 
         v = thunderGraph.getVertex(0L);
         iterator = v.getEdges(Direction.OUT, "testLabel1").iterator();
-        while (iterator.hasNext()){
+        while (iterator.hasNext()) {
             iterator.next();
             iterator.remove();
         }
@@ -188,7 +188,9 @@ public class EdgesFromVertexTest extends BaseGlmdbGraphTest {
         int count = 0;
         Vertex v = thunderGraph.getVertex(0L);
         Iterator<Edge> iterator = v.getEdges(Direction.OUT).iterator();
-        while (iterator.hasNext()){
+        Assert.assertEquals(100, count(iterator));
+        iterator = v.getEdges(Direction.OUT).iterator();
+        while (iterator.hasNext()) {
             iterator.next();
             count++;
             if (count == 5) {
@@ -201,7 +203,7 @@ public class EdgesFromVertexTest extends BaseGlmdbGraphTest {
 
         v = thunderGraph.getVertex(0L);
         iterator = v.getEdges(Direction.OUT).iterator();
-        while (iterator.hasNext()){
+        while (iterator.hasNext()) {
             iterator.next();
             iterator.remove();
         }
@@ -230,7 +232,7 @@ public class EdgesFromVertexTest extends BaseGlmdbGraphTest {
         int count = 0;
         Vertex v = thunderGraph.getVertex(0L);
         Iterator<Edge> iterator = v.getEdges(Direction.OUT).iterator();
-        while (iterator.hasNext()){
+        while (iterator.hasNext()) {
             Edge edge = iterator.next();
             count++;
             if (count == 5) {
@@ -243,7 +245,7 @@ public class EdgesFromVertexTest extends BaseGlmdbGraphTest {
 
         v = thunderGraph.getVertex(0L);
         iterator = v.getEdges(Direction.OUT).iterator();
-        while (iterator.hasNext()){
+        while (iterator.hasNext()) {
             iterator.next();
             iterator.remove();
         }
@@ -271,7 +273,7 @@ public class EdgesFromVertexTest extends BaseGlmdbGraphTest {
         int count = 0;
         Vertex v = thunderGraph.getVertex(0L);
         Iterator<Edge> iterator = v.getEdges(Direction.OUT).iterator();
-        while (iterator.hasNext()){
+        while (iterator.hasNext()) {
             iterator.next();
             count++;
             if (count == 5) {
@@ -284,7 +286,7 @@ public class EdgesFromVertexTest extends BaseGlmdbGraphTest {
 
         v = thunderGraph.getVertex(0L);
         iterator = v.getEdges(Direction.OUT).iterator();
-        while (iterator.hasNext()){
+        while (iterator.hasNext()) {
             iterator.next();
             iterator.remove();
         }
@@ -736,5 +738,28 @@ public class EdgesFromVertexTest extends BaseGlmdbGraphTest {
         }
     }
 
+    @Test
+    public void removeEdgeFromIterTestDirectionBoth() {
+        ThunderGraph thunderGraph = new ThunderGraph(this.dbPath);
+        try {
+            Vertex vertex1 = thunderGraph.addVertex(null);
+            vertex1.setProperty("name", "vertexOut1");
+            for (int i = 0; i < (102); i++) {
+                Vertex vertex2 = thunderGraph.addVertex(null);
+                vertex2.setProperty("name", "vertexInaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa" + i);
+                Edge edge = thunderGraph.addEdge(null, vertex1, vertex2, "testLabel1");
+                edge.setProperty("name", "edge1aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa" + i);
+            }
+            Vertex v = thunderGraph.getVertex(0L);
+            for (Edge e : v.getEdges(Direction.BOTH)) {
+                e.remove();
+            }
+            thunderGraph.printDb(DbEnum.VERTEX_DB);
+            thunderGraph.commit();
+        } finally {
+            thunderGraph.shutdown();
+        }
+
+    }
 
 }

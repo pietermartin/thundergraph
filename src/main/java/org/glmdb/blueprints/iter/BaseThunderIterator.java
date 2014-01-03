@@ -22,6 +22,7 @@ public abstract class BaseThunderIterator<E extends ThunderElement> implements I
     protected boolean goToFirst = true;
     protected String currentLabel;
     protected long currentEdgeOutVertexId;
+    protected long currentEdgeInVertexId;
     protected E next;
     //This is needed as a cache for the remove method.
     //Remove is called after a call to next however next sets next to null for the hasNext logic;

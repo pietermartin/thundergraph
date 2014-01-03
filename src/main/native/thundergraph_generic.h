@@ -26,3 +26,17 @@ int deleteEdgeProperties(GLMDB_env *genv, MDB_txn *txn, MDB_cursor *edgeCursor, 
 int getEdge(MDB_cursor *cursor, jlong edgeId, MDB_val *edgeKey, MDB_val *edgeData);
 
 void printVertexRecord(MDB_val key, MDB_val data);
+
+int getFirstEdgefromVertex(MDB_cursor *cursor, jint direction, jint labelId, jlong fromVertexId, jlong *edgeIdResultC,
+		jlong *outVertexIdC, jlong *inVertexIdC);
+int getNextEdgefromVertex(MDB_cursor *cursor, jint direction, jint labelId, jlong fromVertexId, jlong *edgeIdResultC,
+		jlong *outVertexIdC, jlong *inVertexIdC);
+int getCurrentEdgefromVertex(MDB_cursor *cursor, jint direction, jint labelId, jlong fromVertexId, jlong *edgeIdResultC,
+		jlong *outVertexIdC, jlong *inVertexIdC);
+int getFirstEdgefromVertexAllLabels(MDB_cursor *cursor, jint direction, jlong fromVertexId, jint *labelIdResultC, jlong *edgeIdResultC,
+		jlong *outVertexIdC, jlong *inVertexIdC);
+int getNextEdgefromVertexAllLabels(MDB_cursor *cursor, jint direction, jlong fromVertexId, jint *labelIdResultC, jlong *edgeIdResultC,
+		jlong *outVertexIdC, jlong *inVertexIdC);
+int getCurrentEdgefromVertexAllLabels(MDB_cursor *cursor, jint direction, jlong fromVertexId, jint *labelIdResultC,
+		jlong *edgeIdResultC, jlong *outVertexIdC, jlong *inVertexIdC);
+

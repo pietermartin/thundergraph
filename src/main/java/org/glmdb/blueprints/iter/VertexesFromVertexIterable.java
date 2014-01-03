@@ -78,6 +78,7 @@ public class VertexesFromVertexIterable<T extends Vertex> extends BaseThunderIte
                     if (VertexesFromVertexIterable.this.thunderGraph.getThunder().getFirstEdgeFromVertex(
                             this.cursor, VertexesFromVertexIterable.this.direction, currentLabel, VertexesFromVertexIterable.this.vertexId, edgeIdArray, outVertexIdArray, inVertexIdArray)) {
                         this.currentEdgeOutVertexId = outVertexIdArray[0];
+                        this.currentEdgeInVertexId = inVertexIdArray[0];
                         this.edgeId = edgeIdArray[0];
                         //Return the vertex that is not the from vertex.
                         if (outVertexIdArray[0] == VertexesFromVertexIterable.this.vertexId) {
@@ -109,6 +110,7 @@ public class VertexesFromVertexIterable<T extends Vertex> extends BaseThunderIte
                                         this.cursor, VertexesFromVertexIterable.this.direction, currentLabel, VertexesFromVertexIterable.this.vertexId, edgeIdArray, outVertexIdArray, inVertexIdArray)) {
 
                                     this.currentEdgeOutVertexId = outVertexIdArray[0];
+                                    this.currentEdgeInVertexId = inVertexIdArray[0];
                                     this.edgeId = edgeIdArray[0];
                                     //Return the vertex that is not the from vertex.
                                     if (outVertexIdArray[0] == VertexesFromVertexIterable.this.vertexId) {
@@ -123,6 +125,7 @@ public class VertexesFromVertexIterable<T extends Vertex> extends BaseThunderIte
                             } else {
 
                                 this.currentEdgeOutVertexId = outVertexIdArray[0];
+                                this.currentEdgeInVertexId = inVertexIdArray[0];
                                 this.edgeId = edgeIdArray[0];
                                 //Return the vertex that is not the from vertex.
                                 if (outVertexIdArray[0] == VertexesFromVertexIterable.this.vertexId) {
@@ -137,10 +140,17 @@ public class VertexesFromVertexIterable<T extends Vertex> extends BaseThunderIte
                         }
 
                     } else {
+
+                        //Set the previous/current values. It is needed to check whether calling MDB_CURRENT already moved the cursor of whether MDB_NEXT must be called
+                        edgeIdArray[0] = this.edgeId;
+                        outVertexIdArray[0] = this.currentEdgeOutVertexId;
+                        inVertexIdArray[0] = this.currentEdgeInVertexId;
+
                         if (VertexesFromVertexIterable.this.thunderGraph.getThunder().getNextEdgeFromVertex(
                                 this.cursor, VertexesFromVertexIterable.this.direction, currentLabel, VertexesFromVertexIterable.this.vertexId, edgeIdArray, outVertexIdArray, inVertexIdArray)) {
 
                             this.currentEdgeOutVertexId = outVertexIdArray[0];
+                            this.currentEdgeInVertexId = inVertexIdArray[0];
                             this.edgeId = edgeIdArray[0];
                             //Return the vertex that is not the from vertex.
                             if (outVertexIdArray[0] == VertexesFromVertexIterable.this.vertexId) {
@@ -204,6 +214,7 @@ public class VertexesFromVertexIterable<T extends Vertex> extends BaseThunderIte
                         this.cursor, VertexesFromVertexIterable.this.direction, VertexesFromVertexIterable.this.vertexId, labelArray, edgeIdArray, outVertexIdArray, inVertexIdArray)) {
                     this.currentLabel = labelArray[0];
                     this.currentEdgeOutVertexId = outVertexIdArray[0];
+                    this.currentEdgeInVertexId = inVertexIdArray[0];
                     this.edgeId = edgeIdArray[0];
                     //Return the vertex that is not the from vertex.
                     if (outVertexIdArray[0] == VertexesFromVertexIterable.this.vertexId) {
@@ -233,6 +244,7 @@ public class VertexesFromVertexIterable<T extends Vertex> extends BaseThunderIte
 
                                 this.currentLabel = labelArray[0];
                                 this.currentEdgeOutVertexId = outVertexIdArray[0];
+                                this.currentEdgeInVertexId = inVertexIdArray[0];
                                 this.edgeId = edgeIdArray[0];
                                 //Return the vertex that is not the from vertex.
                                 if (outVertexIdArray[0] == VertexesFromVertexIterable.this.vertexId) {
@@ -248,6 +260,7 @@ public class VertexesFromVertexIterable<T extends Vertex> extends BaseThunderIte
 
                             this.currentLabel = labelArray[0];
                             this.currentEdgeOutVertexId = outVertexIdArray[0];
+                            this.currentEdgeInVertexId = inVertexIdArray[0];
                             this.edgeId = edgeIdArray[0];
                             //Return the vertex that is not the from vertex.
                             if (outVertexIdArray[0] == VertexesFromVertexIterable.this.vertexId) {
@@ -262,10 +275,18 @@ public class VertexesFromVertexIterable<T extends Vertex> extends BaseThunderIte
                     }
 
                 } else {
+
+                    //Set the previous/current values. It is needed to check whether calling MDB_CURRENT already moved the cursor of whether MDB_NEXT must be called
+                    labelArray[0] = this.currentLabel;
+                    edgeIdArray[0] = this.edgeId;
+                    outVertexIdArray[0] = this.currentEdgeOutVertexId;
+                    inVertexIdArray[0] = this.currentEdgeInVertexId;
+
                     if (VertexesFromVertexIterable.this.thunderGraph.getThunder().getNextEdgeFromVertexAllLabels(
                             this.cursor, VertexesFromVertexIterable.this.direction, VertexesFromVertexIterable.this.vertexId, labelArray, edgeIdArray, outVertexIdArray, inVertexIdArray)) {
                         this.currentLabel = labelArray[0];
                         this.currentEdgeOutVertexId = outVertexIdArray[0];
+                        this.currentEdgeInVertexId = inVertexIdArray[0];
                         this.edgeId = edgeIdArray[0];
                         //Return the vertex that is not the from vertex.
                         if (outVertexIdArray[0] == VertexesFromVertexIterable.this.vertexId) {

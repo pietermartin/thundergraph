@@ -1415,18 +1415,6 @@ extern "C" {
 	void closeGraph(GLMDB_env *genv);
 	int addVertex(MDB_cursor *cursor, MDB_dbi vertexDb, jlong vertexId, MDB_val *vertexKey);
 	int getVertex(MDB_cursor *cursor, jlong vertexId, MDB_val *vertexKey);
-	int getFirstEdgefromVertex(MDB_cursor *cursor, jint direction, jint labelId, jlong fromVertexId, jlong *edgeIdResultC,
-			jlong *outVertexIdC, jlong *inVertexIdC);
-	int getNextEdgefromVertex(MDB_cursor *cursor, jint direction, jint labelId, jlong fromVertexId, jlong *edgeIdResultC,
-			jlong *outVertexIdC, jlong *inVertexIdC);
-	int getCurrentEdgefromVertex(MDB_cursor *cursor, jint direction, jint labelId, jlong fromVertexId, jlong *edgeIdResultC,
-			jlong *outVertexIdC, jlong *inVertexIdC);
-	int getFirstEdgefromVertexAllLabels(MDB_cursor *cursor, jint direction, jlong fromVertexId, jint *labelIdResultC, jlong *edgeIdResultC,
-			jlong *outVertexIdC, jlong *inVertexIdC);
-	int getNextEdgefromVertexAllLabels(MDB_cursor *cursor, jint direction, jlong fromVertexId, jint *labelIdResultC, jlong *edgeIdResultC,
-			jlong *outVertexIdC, jlong *inVertexIdC);
-	int getCurrentEdgefromVertexAllLabels(MDB_cursor *cursor, jint direction, jlong fromVertexId, jint *labelIdResultC,
-			jlong *edgeIdResultC, jlong *outVertexIdC, jlong *inVertexIdC);
 
 	int addEdge(MDB_txn *txn, MDB_dbi vertexDb, MDB_dbi edgeDb, jlong edgeId, jint labelId, jlong vertexOutId, jlong vertexInId);
 	int addEdgeToEdgeDb(MDB_txn *txn, MDB_dbi edgeDb, jlong edgeId, jint labelId, jlong vertexOutId, jlong vertexInId);

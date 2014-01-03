@@ -83,6 +83,7 @@ public class EdgesFromVertexIterable<T extends Edge> extends BaseThunderIterable
                     if (EdgesFromVertexIterable.this.thunderGraph.getThunder().getFirstEdgeFromVertex(
                             this.cursor, EdgesFromVertexIterable.this.direction, currentLabel, EdgesFromVertexIterable.this.vertexId, edgeIdArray, outVertexIdArray, inVertexIdArray)) {
                         this.currentEdgeOutVertexId = outVertexIdArray[0];
+                        this.currentEdgeInVertexId = inVertexIdArray[0];
                         this.edgeId = edgeIdArray[0];
                         return new ThunderEdge(EdgesFromVertexIterable.this.thunderGraph, edgeIdArray[0], currentLabel, outVertexIdArray[0], inVertexIdArray[0]);
                     } else {
@@ -109,6 +110,7 @@ public class EdgesFromVertexIterable<T extends Edge> extends BaseThunderIterable
                                         this.cursor, EdgesFromVertexIterable.this.direction, currentLabel, EdgesFromVertexIterable.this.vertexId, edgeIdArray, outVertexIdArray, inVertexIdArray)) {
 
                                     this.currentEdgeOutVertexId = outVertexIdArray[0];
+                                    this.currentEdgeInVertexId = inVertexIdArray[0];
                                     this.edgeId = edgeIdArray[0];
                                     return new ThunderEdge(EdgesFromVertexIterable.this.thunderGraph, edgeIdArray[0], currentLabel, outVertexIdArray[0], inVertexIdArray[0]);
 
@@ -118,6 +120,7 @@ public class EdgesFromVertexIterable<T extends Edge> extends BaseThunderIterable
                             } else {
 
                                 this.currentEdgeOutVertexId = outVertexIdArray[0];
+                                this.currentEdgeInVertexId = inVertexIdArray[0];
                                 this.edgeId = edgeIdArray[0];
                                 return new ThunderEdge(EdgesFromVertexIterable.this.thunderGraph, edgeIdArray[0], currentLabel, outVertexIdArray[0], inVertexIdArray[0]);
                             }
@@ -127,10 +130,17 @@ public class EdgesFromVertexIterable<T extends Edge> extends BaseThunderIterable
                         }
 
                     } else {
+
+                        //Set the previous/current values. It is needed to check whether calling MDB_CURRENT already moved the cursor of whether MDB_NEXT must be called
+                        edgeIdArray[0] = this.edgeId;
+                        outVertexIdArray[0] = this.currentEdgeOutVertexId;
+                        inVertexIdArray[0] = this.currentEdgeInVertexId;
+
                         if (EdgesFromVertexIterable.this.thunderGraph.getThunder().getNextEdgeFromVertex(
                                 this.cursor, EdgesFromVertexIterable.this.direction, currentLabel, EdgesFromVertexIterable.this.vertexId, edgeIdArray, outVertexIdArray, inVertexIdArray)) {
 
                             this.currentEdgeOutVertexId = outVertexIdArray[0];
+                            this.currentEdgeInVertexId = inVertexIdArray[0];
                             this.edgeId = edgeIdArray[0];
                             return new ThunderEdge(EdgesFromVertexIterable.this.thunderGraph, edgeIdArray[0], currentLabel, outVertexIdArray[0], inVertexIdArray[0]);
                         } else {
@@ -173,6 +183,7 @@ public class EdgesFromVertexIterable<T extends Edge> extends BaseThunderIterable
         protected ThunderEdge internalNext() {
 
             String labelArray[] = new String[1];
+            int labelIdArray[] = new int[1];
             long edgeIdArray[] = new long[1];
             long outVertexIdArray[] = new long[1];
             long inVertexIdArray[] = new long[1];
@@ -191,6 +202,7 @@ public class EdgesFromVertexIterable<T extends Edge> extends BaseThunderIterable
                         this.cursor, EdgesFromVertexIterable.this.direction, EdgesFromVertexIterable.this.vertexId, labelArray, edgeIdArray, outVertexIdArray, inVertexIdArray)) {
                     this.currentLabel = labelArray[0];
                     this.currentEdgeOutVertexId = outVertexIdArray[0];
+                    this.currentEdgeInVertexId = inVertexIdArray[0];
                     this.edgeId = edgeIdArray[0];
                     return new ThunderEdge(EdgesFromVertexIterable.this.thunderGraph, edgeIdArray[0], labelArray[0], outVertexIdArray[0], inVertexIdArray[0]);
                 } else {
@@ -215,6 +227,7 @@ public class EdgesFromVertexIterable<T extends Edge> extends BaseThunderIterable
 
                                 this.currentLabel = labelArray[0];
                                 this.currentEdgeOutVertexId = outVertexIdArray[0];
+                                this.currentEdgeInVertexId = inVertexIdArray[0];
                                 this.edgeId = edgeIdArray[0];
                                 return new ThunderEdge(EdgesFromVertexIterable.this.thunderGraph, edgeIdArray[0], currentLabel, outVertexIdArray[0], inVertexIdArray[0]);
 
@@ -225,6 +238,7 @@ public class EdgesFromVertexIterable<T extends Edge> extends BaseThunderIterable
 
                             this.currentLabel = labelArray[0];
                             this.currentEdgeOutVertexId = outVertexIdArray[0];
+                            this.currentEdgeInVertexId = inVertexIdArray[0];
                             this.edgeId = edgeIdArray[0];
                             return new ThunderEdge(EdgesFromVertexIterable.this.thunderGraph, edgeIdArray[0], currentLabel, outVertexIdArray[0], inVertexIdArray[0]);
                         }
@@ -234,10 +248,18 @@ public class EdgesFromVertexIterable<T extends Edge> extends BaseThunderIterable
                     }
 
                 } else {
+
+                    //Set the previous/current values. It is needed to check whether calling MDB_CURRENT already moved the cursor of whether MDB_NEXT must be called
+                    labelArray[0] = this.currentLabel;
+                    edgeIdArray[0] = this.edgeId;
+                    outVertexIdArray[0] = this.currentEdgeOutVertexId;
+                    inVertexIdArray[0] = this.currentEdgeInVertexId;
+
                     if (EdgesFromVertexIterable.this.thunderGraph.getThunder().getNextEdgeFromVertexAllLabels(
                             this.cursor, EdgesFromVertexIterable.this.direction, EdgesFromVertexIterable.this.vertexId, labelArray, edgeIdArray, outVertexIdArray, inVertexIdArray)) {
                         this.currentLabel = labelArray[0];
                         this.currentEdgeOutVertexId = outVertexIdArray[0];
+                        this.currentEdgeInVertexId = inVertexIdArray[0];
                         this.edgeId = edgeIdArray[0];
                         return new ThunderEdge(EdgesFromVertexIterable.this.thunderGraph, edgeIdArray[0], labelArray[0], outVertexIdArray[0], inVertexIdArray[0]);
                     } else {
