@@ -4892,8 +4892,10 @@ JNIEXPORT jint JNICALL Java_org_glmdb_blueprints_jni_ThunderJni_mdb_1get_1next_1
 	MDB_val key, data;
 	rc = mdb_cursor_get((MDB_cursor *) (long) cursor, &key, &data, MDB_NEXT);
 	if (rc == 0) {
+
+
 		char *label = (char *) (key.mv_data);
-		labelIdArrayC = (int *) (data.mv_data);
+		*labelIdArrayC = *((int *) (data.mv_data));
 
 		jbyteArray byteArray = (*env)->NewByteArray(env, (size_t) key.mv_size);
 		jbyte *byteArrayC = (*env)->GetByteArrayElements(env, byteArray, NULL);
@@ -5838,9 +5840,6 @@ JNIEXPORT jint JNICALL Java_org_glmdb_blueprints_jni_ThunderJni_mdb_1get_1first_
 			foundEdge = 0;
 			break;
 		default:
-			printEdgeRecord(key, data);
-			printf("mdb_get_first_edge edgeDbId.coreOrPropertyEnum = %i\n", edgeDbId.coreOrPropertyEnum);
-			printf("mdb_get_first_edge = %i\n", rc);
 			rc = GLMDB_DB_CORRUPT;
 			break;
 		}
@@ -8602,6 +8601,22 @@ int openGraph(GLMDB_env **genv, const char *path) {
 	*genv = glmdbEnv;
 
 	rc = loadSequences(glmdbEnv, VERTEX_ID_SEQUENCE);
+	if (rc != 0) {
+		return rc;
+	}
+	rc = loadSequences(glmdbEnv, EDGE_ID_SEQUENCE);
+	if (rc != 0) {
+		return rc;
+	}
+	rc = loadSequences(glmdbEnv, VERTEX_PROPERTY_KEY_ID_SEQUENCE);
+	if (rc != 0) {
+		return rc;
+	}
+	rc = loadSequences(glmdbEnv, EDGE_PROPERTY_KEY_ID_SEQUENCE);
+	if (rc != 0) {
+		return rc;
+	}
+	rc = loadSequences(glmdbEnv, LABEL_ID_SEQUENCE);
 	if (rc != 0) {
 		return rc;
 	}

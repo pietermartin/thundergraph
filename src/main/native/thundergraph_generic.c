@@ -363,6 +363,7 @@ int internalRemoveEdge(GLMDB_env *genv, MDB_txn *txn, MDB_cursor *edgeCursor, jl
 
 int removeEdge(MDB_txn *txn, GLMDB_env *genv, jlong edgeId) {
 
+	printf("removeEdge start \n");
 	int rc = 0;
 	MDB_val edgeKey, vertexKey, data, vertexData;
 	MDB_cursor *edgeCursor;
@@ -661,6 +662,11 @@ int getFirstEdgefromVertex(MDB_cursor *cursor, jint direction, jint labelId, jlo
 
 	int rc;
 	MDB_val key, data;
+
+	//This is bypassing some bug somewhere
+	//TODO remove this mdb_cursor_get
+	rc = mdb_cursor_get(cursor, &key, &data, MDB_FIRST);
+
 	VertexDbId id;
 	initVertexDbId(&id);
 	id.vertexId = fromVertexId;
@@ -682,7 +688,9 @@ int getFirstEdgefromVertex(MDB_cursor *cursor, jint direction, jint labelId, jlo
 	id.labelId = labelId;
 	key.mv_size = sizeof(VertexDbId);
 	key.mv_data = &id;
+
 	rc = mdb_cursor_get((MDB_cursor *) (long) cursor, &key, &data, MDB_SET_RANGE);
+
 	if (rc == 0) {
 		VertexDbId vertexDbId = *((VertexDbId *) (key.mv_data));
 		if (fromVertexId == vertexDbId.vertexId && labelId == vertexDbId.labelId) {
@@ -726,7 +734,8 @@ int getFirstEdgefromVertex(MDB_cursor *cursor, jint direction, jint labelId, jlo
 			rc = GLMDB_END_OF_EDGES;
 		}
 	}
-	fail: return rc;
+	fail:
+	return rc;
 }
 
 int getNextEdgefromVertex(MDB_cursor *cursor, jint direction, jint labelId, jlong fromVertexId, jlong *edgeIdResultC, jlong *outVertexIdC,

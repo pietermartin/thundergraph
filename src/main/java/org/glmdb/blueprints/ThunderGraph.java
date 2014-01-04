@@ -327,6 +327,7 @@ public class ThunderGraph implements TransactionalGraph, KeyIndexableGraph {
 
     @Override
     public void commit() {
+//        printDb(DbEnum.LABEL_DB);
 //        printDb(DbEnum.VERTEX_DB);
         TransactionAndCursor tc = this.currentTransaction.get();
         if (tc != null) {
