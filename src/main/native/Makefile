@@ -24,7 +24,7 @@ CFLAGS	= $(THREADS) $(OPT) $(W) $(XCFLAGS)
 LDLIBS	= 
 SOLIBS	=
 prefix	= /usr/local
-IFLAGS  = -I/usr/lib/jvm/java-7-openjdk-amd64/include
+IFLAGS  = -I/usr/lib/jvm/java-7-openjdk/include -I/usr/lib/jvm/java-7-openjdk/include/linux
 
 ########################################################################
 
